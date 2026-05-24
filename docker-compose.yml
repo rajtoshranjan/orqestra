@@ -16,8 +16,8 @@ services:
       AWS_LAMBDA_EXECUTION_ROLE_ARN: ${AWS_LAMBDA_EXECUTION_ROLE_ARN:-}
     volumes:
       - ${HOME}/.aws:/root/.aws:ro
-    expose:
-      - "3001"
+    ports:
+      - "3001:3001"
     restart: unless-stopped
 
   client:

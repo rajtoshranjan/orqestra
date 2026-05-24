@@ -100,6 +100,14 @@ function CanvasEditor({
   const [reactFlowInstance, setReactFlowInstance] =
     React.useState<ReactFlowInstance<ServiceNodeData> | null>(null);
 
+  // Capture initial mount state to prevent autosave loop from refetches
+  const originalProjectRef = React.useRef({
+    nodes: initialProject.nodes,
+    edges: initialProject.edges,
+    deploymentSettings: initialProject.deploymentSettings,
+    projectName: initialProject.projectName,
+  });
+
   /* ── Clipboard & Context Menu ───────────────────────────────── */
   const [clipboard, setClipboard] = React.useState<ClipboardSelection | null>(
     null,
@@ -151,6 +159,15 @@ function CanvasEditor({
           data: payload,
         });
         setLastSavedAt(timestamp);
+
+        // Update the ref so the autosave effect recognizes this as the new base
+        originalProjectRef.current = {
+          nodes: nextNodes,
+          edges: nextEdges,
+          deploymentSettings: nextSettings,
+          projectName: nextProjectName,
+        };
+
         if (!silent) {
           toast({
             title: 'Project saved',
@@ -175,10 +192,10 @@ function CanvasEditor({
   React.useEffect(() => {
     // Skip autosave if nothing changed from initial loaded state
     if (
-      nodes === initialProject.nodes &&
-      edges === initialProject.edges &&
-      deploymentSettings === initialProject.deploymentSettings &&
-      projectName === initialProject.projectName
+      nodes === originalProjectRef.current.nodes &&
+      edges === originalProjectRef.current.edges &&
+      deploymentSettings === originalProjectRef.current.deploymentSettings &&
+      projectName === originalProjectRef.current.projectName
     ) {
       return;
     }
@@ -204,7 +221,6 @@ function CanvasEditor({
     projectDescription,
     currentProjectId,
     persistDiagram,
-    initialProject,
   ]);
 
   /* ── Update helpers ─────────────────────────────────────────── */

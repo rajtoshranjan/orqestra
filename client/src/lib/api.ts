@@ -214,9 +214,9 @@ export const useUpdateProject = () => {
       projectId: string;
       data: Partial<PersistedDiagram>;
     }) => updateProject(projectId, data),
-    onSuccess: (_, variables) => {
+    onSuccess: (data, variables) => {
       void qc.invalidateQueries({ queryKey: ['projects'] });
-      void qc.invalidateQueries({ queryKey: ['project', variables.projectId] });
+      qc.setQueryData(['project', variables.projectId], data);
     },
   });
 };
