@@ -33,3 +33,6 @@ venv
 
 # Environment
 .env
+
+# Database
+postgres-data

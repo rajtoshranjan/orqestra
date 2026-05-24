@@ -1,6 +1,6 @@
 # AI Agent System Instructions & Repository Rules (`agent.md`)
 
-Welcome, AI Agent! This document contains the **strict repository rules, architectural specifications, and mandatory command instructions** for developing on the **Draw to Deploy** platform. 
+Welcome, AI Agent! This document contains the **strict repository rules, architectural specifications, and mandatory command instructions** for developing on the **Orqestra** platform.
 
 You must parse this file fully, store these rules in your context, and verify that all your plans and edits adhere to them.
 
@@ -16,7 +16,7 @@ You must parse this file fully, store these rules in your context, and verify th
 ### Rule 2: Strict Casing & Translation Boundary
 - **Client (TypeScript)**: Standard `camelCase` naming conventions.
 - **Server (Python/Django)**: **100% strict `snake_case` properties.** This applies to all Django models, serializer parameters, environment variables, utility methods, validations, test payloads, and DB fields. 
-- **The Translator**: Casing translation occurs *strictly* on the frontend API boundary. Use `camelToSnakeRecursive` and `snakeToCamelRecursive` in [client/src/lib/api.ts](file:///Users/rajtosh/Documents/projects/draw-to-deploy/client/src/lib/api.ts) for all request/response mapping. **Never send camelCase payloads to the Django server.**
+- **The Translator**: Casing translation occurs *strictly* on the frontend API boundary. Use `camelToSnakeRecursive` and `snakeToCamelRecursive` in [client/src/lib/api.ts](file:///Users/rajtosh/Documents/projects/orqestra/client/src/lib/api.ts) for all request/response mapping. **Never send camelCase payloads to the Django server.**
 
 ### Rule 3: Fetching via Request Query Parameters
 - When querying detailed entity parameters (such as a specific project), always use query parameters instead of raw URL path parameters:
@@ -143,7 +143,7 @@ registry.register(S3Handler())
 ```
 
 ### Step 4: Register S3 App
-Add `"aws_s3"` to `INSTALLED_APPS` inside [server/draw_to_deploy/settings.py](file:///Users/rajtosh/Documents/projects/draw-to-deploy/server/draw_to_deploy/settings.py).
+Add `"aws_s3"` to `INSTALLED_APPS` inside [server/orqestra/settings.py](file:///Users/rajtosh/Documents/projects/orqestra/server/orqestra/settings.py).
 
 ### Step 5: Verify S3 Test Coverage
 Create `aws_s3/tests/test_plan.py` inheriting from `BaseTestCase` and execute tests via Docker:

@@ -1,4 +1,4 @@
-## Draw-to-Deploy Server
+## Orqestra Server
 
 The server is a Django REST Framework API that converts saved diagrams into AWS Lambda deployments by calling the AWS CLI.
 
@@ -33,7 +33,7 @@ The default port is `3001`.
 ### Start (Production)
 
 ```bash
-uvicorn draw_to_deploy.asgi:application --host 0.0.0.0 --port 3001
+uvicorn orqestra.asgi:application --host 0.0.0.0 --port 3001
 ```
 
 ### Docker

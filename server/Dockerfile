@@ -21,4 +21,4 @@ ADD docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod a+x /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
-CMD ["uvicorn", "draw_to_deploy.asgi:application", "--host", "0.0.0.0", "--port", "3001"]
+CMD ["uvicorn", "orqestra.asgi:application", "--host", "0.0.0.0", "--port", "3001"]

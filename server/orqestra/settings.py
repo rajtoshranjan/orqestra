@@ -49,7 +49,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "draw_to_deploy.urls"
+ROOT_URLCONF = "orqestra.urls"
 
 TEMPLATES = [
     {
@@ -67,16 +67,20 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "draw_to_deploy.wsgi.application"
+WSGI_APPLICATION = "orqestra.wsgi.application"
 
-
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": EnvVariable.DB_NAME.value,
+        "USER": EnvVariable.DB_USER.value,
+        "PASSWORD": EnvVariable.DB_PASSWORD.value,
+        "HOST": EnvVariable.DB_HOST.value,
+        "PORT": EnvVariable.DB_PORT.value,
+        "OPTIONS": {
+            "pool": True,
+        },
     }
 }
 
@@ -127,9 +131,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": [
-        "draw_to_deploy.response_renderer.CustomJsonRenderer",
+        "orqestra.response_renderer.CustomJsonRenderer",
     ],
-    "EXCEPTION_HANDLER": "draw_to_deploy.exceptions.handler.custom_exception_handler",
+    "EXCEPTION_HANDLER": "orqestra.exceptions.handler.custom_exception_handler",
 }
 
 

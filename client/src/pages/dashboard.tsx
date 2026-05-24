@@ -2,7 +2,6 @@ import {
   Plus,
   FolderOpen,
   Trash2,
-  FunctionSquare,
   Layers,
   Clock,
 } from 'lucide-react';
@@ -24,7 +23,10 @@ export function Dashboard({ onOpenProject, onNewProject }: DashboardProps) {
 
   /* ── Computed stats ─────────────────────────────────────────────────── */
   const totalProjects = projects.length;
-  const totalResources = projects.reduce((sum, p) => sum + (p.nodes?.length ?? 0), 0);
+  const totalResources = projects.reduce(
+    (sum, p) => sum + (p.nodes?.length ?? 0),
+    0,
+  );
 
   const lastActive =
     projects.length > 0
@@ -45,44 +47,41 @@ export function Dashboard({ onOpenProject, onNewProject }: DashboardProps) {
     >
       {/* ── Top Navigation ────────────────────────────────────────────── */}
       <nav
-        className="flex h-16 items-center justify-between border-b px-6"
+        className="flex h-11 items-center justify-between border-b px-3"
         style={{
           background: 'var(--color-bg-surface)',
           borderColor: 'var(--color-border)',
         }}
       >
-        {/* Left — logo */}
-        <div className="flex items-center gap-3">
-          <div
-            className="flex h-9 w-9 items-center justify-center rounded-lg"
+        {/* Left — logo + app name */}
+        <div className="flex items-center">
+          <span
+            className="text-[14px] font-bold tracking-tight cursor-default select-none"
             style={{
-              background: 'linear-gradient(135deg, #3b82f6, #06b6d4)',
+              color: 'var(--color-text-primary)',
+              fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
             }}
           >
-            <FunctionSquare className="h-[18px] w-[18px] text-white" />
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-gradient text-[15px] font-bold">DrawOps</span>
-          </div>
+            Orqestra
+          </span>
         </div>
 
         {/* Right — New Project + avatar */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={onNewProject}
-            className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white transition-all hover:brightness-110"
+            className="inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-[12px] font-medium text-white transition-all hover:brightness-110"
             style={{
               background: 'var(--color-accent)',
-              transition: 'var(--transition-fast)',
             }}
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-3.5 w-3.5" />
             New Project
           </button>
 
           <div
-            className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-semibold"
+            className="flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-semibold"
             style={{
               background: 'var(--color-accent-subtle)',
               color: 'var(--color-accent)',
@@ -168,7 +167,7 @@ export function Dashboard({ onOpenProject, onNewProject }: DashboardProps) {
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="glass animate-pulse rounded-xl p-5 h-44 flex flex-col justify-between"
+                className="glass flex h-44 animate-pulse flex-col justify-between rounded-xl p-5"
                 style={{
                   background: 'var(--color-bg-elevated)',
                   borderColor: 'var(--color-border)',
@@ -176,9 +175,9 @@ export function Dashboard({ onOpenProject, onNewProject }: DashboardProps) {
               >
                 <div>
                   <div className="h-5 w-2/3 rounded bg-white/10" />
-                  <div className="h-4 w-1/2 rounded bg-white/5 mt-2" />
+                  <div className="mt-2 h-4 w-1/2 rounded bg-white/5" />
                 </div>
-                <div className="flex justify-between items-center mt-4">
+                <div className="mt-4 flex items-center justify-between">
                   <div className="h-4 w-1/4 rounded bg-white/10" />
                   <div className="h-6 w-6 rounded bg-white/5" />
                 </div>
@@ -246,7 +245,9 @@ export function Dashboard({ onOpenProject, onNewProject }: DashboardProps) {
                     </span>
                     <span className="inline-flex items-center gap-1.5">
                       <Clock className="h-3.5 w-3.5" />
-                      {formatRelativeTime(project.lastSavedAt || new Date().toISOString())}
+                      {formatRelativeTime(
+                        project.lastSavedAt || new Date().toISOString(),
+                      )}
                     </span>
                   </div>
 

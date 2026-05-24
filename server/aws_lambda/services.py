@@ -80,7 +80,7 @@ def create_lambda_bundle(config):
     Returns:
         tuple: (archive_path, temp_dir) — caller must clean up temp_dir.
     """
-    temp_dir = tempfile.mkdtemp(prefix="draw-to-deploy-")
+    temp_dir = tempfile.mkdtemp(prefix="orqestra-")
 
     try:
         runtime = config.get("runtime", "")
@@ -143,9 +143,7 @@ def deploy_lambda(node, settings, logs):
         os.environ.get("AWS_LAMBDA_EXECUTION_ROLE_ARN", ""),
     )
 
-    env_vars = normalize_environment_variables(
-        config.get("environment_variables", [])
-    )
+    env_vars = normalize_environment_variables(config.get("environment_variables", []))
     environment_payload = json.dumps({"Variables": env_vars})
 
     # Create the deployment bundle.

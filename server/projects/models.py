@@ -1,5 +1,5 @@
 from django.db import models
-from draw_to_deploy.models import BaseModel
+from orqestra.models import BaseModel
 
 
 class Project(BaseModel):

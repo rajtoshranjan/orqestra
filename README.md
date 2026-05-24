@@ -1,11 +1,11 @@
-# Draw-to-Deploy
+# Orqestra
 Draw and deploy to AWS
 
 ## MVP
 
 This repo now includes:
 
-- a visual React Flow editor for diagramming Lambda-based architecture
+- a visual React Flow editor for diagramming cloud architecture
 - local save/load, copy/paste, validation, and planning
 - a local deployment service that turns Lambda nodes into real AWS Lambda deployments through the AWS CLI
 
@@ -14,7 +14,7 @@ This repo now includes:
 ### UI
 
 ```bash
-cd ui
+cd client
 npm install
 npm run dev
 ```

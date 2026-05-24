@@ -1,4 +1,4 @@
-from draw_to_deploy.tests import BaseTestCase
+from orqestra.tests import BaseTestCase
 
 
 class HealthCheckTests(BaseTestCase):

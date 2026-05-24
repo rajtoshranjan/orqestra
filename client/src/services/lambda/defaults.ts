@@ -22,7 +22,7 @@ export const DEFAULT_NODE_CODE = `exports.handler = async (event) => {
     statusCode: 200,
     body: JSON.stringify({
       ok: true,
-      message: "Hello from Draw to Deploy",
+      message: "Hello from Orqestra",
       receivedAt: new Date().toISOString(),
     }),
   };
@@ -36,7 +36,7 @@ def lambda_handler(event, context):
         "statusCode": 200,
         "body": json.dumps({
             "ok": True,
-            "message": "Hello from Draw to Deploy",
+            "message": "Hello from Orqestra",
             "receivedAt": datetime.utcnow().isoformat(),
         }),
     }`;

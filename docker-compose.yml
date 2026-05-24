@@ -1,4 +1,14 @@
 services:
+  db:
+    image: postgres:17-alpine
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    restart: unless-stopped
+
   server:
     build:
       context: ./server
@@ -6,7 +16,7 @@ services:
     environment:
       HOST: 0.0.0.0
       PORT: "3001"
-      SECRET_KEY: ${SECRET_KEY:-django-insecure-draw-to-deploy-dev-key-change-in-production}
+      SECRET_KEY: ${SECRET_KEY:-django-insecure-orqestra-dev-key-change-in-production}
       DEBUG: ${DEBUG:-True}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
       ALLOWED_CORS_DOMAINS: ${ALLOWED_CORS_DOMAINS:-http://localhost:8080}
@@ -14,6 +24,13 @@ services:
       AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
       AWS_PROFILE: ${AWS_PROFILE:-default}
       AWS_LAMBDA_EXECUTION_ROLE_ARN: ${AWS_LAMBDA_EXECUTION_ROLE_ARN:-}
+      DB_NAME: ${DB_NAME:-postgres}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_HOST: db
+      DB_PORT: 5432
+    depends_on:
+      - db
     volumes:
       - ${HOME}/.aws:/root/.aws:ro
     ports:

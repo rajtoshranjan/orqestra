@@ -3,7 +3,7 @@ from rest_framework.test import APITestCase
 
 class BaseTestCase(APITestCase):
     """
-    Base test case providing setup and helper utilities for draw-to-deploy tests.
+    Base test case providing setup and helper utilities for Orqestra tests.
     """
 
     def _make_valid_lambda_node(self, node_id="node-1", function_name="my-func"):
