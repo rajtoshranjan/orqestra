@@ -9,7 +9,7 @@ def plan_diagram(nodes, edges) -> list[dict]:
 
     for node in nodes:
         data = node.get("data", {})
-        service_id = data.get("kind", "")
+        service_id = data.get("service_id", data.get("kind", ""))
         if not service_id:
             continue
 
@@ -57,7 +57,7 @@ def deploy_diagram(nodes, edges, settings, logs) -> list[dict]:
 
     for node in nodes:
         data = node.get("data", {})
-        service_id = data.get("kind", "")
+        service_id = data.get("service_id", data.get("kind", ""))
         if not service_id:
             continue
 

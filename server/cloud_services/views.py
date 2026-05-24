@@ -115,6 +115,7 @@ class DeployView(APIView):
         try:
             deploy_diagram(nodes, edges, settings, logs)
         except Exception as e:
+            logger.exception("Deployment failed")
             error_message = str(e)
             # Ensure the error is in the logs
             if not any(log.get("message") == error_message for log in logs):

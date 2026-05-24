@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import tempfile
 import zipfile
+from orqestra.env_variables import EnvVariable
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +55,13 @@ def run_aws_command(*args):
     Raises:
         RuntimeError: If the command fails.
     """
-    result = run_command(["aws"] + list(args))
+    endpoint_url = EnvVariable.AWS_ENDPOINT_URL.value.strip()
+    cmd = ["aws"]
+    if endpoint_url:
+        cmd.extend(["--endpoint-url", endpoint_url])
+    cmd.extend(list(args))
+
+    result = run_command(cmd)
     if result["code"] != 0:
         error_msg = result["stderr"] or result["stdout"] or "AWS CLI command failed."
         raise RuntimeError(error_msg)
@@ -151,19 +158,23 @@ def deploy_lambda(node, settings, logs):
 
     try:
         # Check if the function already exists.
-        exists_result = run_command(
-            [
-                "aws",
-                "lambda",
-                "get-function",
-                "--function-name",
-                function_name,
-                "--region",
-                region,
-                "--output",
-                "json",
-            ]
-        )
+        exists_cmd = [
+            "aws",
+            "lambda",
+            "get-function",
+            "--function-name",
+            function_name,
+            "--region",
+            region,
+            "--output",
+            "json",
+        ]
+        endpoint_url = EnvVariable.AWS_ENDPOINT_URL.value.strip()
+        if endpoint_url:
+            exists_cmd.insert(1, "--endpoint-url")
+            exists_cmd.insert(2, endpoint_url)
+
+        exists_result = run_command(exists_cmd)
 
         if exists_result["code"] == 0:
             # Update existing function.
