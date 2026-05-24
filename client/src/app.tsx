@@ -3,10 +3,8 @@ import '@/services'; // Register all AWS service plugins at startup
 import { useState, useEffect, useCallback } from 'react';
 import { Dashboard, Editor } from './pages';
 import { Toaster } from './components/ui/toaster';
+import { createInitialDiagram } from './utils';
 import { useCreateProject } from '@/lib/api';
-import {
-  createInitialDiagram,
-} from './utils';
 
 /* ─── Simple Hash Router ──────────────────────────────────────────────── */
 

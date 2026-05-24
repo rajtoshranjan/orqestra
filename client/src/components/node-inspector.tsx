@@ -1,6 +1,8 @@
 import { MousePointer2 } from 'lucide-react';
+
 import type { DiagramNode } from '@/types';
 import { registry } from '@/services';
+import { Badge, EmptyState } from '@/components/ui';
 
 export interface NodeInspectorProps {
   selectedNode: DiagramNode | null;
@@ -16,11 +18,13 @@ export function NodeInspector({
   /* ─── Empty state ──────────────────────────────────────────── */
   if (!selectedNode) {
     return (
-      <aside className="animate-slide-in-right flex h-full w-[360px] shrink-0 flex-col items-center justify-center gap-3 border-l border-[var(--color-border)] bg-[var(--color-bg-surface)]">
-        <MousePointer2 className="h-8 w-8 text-[var(--color-text-muted)]" />
-        <p className="text-sm text-[var(--color-text-muted)]">
-          Select a node to inspect
-        </p>
+      <aside className="animate-slide-in-right flex h-full w-[360px] shrink-0 flex-col justify-center border-l border-border bg-card">
+        <EmptyState
+          title="No node selected"
+          description="Select any cloud resource on the canvas to inspect and configure its settings."
+          icon={MousePointer2}
+          className="px-6"
+        />
       </aside>
     );
   }
@@ -31,10 +35,13 @@ export function NodeInspector({
   const service = registry.find(serviceId);
   if (!service) {
     return (
-      <aside className="flex h-full w-[360px] shrink-0 flex-col items-center justify-center gap-3 border-l border-[var(--color-border)] bg-[var(--color-bg-surface)]">
-        <p className="text-sm text-[var(--color-text-muted)]">
-          Unknown service: {serviceId}
-        </p>
+      <aside className="flex h-full w-[360px] shrink-0 flex-col justify-center border-l border-border bg-card">
+        <EmptyState
+          title="Unknown service"
+          description={`The service type "${serviceId}" is not registered in this system.`}
+          icon={MousePointer2}
+          className="px-6"
+        />
       </aside>
     );
   }
@@ -44,31 +51,28 @@ export function NodeInspector({
   const InspectorForm = service.InspectorComponent;
 
   return (
-    <aside className="animate-slide-in-right flex h-full w-[360px] shrink-0 flex-col border-l border-[var(--color-border)] bg-[var(--color-bg-surface)]">
+    <aside className="animate-slide-in-right flex h-full w-[360px] shrink-0 flex-col border-l border-border bg-card">
       {/* ─── Header ─────────────────────────────────────────────── */}
-      <div className="flex shrink-0 items-center gap-3 border-b border-[var(--color-border)] px-4 py-3">
+      <div className="flex shrink-0 items-center gap-3 border-b border-border px-4 py-3">
         <div
-          className="flex h-8 w-8 items-center justify-center rounded-full"
+          className="flex size-8 items-center justify-center rounded-full text-primary"
           style={{ background: `${service.accentColor}18` }}
         >
-          <ServiceIcon size={16} className="text-[var(--color-cyan)]" />
+          <ServiceIcon size={16} className="text-primary" />
         </div>
-        <span className="text-sm font-semibold text-[var(--color-text-primary)]">
+        <span className="text-sm font-semibold text-foreground">
           {service.name}
         </span>
-        <span
-          className={`ml-auto rounded-full px-2 py-0.5 text-[10px] font-medium ${
-            hasErrors
-              ? 'bg-[var(--color-warning-subtle)] text-[var(--color-warning)]'
-              : 'bg-[var(--color-success-subtle)] text-[var(--color-success)]'
-          }`}
+        <Badge
+          variant={hasErrors ? 'warning' : 'success'}
+          className="ml-auto rounded-full px-2 py-0.5 text-[10px] font-medium"
         >
           {hasErrors ? 'Needs attention' : 'Valid'}
-        </span>
+        </Badge>
       </div>
 
       {/* ─── Service-specific form (rendered via registry) ──────── */}
-      <div className="flex-1 overflow-y-auto px-4 py-4">
+      <div className="flex-1 overflow-y-auto p-4">
         <InspectorForm
           config={config}
           validationErrors={validationErrors}

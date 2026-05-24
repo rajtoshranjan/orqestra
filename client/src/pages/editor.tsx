@@ -65,17 +65,18 @@ interface CanvasEditorProps extends EditorProps {
   initialProject: PersistedDiagram;
 }
 
-function CanvasEditor({
-  initialProject,
-  onNavigateHome,
-}: CanvasEditorProps) {
+function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorProps) {
   /* ── Build nodeTypes from registry (memoized) ───────────────── */
   const nodeTypes = React.useMemo(() => registry.getNodeTypes(), []);
 
   /* ── Core state ──────────────────────────────────────────────── */
   const [currentProjectId] = React.useState(initialProject.projectId);
-  const [projectName, setProjectName] = React.useState(initialProject.projectName);
-  const [projectDescription] = React.useState(initialProject.projectDescription);
+  const [projectName, setProjectName] = React.useState(
+    initialProject.projectName,
+  );
+  const [projectDescription] = React.useState(
+    initialProject.projectDescription,
+  );
   const [nodes, setNodes, onNodesChange] = useNodesState(initialProject.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialProject.edges);
   const [deploymentSettings, setDeploymentSettings] =
@@ -171,7 +172,8 @@ function CanvasEditor({
         if (!silent) {
           toast({
             title: 'Project saved',
-            description: 'The current architecture project has been saved to the server.',
+            description:
+              'The current architecture project has been saved to the server.',
           });
         }
       } catch (err) {
@@ -442,17 +444,19 @@ function CanvasEditor({
       const response = await fetch(`${API_BASE_URL}/api/deploy`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(camelToSnakeRecursive({
-          diagram: serializeDiagram({
-            projectId: currentProjectId,
-            projectName,
-            projectDescription,
-            nodes: validatedNodes,
-            edges,
-            deploymentSettings,
-            lastSavedAt,
+        body: JSON.stringify(
+          camelToSnakeRecursive({
+            diagram: serializeDiagram({
+              projectId: currentProjectId,
+              projectName,
+              projectDescription,
+              nodes: validatedNodes,
+              edges,
+              deploymentSettings,
+              lastSavedAt,
+            }),
           }),
-        })),
+        ),
       });
 
       const payload = (await response.json()) as {
@@ -741,9 +745,9 @@ export function Editor({ projectId, onNavigateHome }: EditorProps) {
     return (
       <div className="flex h-screen w-screen flex-col items-center justify-center gap-4 bg-[#09090b] text-[#fafafa]">
         {/* Sleek, premium loader */}
-        <div className="relative flex h-16 w-16 items-center justify-center">
-          <div className="absolute h-full w-full animate-ping rounded-full bg-violet-600/30 opacity-75"></div>
-          <div className="relative h-12 w-12 animate-spin rounded-full border-4 border-violet-500 border-t-transparent"></div>
+        <div className="relative flex size-16 items-center justify-center">
+          <div className="absolute size-full animate-ping rounded-full bg-violet-600/30 opacity-75"></div>
+          <div className="relative size-12 animate-spin rounded-full border-4 border-violet-500 border-t-transparent"></div>
         </div>
         <div className="animate-pulse text-sm font-medium tracking-wide text-zinc-400">
           Loading cloud architecture...

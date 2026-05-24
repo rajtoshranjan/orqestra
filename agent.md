@@ -34,6 +34,13 @@ To prevent server overload and infinite API request loops during real-time autos
 - **No Invalidation on Save**: Never call query invalidations (`qc.invalidateQueries(['project', projectId])`) on mutation success inside `useUpdateProject`. Instead, update the cache directly using `qc.setQueryData(['project', projectId], data)`.
 - **Ref-Based Canvas Dirty Checking**: Inside the canvas editor `useEffect` autosave check, always compare the current layout against a stable React Ref (`originalProjectRef`) rather than the dynamic query state `initialProject`. Update this ref value strictly upon successful save persistence to halt the debouncing loop.
 
+### Rule 6: Reusable Design System & UI Architecture (ShadCN UI)
+- **Unified Design System**: All reusable atomic UI primitives (e.g., `Button`, `Input`, `Badge`, `Card`, `Dialog`, `Sheet`, `Tabs`, `DropdownMenu`, `Tooltip`, `Popover`) and molecular presentation components (e.g., `EmptyState`, `LoadingState`, `ConfirmDialog`, `PageHeader`, `SearchBar`) **MUST** live strictly inside the `client/src/components/ui/` directory.
+- **Composition over Duplication**: Before creating any new UI element, always check if a similar primitive already exists in `components/ui/`. Prefer extending existing variants/sizes or using composition instead of creating duplicate implementations of the same UI pattern.
+- **Avoid Wrapper Hell**: Do not create unnecessary visual wrappers (like `PrimaryButton`, `FancyDialog`, `CustomSheet`) unless they encapsulate meaningful business behavior. Prefer standard composition: `<Button variant="default" />` instead of `<PrimaryButton />`.
+- **Zero Business Logic in Primitives**: UI components inside `components/ui/` must remain presentation-focused, reusable, and free of business/domain coupling.
+- **Zero Arbitrary Tailwind Values**: Avoid using inline arbitrary tailwind overrides (like `px-[13px]`, `rounded-[11px]`, or custom hex colors). Always utilize the semantic design tokens and variables defined in `client/src/assets/styles.css` (`border-border`, `bg-card`, `text-muted-foreground`, etc.) to maintain the unified dark branding.
+
 ---
 
 ## 2. Docker Execution Rules (Mandatory for Commands & Testing)

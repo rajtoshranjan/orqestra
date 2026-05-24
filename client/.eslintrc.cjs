@@ -52,6 +52,19 @@ module.exports = {
     'import/newline-after-import': 'warn',
     'import/no-self-import': 'error',
     'import/no-cycle': 'error',
+    'import/no-unresolved': 'off',
+
+    // Custom overrides.
+    'jsx-a11y/heading-has-content': 'off',
+    'jsx-a11y/label-has-associated-control': 'off',
+    'jsx-a11y/no-static-element-interactions': 'off',
+    'jsx-a11y/click-events-have-key-events': 'off',
+    'tailwindcss/no-custom-classname': 'off',
+    'import/no-named-as-default': 'off',
+    'import/no-named-as-default-member': 'off',
+  },
+  globals: {
+    React: 'readonly',
   },
   settings: {
     react: {

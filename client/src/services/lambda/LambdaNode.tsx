@@ -52,7 +52,7 @@ function LambdaNodeComponent({
       {/* ── Header ── */}
       <div className="flex items-start gap-3 px-4 pb-3 pt-4">
         <div
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-sm)]"
+          className="flex size-8 shrink-0 items-center justify-center rounded-[var(--radius-sm)]"
           style={{ background: 'var(--color-accent-subtle)' }}
         >
           <FunctionSquare size={16} className="text-[var(--color-accent)]" />
@@ -107,7 +107,7 @@ function LambdaNodeComponent({
               border: '1px solid var(--color-warning)',
             }}
           >
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--color-warning)]" />
+            <span className="inline-block size-1.5 rounded-full bg-[var(--color-warning)]" />
             {errorCount} field{errorCount > 1 ? 's' : ''} need attention
           </span>
         ) : (
@@ -119,7 +119,7 @@ function LambdaNodeComponent({
               border: '1px solid var(--color-success)',
             }}
           >
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--color-success)]" />
+            <span className="inline-block size-1.5 rounded-full bg-[var(--color-success)]" />
             Ready
           </span>
         )}

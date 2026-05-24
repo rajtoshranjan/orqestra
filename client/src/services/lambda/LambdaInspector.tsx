@@ -1,4 +1,5 @@
 import { Plus, Trash2 } from 'lucide-react';
+
 import type { ServiceInspectorProps } from '../types';
 import type { LambdaConfig, LambdaRuntime } from './types';
 import { RUNTIME_OPTIONS } from './types';
@@ -7,12 +8,13 @@ import {
   getDefaultCodeForRuntime,
   makeEnvironmentVariable,
 } from './defaults';
+import { Button, Input } from '@/components/ui';
 
 /* ─── Shared sub-components ───────────────────────────────────────────── */
 
 function SectionHeader({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+    <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
       {children}
     </h3>
   );
@@ -20,7 +22,9 @@ function SectionHeader({ children }: { children: React.ReactNode }) {
 
 function FieldError({ message }: { message?: string }) {
   if (!message) return null;
-  return <p className="mt-1 text-xs text-[var(--color-error)]">{message}</p>;
+  return (
+    <p className="animate-fade-in mt-1 text-xs text-destructive">{message}</p>
+  );
 }
 
 /* ─── Lambda Inspector ────────────────────────────────────────────────── */
@@ -84,9 +88,9 @@ export function LambdaInspector({
           {/* Function Name */}
           <div>
             <label className="input-label">Function Name</label>
-            <input
+            <Input
               type="text"
-              className="input-field w-full"
+              className="border-border/80 bg-background/50 text-foreground"
               value={config.functionName}
               onChange={(e) => patch({ functionName: e.target.value })}
             />
@@ -97,14 +101,18 @@ export function LambdaInspector({
           <div>
             <label className="input-label">Runtime</label>
             <select
-              className="input-field w-full"
+              className="flex h-9 w-full rounded-md border border-border/80 bg-background/50 px-3 py-1.5 text-sm text-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
               value={config.runtime}
               onChange={(e) =>
                 handleRuntimeChange(e.target.value as LambdaRuntime)
               }
             >
               {RUNTIME_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
+                <option
+                  key={opt.value}
+                  value={opt.value}
+                  className="bg-card text-foreground"
+                >
                   {opt.label}
                 </option>
               ))}
@@ -115,9 +123,9 @@ export function LambdaInspector({
           {/* Handler */}
           <div>
             <label className="input-label">Handler</label>
-            <input
+            <Input
               type="text"
-              className="input-field w-full"
+              className="border-border/80 bg-background/50 text-foreground"
               value={config.handler}
               onChange={(e) => patch({ handler: e.target.value })}
             />
@@ -127,9 +135,9 @@ export function LambdaInspector({
           {/* Memory Size */}
           <div>
             <label className="input-label">Memory (MB)</label>
-            <input
+            <Input
               type="number"
-              className="input-field w-full"
+              className="border-border/80 bg-background/50 text-foreground"
               min={128}
               max={10240}
               value={config.memorySize}
@@ -141,9 +149,9 @@ export function LambdaInspector({
           {/* Timeout */}
           <div>
             <label className="input-label">Timeout (seconds)</label>
-            <input
+            <Input
               type="number"
-              className="input-field w-full"
+              className="border-border/80 bg-background/50 text-foreground"
               min={1}
               max={900}
               value={config.timeout}
@@ -155,9 +163,9 @@ export function LambdaInspector({
           {/* Description */}
           <div>
             <label className="input-label">Description</label>
-            <input
+            <Input
               type="text"
-              className="input-field w-full"
+              className="border-border/80 bg-background/50 text-foreground"
               value={config.description}
               onChange={(e) => patch({ description: e.target.value })}
             />
@@ -172,7 +180,7 @@ export function LambdaInspector({
         <div>
           <label className="input-label">Source</label>
           <textarea
-            className="duration-[var(--transition-fast)] w-full resize-y rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-bg-base)] px-3 py-2.5 font-mono text-sm text-[var(--color-text-primary)] transition-shadow placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
+            className="w-full resize-y rounded-md border border-border/80 bg-background/50 px-3 py-2.5 font-mono text-xs text-foreground shadow-sm transition-all placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             style={{
               minHeight: 200,
               fontFamily: "'JetBrains Mono', monospace",
@@ -182,7 +190,7 @@ export function LambdaInspector({
           />
           <div className="mt-1 flex items-center justify-between">
             <FieldError message={validationErrors.code} />
-            <span className="ml-auto text-[10px] text-[var(--color-text-muted)]">
+            <span className="ml-auto text-[10px] text-muted-foreground">
               {config.code.length} chars
             </span>
           </div>
@@ -195,41 +203,47 @@ export function LambdaInspector({
         <div className="space-y-2">
           {config.environmentVariables.map((entry) => (
             <div key={entry.id} className="flex items-center gap-2">
-              <input
+              <Input
                 type="text"
-                className="input-field min-w-0 flex-1"
+                className="border-border/80 bg-background/50 text-foreground"
                 placeholder="KEY"
                 value={entry.key}
                 onChange={(e) =>
                   handleEnvChange(entry.id, 'key', e.target.value)
                 }
               />
-              <input
+              <Input
                 type="text"
-                className="input-field min-w-0 flex-1"
+                className="border-border/80 bg-background/50 text-foreground"
                 placeholder="Value"
                 value={entry.value}
                 onChange={(e) =>
                   handleEnvChange(entry.id, 'value', e.target.value)
                 }
               />
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
+                type="button"
                 onClick={() => removeEnvVariable(entry.id)}
-                className="duration-[var(--transition-fast)] rounded-[var(--radius-sm)] p-1.5 text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-error-subtle)] hover:text-[var(--color-error)]"
+                className="size-9 shrink-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                 aria-label="Remove variable"
               >
-                <Trash2 className="h-3.5 w-3.5" />
-              </button>
+                <Trash2 className="size-4" />
+              </Button>
             </div>
           ))}
           <FieldError message={validationErrors.environmentVariables} />
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
+            type="button"
             onClick={addEnvVariable}
-            className="duration-[var(--transition-fast)] mt-1 flex items-center gap-1.5 text-xs font-medium text-[var(--color-accent)] transition-colors hover:text-[var(--color-accent-hover)]"
+            className="mt-1 flex items-center gap-1.5 text-primary hover:bg-accent/40"
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className="size-3.5" />
             Add variable
-          </button>
+          </Button>
         </div>
       </section>
     </div>

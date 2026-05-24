@@ -35,9 +35,9 @@ export function ServiceCatalog({
           aria-label={collapsed ? 'Expand catalog' : 'Collapse catalog'}
         >
           {collapsed ? (
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="size-4" />
           ) : (
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="size-4" />
           )}
         </button>
       </div>
@@ -62,7 +62,7 @@ export function ServiceCatalog({
                   <button
                     key={service.id}
                     onClick={() => onAddNode(service.id)}
-                    className="duration-[var(--transition-fast)] mx-auto flex h-9 w-9 items-center justify-center rounded-[var(--radius-sm)] transition-colors"
+                    className="duration-[var(--transition-fast)] mx-auto flex size-9 items-center justify-center rounded-[var(--radius-sm)] transition-colors"
                     style={{
                       background: `${service.accentColor}18`,
                       color: service.accentColor,
@@ -89,7 +89,7 @@ export function ServiceCatalog({
                     {/* Icon + Title Row */}
                     <div className="mb-2 flex items-center gap-2.5">
                       <div
-                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
+                        className="flex size-8 shrink-0 items-center justify-center rounded-full"
                         style={{
                           background: `${service.accentColor}18`,
                           color: service.accentColor,
@@ -120,7 +120,7 @@ export function ServiceCatalog({
 
                     {/* Drag hint */}
                     <div className="duration-[var(--transition-fast)] flex items-center gap-1 text-[10px] text-[var(--color-text-muted)] opacity-0 transition-opacity group-hover:opacity-100">
-                      <GripVertical className="h-3 w-3" />
+                      <GripVertical className="size-3" />
                       <span>Drag to canvas</span>
                     </div>
                   </div>

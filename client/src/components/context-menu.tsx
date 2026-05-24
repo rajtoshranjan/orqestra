@@ -1,5 +1,7 @@
 import { Copy, Trash2 } from 'lucide-react';
 
+import { Button } from './ui';
+
 interface ContextMenuProps {
   x: number;
   y: number;
@@ -10,26 +12,30 @@ interface ContextMenuProps {
 export function ContextMenu({ x, y, onDuplicate, onDelete }: ContextMenuProps) {
   return (
     <div
-      className="glass animate-scale-in fixed z-50 min-w-[180px] overflow-hidden rounded-[var(--radius-lg)] p-1 shadow-[var(--shadow-lg)]"
+      className="glass animate-scale-in fixed z-50 min-w-[180px] overflow-hidden rounded-lg border border-border/80 bg-popover p-1 shadow-md"
       style={{ left: x, top: y }}
     >
-      <button
+      <Button
+        variant="ghost"
+        size="sm"
+        type="button"
         onClick={onDuplicate}
-        className="duration-[var(--transition-fast)] flex w-full items-center gap-3 rounded-[var(--radius-sm)] px-3 py-2 text-sm font-medium transition-colors hover:bg-[var(--color-bg-hover)]"
-        style={{ color: 'var(--color-text-primary)' }}
+        className="flex w-full items-center justify-start gap-3 rounded-md px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent"
       >
-        <Copy size={15} className="text-[var(--color-text-secondary)]" />
+        <Copy size={14} className="text-muted-foreground" />
         Duplicate node
-      </button>
+      </Button>
 
-      <button
+      <Button
+        variant="ghost"
+        size="sm"
+        type="button"
         onClick={onDelete}
-        className="duration-[var(--transition-fast)] flex w-full items-center gap-3 rounded-[var(--radius-sm)] px-3 py-2 text-sm font-medium transition-colors hover:bg-[var(--color-bg-hover)]"
-        style={{ color: 'var(--color-error)' }}
+        className="flex w-full items-center justify-start gap-3 rounded-md px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10 hover:text-destructive"
       >
-        <Trash2 size={15} />
+        <Trash2 size={14} />
         Delete node
-      </button>
+      </Button>
     </div>
   );
 }

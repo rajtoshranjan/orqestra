@@ -1,4 +1,5 @@
-import { X, WandSparkles, CloudUpload, Loader2, Link } from 'lucide-react';
+import { WandSparkles, CloudUpload, Loader2, Link } from 'lucide-react';
+
 import type {
   DeploymentSettings,
   PlanSummary,
@@ -6,6 +7,16 @@ import type {
   DeploymentLogLevel,
 } from '@/types';
 import { formatTimestamp } from '@/utils';
+import {
+  Button,
+  Input,
+  Badge,
+  Card,
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui';
 
 export interface DeployDrawerProps {
   open: boolean;
@@ -20,31 +31,29 @@ export interface DeployDrawerProps {
 
 const STATUS_STYLES: Record<
   DeploymentResult['status'],
-  { bg: string; text: string; label: string }
+  {
+    badgeVariant: 'outline' | 'warning' | 'success' | 'destructive';
+    label: string;
+  }
 > = {
   idle: {
-    bg: 'bg-[var(--color-text-muted)]/15',
-    text: 'text-[var(--color-text-muted)]',
+    badgeVariant: 'outline',
     label: 'Idle',
   },
   pending: {
-    bg: 'bg-[var(--color-warning)]/15',
-    text: 'text-[var(--color-warning)]',
+    badgeVariant: 'warning',
     label: 'Pending',
   },
   'in-progress': {
-    bg: 'bg-[var(--color-warning)]/15',
-    text: 'text-[var(--color-warning)]',
+    badgeVariant: 'warning',
     label: 'In Progress',
   },
   success: {
-    bg: 'bg-[var(--color-success)]/15',
-    text: 'text-[var(--color-success)]',
+    badgeVariant: 'success',
     label: 'Success',
   },
   failed: {
-    bg: 'bg-[var(--color-error)]/15',
-    text: 'text-[var(--color-error)]',
+    badgeVariant: 'destructive',
     label: 'Failed',
   },
 };
@@ -57,7 +66,7 @@ const LOG_DOT_COLOR: Record<DeploymentLogLevel, string> = {
 
 function SectionHeader({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+    <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
       {children}
     </h3>
   );
@@ -73,8 +82,6 @@ export function DeployDrawer({
   onPlan,
   onDeploy,
 }: DeployDrawerProps) {
-  if (!open) return null;
-
   const status = deploymentResult.status;
   const isRunning = status === 'in-progress';
   const statusStyle = STATUS_STYLES[status];
@@ -84,54 +91,43 @@ export function DeployDrawer({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end">
-      {/* Backdrop */}
-      <div
-        className="duration-[var(--transition-base)] absolute inset-0 bg-black/50 transition-opacity"
-        onClick={onClose}
-      />
-
-      {/* Drawer Panel */}
-      <aside className="animate-slide-in-right relative flex h-full w-[420px] flex-col border-l border-[var(--color-border)] bg-[var(--color-bg-surface)] shadow-[var(--shadow-lg)]">
+    <Sheet open={open} onOpenChange={(val) => !val && onClose()}>
+      <SheetContent
+        side="right"
+        className="flex w-[420px] flex-col border-l border-border bg-card p-0 shadow-xl sm:max-w-[420px]"
+      >
         {/* ─── Header ──────────────────────────────────────────── */}
-        <div className="flex h-14 shrink-0 items-center justify-between border-b border-[var(--color-border)] px-5">
-          <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">
+        <SheetHeader className="flex h-14 shrink-0 flex-row items-center justify-between space-y-0 border-b border-border px-5 py-0">
+          <SheetTitle className="text-sm font-semibold text-foreground">
             Deployment
-          </h2>
-          <button
-            onClick={onClose}
-            className="duration-[var(--transition-fast)] rounded-[var(--radius-sm)] p-1.5 text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-bg-hover)] hover:text-[var(--color-text-primary)]"
-            aria-label="Close drawer"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+          </SheetTitle>
+        </SheetHeader>
 
         {/* ─── Scrollable Body ─────────────────────────────────── */}
-        <div className="flex-1 space-y-6 overflow-y-auto px-5 py-5">
+        <div className="flex-1 space-y-6 overflow-y-auto p-5">
           {/* ── Settings Section ─────────────────────────────────── */}
           <section>
             <SectionHeader>Settings</SectionHeader>
             <div className="space-y-4">
               <div>
                 <label className="input-label">AWS Region</label>
-                <input
+                <Input
                   type="text"
-                  className="input-field w-full"
                   value={deploymentSettings.region}
                   onChange={(e) => patchSettings({ region: e.target.value })}
+                  className="border-border/80 bg-background/50"
                 />
               </div>
               <div>
                 <label className="input-label">Execution Role ARN</label>
-                <input
+                <Input
                   type="text"
-                  className="input-field w-full"
                   placeholder="arn:aws:iam::..."
                   value={deploymentSettings.executionRoleArn}
                   onChange={(e) =>
                     patchSettings({ executionRoleArn: e.target.value })
                   }
+                  className="border-border/80 bg-background/50"
                 />
               </div>
             </div>
@@ -141,55 +137,60 @@ export function DeployDrawer({
           <section>
             <div className="mb-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+                <h3 className="animate-fade-in text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Resource Plan
                 </h3>
-                <span className="rounded-full bg-[var(--color-accent-subtle)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--color-accent)]">
+                <Badge
+                  variant="accent"
+                  className="rounded-full px-1.5 py-0.5 text-[10px] font-medium"
+                >
                   {planSummary.resourceCount}
-                </span>
+                </Badge>
               </div>
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={onPlan}
-                className="duration-[var(--transition-fast)] flex items-center gap-1.5 text-xs font-medium text-[var(--color-accent)] transition-colors hover:text-[var(--color-accent-hover)]"
+                className="flex h-auto items-center gap-1 p-0 text-xs font-medium text-primary hover:bg-transparent hover:text-primary/80"
               >
-                <WandSparkles className="h-3.5 w-3.5" />
+                <WandSparkles className="size-3.5" />
                 Plan
-              </button>
+              </Button>
             </div>
 
             <div className="space-y-2">
               {planSummary.resources.map((resource) => (
-                <div
+                <Card
                   key={resource.id}
-                  className="rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-3"
+                  className="bg-card-elevated rounded-md border border-border/60 bg-background/35 p-3 shadow-none transition-all duration-200 hover:border-primary/30"
                 >
                   <div className="mb-1.5 flex items-center justify-between">
-                    <span className="truncate text-sm font-medium text-[var(--color-text-primary)]">
+                    <span className="truncate text-sm font-medium text-foreground">
                       {resource.name}
                     </span>
-                    <div className="flex items-center gap-1 text-[10px] text-[var(--color-text-muted)]">
-                      <Link className="h-3 w-3" />
+                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                      <Link className="size-3" />
                       {resource.connectionCount}
                     </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-3 text-[11px] text-[var(--color-text-secondary)]">
+                  <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
                     {resource.details.map((detail) => (
                       <span
                         key={detail.label}
                         className="flex items-center gap-1"
                       >
-                        <span className="text-[var(--color-text-muted)]">
+                        <span className="text-muted-foreground/60">
                           {detail.label}:
                         </span>
-                        {detail.value}
+                        <span className="text-foreground">{detail.value}</span>
                       </span>
                     ))}
                   </div>
-                </div>
+                </Card>
               ))}
 
               {planSummary.resources.length === 0 && (
-                <p className="py-4 text-center text-xs text-[var(--color-text-muted)]">
+                <p className="py-4 text-center text-xs text-muted-foreground">
                   No resources in the plan yet.
                 </p>
               )}
@@ -199,29 +200,31 @@ export function DeployDrawer({
           {/* ── Deploy Section ──────────────────────────────────── */}
           <section>
             <SectionHeader>Deploy</SectionHeader>
-            <button
+            <Button
               onClick={onDeploy}
               disabled={isRunning}
-              className="duration-[var(--transition-base)] flex w-full items-center justify-center gap-2 rounded-[var(--radius-md)] bg-gradient-to-r from-[var(--color-accent)] to-[#6366f1] px-4 py-3 text-sm font-semibold text-white shadow-[var(--shadow-md)] transition-all hover:from-[var(--color-accent-hover)] hover:to-[#818cf8] disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 bg-gradient-to-r from-primary to-[#6366f1] text-sm font-semibold text-white shadow-md hover:brightness-105 disabled:opacity-50"
+              size="lg"
             >
               {isRunning ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="size-4 animate-spin" />
               ) : (
-                <CloudUpload className="h-4 w-4" />
+                <CloudUpload className="size-4" />
               )}
               {isRunning ? 'Deploying…' : 'Deploy to AWS'}
-            </button>
+            </Button>
           </section>
 
           {/* ── Deployment Logs Section ─────────────────────────── */}
           <section>
             <div className="mb-3 flex items-center justify-between">
               <SectionHeader>Deployment Logs</SectionHeader>
-              <span
-                className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${statusStyle.bg} ${statusStyle.text}`}
+              <Badge
+                variant={statusStyle.badgeVariant}
+                className="rounded-full px-2 py-0.5 text-[10px] font-medium"
               >
                 {statusStyle.label}
-              </span>
+              </Badge>
             </div>
 
             {deploymentResult.logs.length > 0 ? (
@@ -229,29 +232,31 @@ export function DeployDrawer({
                 {deploymentResult.logs.map((log) => (
                   <div
                     key={log.id}
-                    className="flex items-start gap-2 text-xs text-[var(--color-text-secondary)]"
+                    className="animate-fade-in flex items-start gap-2 text-xs text-muted-foreground"
                   >
                     <span
-                      className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${LOG_DOT_COLOR[log.level]}`}
+                      className={`mt-1.5 size-1.5 shrink-0 rounded-full ${LOG_DOT_COLOR[log.level]}`}
                     />
-                    <span className="leading-relaxed">{log.message}</span>
+                    <span className="leading-relaxed text-muted-foreground">
+                      {log.message}
+                    </span>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="py-3 text-center text-xs text-[var(--color-text-muted)]">
+              <p className="py-3 text-center text-xs text-muted-foreground">
                 No logs yet.
               </p>
             )}
 
             {deploymentResult.lastRunAt && (
-              <p className="mt-3 text-[10px] text-[var(--color-text-muted)]">
+              <p className="mt-3 text-[10px] text-muted-foreground">
                 Last run: {formatTimestamp(deploymentResult.lastRunAt)}
               </p>
             )}
           </section>
         </div>
-      </aside>
-    </div>
+      </SheetContent>
+    </Sheet>
   );
 }
