@@ -31,8 +31,6 @@ services:
       DB_PORT: 5432
     depends_on:
       - db
-    volumes:
-      - ${HOME}/.aws:/root/.aws:ro
     ports:
       - "3001:3001"
     restart: unless-stopped
