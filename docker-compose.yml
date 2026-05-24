@@ -1,0 +1,33 @@
+services:
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    environment:
+      HOST: 0.0.0.0
+      PORT: "3001"
+      SECRET_KEY: ${SECRET_KEY:-django-insecure-draw-to-deploy-dev-key-change-in-production}
+      DEBUG: ${DEBUG:-True}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
+      ALLOWED_CORS_DOMAINS: ${ALLOWED_CORS_DOMAINS:-http://localhost:8080}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
+      AWS_PROFILE: ${AWS_PROFILE:-default}
+      AWS_LAMBDA_EXECUTION_ROLE_ARN: ${AWS_LAMBDA_EXECUTION_ROLE_ARN:-}
+    volumes:
+      - ${HOME}/.aws:/root/.aws:ro
+    expose:
+      - "3001"
+    restart: unless-stopped
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=http://localhost:3001
+    depends_on:
+      - server
+    ports:
+      - "8080:80"
+    restart: unless-stopped
