@@ -7,23 +7,23 @@
 @layer base {
   :root {
     /* Surface palette — dark first */
-    --color-bg-base: #0a0b0f;
-    --color-bg-surface: #111218;
-    --color-bg-elevated: #181924;
-    --color-bg-hover: #1e2030;
-    --color-bg-active: #252738;
+    --color-bg-base: #09090b;       /* Obsidian Obsidian zinc-950 */
+    --color-bg-surface: #0f0f13;    /* Zinc-900 metallic border tint */
+    --color-bg-elevated: #16161a;   /* Elevated card border */
+    --color-bg-hover: #222227;      /* Hover state background */
+    --color-bg-active: #2b2b31;     /* Active clicked state */
 
     /* Text */
-    --color-text-primary: #f0f1f5;
-    --color-text-secondary: #9096a8;
-    --color-text-muted: #5c6278;
-    --color-text-inverse: #0a0b0f;
+    --color-text-primary: #fafafa;  /* Sharp silver white */
+    --color-text-secondary: #a1a1aa; /* Zinc silver */
+    --color-text-muted: #52525b;    /* Zinc gray */
+    --color-text-inverse: #09090b;
 
-    /* Accent */
-    --color-accent: #3b82f6;
-    --color-accent-hover: #60a5fa;
-    --color-accent-subtle: rgba(59, 130, 246, 0.12);
-    --color-accent-glow: rgba(59, 130, 246, 0.25);
+    /* Accent (Futuristic Vapor Indigo) */
+    --color-accent: #6366f1;
+    --color-accent-hover: #818cf8;
+    --color-accent-subtle: rgba(99, 102, 241, 0.12);
+    --color-accent-glow: rgba(99, 102, 241, 0.25);
 
     /* Cyan */
     --color-cyan: #06b6d4;
@@ -38,27 +38,27 @@
     --color-error-subtle: rgba(239, 68, 68, 0.1);
 
     /* Borders */
-    --color-border: rgba(255, 255, 255, 0.06);
-    --color-border-subtle: rgba(255, 255, 255, 0.04);
-    --color-border-hover: rgba(255, 255, 255, 0.12);
+    --color-border: rgba(255, 255, 255, 0.05);
+    --color-border-subtle: rgba(255, 255, 255, 0.03);
+    --color-border-hover: rgba(255, 255, 255, 0.09);
 
     /* Glass */
-    --glass-bg: rgba(17, 18, 24, 0.75);
-    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-bg: rgba(15, 15, 19, 0.75);
+    --glass-border: rgba(255, 255, 255, 0.05);
     --glass-blur: 16px;
 
     /* Shadows */
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5);
-    --shadow-glow: 0 0 40px rgba(59, 130, 246, 0.15);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.6);
+    --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.15);
 
     /* Radii */
-    --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 16px;
-    --radius-xl: 20px;
-    --radius-2xl: 24px;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-2xl: 20px;
     --radius-full: 9999px;
 
     /* Transitions */
@@ -66,27 +66,27 @@
     --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
     --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
 
-    /* Shadcn compat tokens (keep for Toast component) */
-    --background: 228 14% 5%;
-    --foreground: 228 20% 95%;
-    --card: 228 16% 8%;
-    --card-foreground: 228 20% 95%;
-    --popover: 228 16% 8%;
-    --popover-foreground: 228 20% 95%;
-    --primary: 217 91% 60%;
+    /* Shadcn compat tokens (keep for Toast and all primitives) */
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 8% 6%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 8% 6%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 250 95% 66%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 228 14% 14%;
-    --secondary-foreground: 228 20% 95%;
-    --muted: 228 14% 14%;
-    --muted-foreground: 228 10% 55%;
-    --accent: 228 14% 14%;
-    --accent-foreground: 228 20% 95%;
+    --secondary: 240 6% 14%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 6% 14%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 240 6% 14%;
+    --accent-foreground: 0 0% 98%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 228 10% 18%;
-    --input: 228 10% 18%;
-    --ring: 217 91% 60%;
-    --radius: 0.75rem;
+    --border: 240 6% 16%;
+    --input: 240 6% 16%;
+    --ring: 250 95% 66%;
+    --radius: 0.5rem;
   }
 }
 

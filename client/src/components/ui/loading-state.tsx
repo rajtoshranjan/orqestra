@@ -32,11 +32,11 @@ export function LoadingState({
           >
             <div className="space-y-2">
               <div className="h-5 w-2/3 rounded bg-muted" />
-              <div className="h-4 w-1/2 rounded bg-muted/60" />
+              <div className="bg-muted/60 h-4 w-1/2 rounded" />
             </div>
             <div className="flex items-center justify-between">
               <div className="h-4 w-1/4 rounded bg-muted" />
-              <div className="size-6 rounded-full bg-muted/60" />
+              <div className="bg-muted/60 size-6 rounded-full" />
             </div>
           </div>
         ))}
@@ -53,7 +53,7 @@ export function LoadingState({
         {Array.from({ length: count }).map((_, i) => (
           <div
             key={i}
-            className="h-16 w-full rounded-md border border-border bg-card/60 p-4"
+            className="bg-card/60 h-16 w-full rounded-md border border-border p-4"
           >
             <div className="h-4 w-1/3 rounded bg-muted" />
           </div>
@@ -71,7 +71,7 @@ export function LoadingState({
       {...props}
     >
       <div className="relative flex size-16 items-center justify-center">
-        <div className="absolute size-full animate-ping rounded-full bg-primary/30 opacity-75"></div>
+        <div className="bg-primary/30 absolute size-full animate-ping rounded-full opacity-75"></div>
         <Loader2 className="relative size-12 animate-spin text-primary" />
       </div>
       {message && (

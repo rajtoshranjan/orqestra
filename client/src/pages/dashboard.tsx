@@ -49,7 +49,7 @@ export function Dashboard({ onOpenProject, onNewProject }: DashboardProps) {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* ── Top Navigation ────────────────────────────────────────────── */}
-      <nav className="flex h-11 items-center justify-between border-b border-border bg-card/45 px-4 backdrop-blur-sm">
+      <nav className="bg-card/45 flex h-11 items-center justify-between border-b border-border px-4 backdrop-blur-sm">
         {/* Left — logo + app name */}
         <div className="flex items-center">
           <span className="select-none font-sans text-sm font-bold tracking-tight text-foreground">
@@ -130,7 +130,7 @@ export function Dashboard({ onOpenProject, onNewProject }: DashboardProps) {
               <h2 className="text-lg font-semibold text-foreground">
                 Projects
               </h2>
-              <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-accent/20 px-2 text-[10px] font-semibold text-primary">
+              <span className="bg-accent/20 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-2 text-[10px] font-semibold text-primary">
                 {projects.length}
               </span>
             </div>
@@ -141,7 +141,7 @@ export function Dashboard({ onOpenProject, onNewProject }: DashboardProps) {
                 <Card
                   key={project.projectId}
                   onClick={() => onOpenProject(project.projectId)}
-                  className="group flex cursor-pointer flex-col justify-between border-border/70 bg-card/60 p-5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md"
+                  className="border-border/70 bg-card/60 hover:border-primary/50 group flex cursor-pointer flex-col justify-between p-5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
                 >
                   <div>
                     {/* Project name */}
@@ -186,7 +186,7 @@ export function Dashboard({ onOpenProject, onNewProject }: DashboardProps) {
                         setProjectToDelete(project.projectId);
                         setConfirmOpen(true);
                       }}
-                      className="size-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                      className="hover:bg-destructive/10 size-8 text-muted-foreground hover:text-destructive"
                       aria-label={`Delete ${project.projectName}`}
                     >
                       <Trash2 className="size-4" />

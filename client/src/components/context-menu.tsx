@@ -12,7 +12,7 @@ interface ContextMenuProps {
 export function ContextMenu({ x, y, onDuplicate, onDelete }: ContextMenuProps) {
   return (
     <div
-      className="glass animate-scale-in fixed z-50 min-w-[180px] overflow-hidden rounded-lg border border-border/80 bg-popover p-1 shadow-md"
+      className="glass animate-scale-in border-border/80 fixed z-50 min-w-[180px] overflow-hidden rounded-lg border bg-popover p-1 shadow-md"
       style={{ left: x, top: y }}
     >
       <Button
@@ -31,7 +31,7 @@ export function ContextMenu({ x, y, onDuplicate, onDelete }: ContextMenuProps) {
         size="sm"
         type="button"
         onClick={onDelete}
-        className="flex w-full items-center justify-start gap-3 rounded-md px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10 hover:text-destructive"
+        className="hover:bg-destructive/10 flex w-full items-center justify-start gap-3 rounded-md px-3 py-1.5 text-xs font-medium text-destructive hover:text-destructive"
       >
         <Trash2 size={14} />
         Delete node
