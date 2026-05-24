@@ -151,7 +151,7 @@ export function DeployDrawer({
                 variant="ghost"
                 size="sm"
                 onClick={onPlan}
-                className="hover:text-primary/80 flex h-auto items-center gap-1 p-0 text-xs font-medium text-primary hover:bg-transparent"
+                className="flex h-auto items-center gap-1 p-0 text-xs font-medium text-primary hover:bg-transparent hover:text-primary/80"
               >
                 <WandSparkles className="size-3.5" />
                 Plan
@@ -162,7 +162,7 @@ export function DeployDrawer({
               {planSummary.resources.map((resource) => (
                 <Card
                   key={resource.id}
-                  className="bg-card-elevated border-border/60 bg-background/35 hover:border-primary/30 rounded-md border p-3 shadow-none transition-all duration-200"
+                  className="bg-card-elevated rounded-md border border-border/60 bg-background/35 p-3 shadow-none transition-all duration-200 hover:border-primary/30"
                 >
                   <div className="mb-1.5 flex items-center justify-between">
                     <span className="truncate text-sm font-medium text-foreground">

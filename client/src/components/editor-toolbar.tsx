@@ -49,7 +49,7 @@ export function EditorToolbar({
     deploymentStatus === 'pending' || deploymentStatus === 'in-progress';
 
   return (
-    <header className="bg-card/90 flex h-11 shrink-0 items-center justify-between border-b border-border px-3 backdrop-blur-sm">
+    <header className="flex h-11 shrink-0 items-center justify-between border-b border-border bg-card/90 px-3 backdrop-blur-sm">
       {/* ── LEFT: Back + Title + Name + Save status ── */}
       <div className="flex min-w-0 items-center gap-1">
         <Button
@@ -121,7 +121,7 @@ export function EditorToolbar({
           className={cn(
             'h-8 w-8 text-muted-foreground transition-all duration-200',
             snapToGrid &&
-              'bg-accent/20 hover:bg-accent/30 text-primary hover:text-primary',
+              'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
           )}
         >
           <Grid3x3 size={15} />

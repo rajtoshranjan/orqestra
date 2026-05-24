@@ -713,10 +713,12 @@ function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorProps) {
         </div>
 
         {/* Node Inspector */}
-        <NodeInspector
-          selectedNode={selectedNode}
-          onUpdateConfig={updateSelectedNode}
-        />
+        {selectedNode && (
+          <NodeInspector
+            selectedNode={selectedNode}
+            onUpdateConfig={updateSelectedNode}
+          />
+        )}
       </div>
 
       {/* Deploy Drawer */}

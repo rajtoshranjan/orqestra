@@ -101,7 +101,7 @@ export function LambdaInspector({
           <div>
             <label className="input-label">Runtime</label>
             <select
-              className="border-border/80 bg-background/50 flex h-9 w-full rounded-md border px-3 py-1.5 text-sm text-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-9 w-full rounded-md border border-border/80 bg-background/50 px-3 py-1.5 text-sm text-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
               value={config.runtime}
               onChange={(e) =>
                 handleRuntimeChange(e.target.value as LambdaRuntime)
@@ -180,7 +180,7 @@ export function LambdaInspector({
         <div>
           <label className="input-label">Source</label>
           <textarea
-            className="border-border/80 bg-background/50 w-full resize-y rounded-md border px-3 py-2.5 font-mono text-xs text-foreground shadow-sm transition-all placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className="w-full resize-y rounded-md border border-border/80 bg-background/50 px-3 py-2.5 font-mono text-xs text-foreground shadow-sm transition-all placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             style={{
               minHeight: 200,
               fontFamily: "'JetBrains Mono', monospace",
@@ -226,7 +226,7 @@ export function LambdaInspector({
                 size="icon"
                 type="button"
                 onClick={() => removeEnvVariable(entry.id)}
-                className="hover:bg-destructive/10 size-9 shrink-0 text-muted-foreground hover:text-destructive"
+                className="size-9 shrink-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                 aria-label="Remove variable"
               >
                 <Trash2 className="size-4" />
@@ -239,7 +239,7 @@ export function LambdaInspector({
             size="sm"
             type="button"
             onClick={addEnvVariable}
-            className="hover:bg-accent/40 mt-1 flex items-center gap-1.5 text-primary"
+            className="mt-1 flex items-center gap-1.5 text-primary hover:bg-accent/40"
           >
             <Plus className="size-3.5" />
             Add variable
