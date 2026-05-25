@@ -4,13 +4,13 @@ import { LucideIcon } from 'lucide-react';
 import { Button } from './button';
 import { cn } from '@/lib/utils';
 
-interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement> {
+type EmptyStateProps = React.HTMLAttributes<HTMLDivElement> & {
   title: string;
   description?: string;
   icon?: LucideIcon;
   actionText?: string;
   onAction?: () => void;
-}
+};
 
 export function EmptyState({
   title,

@@ -18,7 +18,7 @@ import {
   SheetTitle,
 } from '@/components/ui';
 
-export interface DeployDrawerProps {
+export type DeployDrawerProps = {
   open: boolean;
   onClose: () => void;
   deploymentSettings: DeploymentSettings;
@@ -27,7 +27,7 @@ export interface DeployDrawerProps {
   deploymentResult: DeploymentResult;
   onPlan: () => void;
   onDeploy: () => void;
-}
+};
 
 const STATUS_STYLES: Record<
   DeploymentResult['status'],
@@ -96,16 +96,16 @@ export function DeployDrawer({
         side="right"
         className="flex w-[420px] flex-col border-l border-border bg-card p-0 shadow-xl sm:max-w-[420px]"
       >
-        {/* ─── Header ──────────────────────────────────────────── */}
+        {/* Header */}
         <SheetHeader className="flex h-14 shrink-0 flex-row items-center justify-between space-y-0 border-b border-border px-5 py-0">
           <SheetTitle className="text-sm font-semibold text-foreground">
             Deployment
           </SheetTitle>
         </SheetHeader>
 
-        {/* ─── Scrollable Body ─────────────────────────────────── */}
+        {/* Scrollable Body */}
         <div className="flex-1 space-y-6 overflow-y-auto p-5">
-          {/* ── Settings Section ─────────────────────────────────── */}
+          {/* Settings Section */}
           <section>
             <SectionHeader>Settings</SectionHeader>
             <div className="space-y-4">
@@ -133,7 +133,7 @@ export function DeployDrawer({
             </div>
           </section>
 
-          {/* ── Plan Summary Section ────────────────────────────── */}
+          {/* Plan Summary Section */}
           <section>
             <div className="mb-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -197,7 +197,7 @@ export function DeployDrawer({
             </div>
           </section>
 
-          {/* ── Deploy Section ──────────────────────────────────── */}
+          {/* Deploy Section */}
           <section>
             <SectionHeader>Deploy</SectionHeader>
             <Button
@@ -215,7 +215,7 @@ export function DeployDrawer({
             </Button>
           </section>
 
-          {/* ── Deployment Logs Section ─────────────────────────── */}
+          {/* Deployment Logs Section */}
           <section>
             <div className="mb-3 flex items-center justify-between">
               <SectionHeader>Deployment Logs</SectionHeader>

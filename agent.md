@@ -40,7 +40,7 @@ To prevent server overload and infinite API request loops during real-time autos
 - **Avoid Wrapper Hell**: Do not create unnecessary visual wrappers (like `PrimaryButton`, `FancyDialog`, `CustomSheet`) unless they encapsulate meaningful business behavior. Prefer standard composition: `<Button variant="default" />` instead of `<PrimaryButton />`.
 - **Zero Business Logic in Primitives**: UI components inside `components/ui/` must remain presentation-focused, reusable, and free of business/domain coupling.
 - **Zero Arbitrary Tailwind Values**: Avoid using inline arbitrary tailwind overrides (like `px-[13px]`, `rounded-[11px]`, or custom hex colors). Always utilize the semantic design tokens and variables defined in `client/src/assets/styles.css` (`border-border`, `bg-card`, `text-muted-foreground`, etc.) to maintain the unified dark branding.
-- **Strict Palette Harmony**: Always use the exact same central color palette (Vapor Indigo) for all primary actions and CTAs (such as the main Deploy button), avoiding the use of unrelated colors (like green or success backgrounds) for primary elements to maintain absolute theme harmony.
+- **Strict Palette Harmony**: Always use the exact same central color palette for all primary actions and CTAs (such as the main Deploy button), avoiding the use of unrelated colors (like green or success backgrounds) for primary elements to maintain absolute theme harmony.
 
 ---
 

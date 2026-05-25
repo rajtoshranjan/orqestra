@@ -9,48 +9,49 @@ import {
   MessageSquare,
 } from 'lucide-react';
 
-import { formatTimestamp } from '@/utils';
+import { formatTimestamp, hasValidationErrors } from '@/utils';
 import { Button, Badge } from '@/components/ui';
 import { cn } from '@/lib/utils';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { setProjectName, setSnapToGrid } from '@/store/editor-slice';
+import { DeploymentStatus } from '@/types';
 
-export interface EditorToolbarProps {
-  projectName: string;
-  onProjectNameChange: (name: string) => void;
+export type EditorToolbarProps = {
   onBack: () => void;
   onSave: () => void;
   onPlan: () => void;
   onDeploy: () => void;
-  deploymentStatus: 'idle' | 'pending' | 'in-progress' | 'success' | 'failed';
-  lastSavedAt: string | null;
-  nodeCount: number;
-  readyCount: number;
-  snapToGrid: boolean;
-  onToggleSnap: () => void;
   isSaving?: boolean;
-}
+};
 
 export function EditorToolbar({
-  projectName,
-  onProjectNameChange,
   onBack,
   onSave,
   onPlan,
   onDeploy,
-  deploymentStatus,
-  lastSavedAt,
-  nodeCount,
-  readyCount,
-  snapToGrid,
-  onToggleSnap,
   isSaving = false,
 }: EditorToolbarProps) {
+  const dispatch = useAppDispatch();
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const { projectName, lastSavedAt, snapToGrid, nodes } = useAppSelector(
+    (state) => state.editor,
+  );
+  const deploymentStatus = useAppSelector((state) => state.deployment.result.status);
+
   const isDeploying =
-    deploymentStatus === 'pending' || deploymentStatus === 'in-progress';
+    deploymentStatus === DeploymentStatus.Pending ||
+    deploymentStatus === DeploymentStatus.InProgress;
+
+  const nodeCount = nodes.length;
+  const invalidNodeCount = nodes.filter((node) =>
+    hasValidationErrors(node.data.validationErrors),
+  ).length;
+  const readyCount = nodeCount - invalidNodeCount;
 
   return (
     <header className="flex h-11 shrink-0 items-center justify-between border-b border-border bg-card/90 px-3 backdrop-blur-sm">
-      {/* ── LEFT: Back + Title + Name + Save status ── */}
+      {/* LEFT: Back + Title + Name + Save status */}
       <div className="flex min-w-0 items-center gap-1">
         <Button
           variant="ghost"
@@ -73,7 +74,7 @@ export function EditorToolbar({
           ref={inputRef}
           type="text"
           value={projectName}
-          onChange={(e) => onProjectNameChange(e.target.value)}
+          onChange={(e) => dispatch(setProjectName(e.target.value))}
           onKeyDown={(e) => {
             if (e.key === 'Enter') inputRef.current?.blur();
           }}
@@ -96,7 +97,7 @@ export function EditorToolbar({
         </span>
       </div>
 
-      {/* ── CENTER: Node count + status pill ── */}
+      {/* CENTER: Node count + status pill */}
       <div className="flex items-center gap-1.5">
         <Badge
           variant="accent"
@@ -110,13 +111,13 @@ export function EditorToolbar({
         </span>
       </div>
 
-      {/* ── RIGHT: Icon actions + Plan + Deploy ── */}
+      {/* RIGHT: Icon actions + Plan + Deploy */}
       <div className="flex items-center gap-0.5">
         {/* Snap to Grid */}
         <Button
           variant="ghost"
           size="icon"
-          onClick={onToggleSnap}
+          onClick={() => dispatch(setSnapToGrid(!snapToGrid))}
           aria-label="Toggle snap to grid"
           className={cn(
             'h-8 w-8 text-muted-foreground transition-all duration-200',

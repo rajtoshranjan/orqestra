@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Plus, FolderOpen, Trash2, Layers, Clock } from 'lucide-react';
 
 import { formatRelativeTime } from '@/utils';
-import { useProjects, useDeleteProject } from '@/lib/api';
+import { useProjects, useDeleteProject } from '@/api';
 import {
   Button,
   Card,
@@ -11,10 +11,10 @@ import {
   ConfirmDialog,
 } from '@/components/ui';
 
-interface DashboardProps {
+type DashboardProps = {
   onOpenProject: (projectId: string) => void;
   onNewProject: () => void;
-}
+};
 
 export function Dashboard({ onOpenProject, onNewProject }: DashboardProps) {
   const { data: projects = [], isLoading } = useProjects();
@@ -27,7 +27,7 @@ export function Dashboard({ onOpenProject, onNewProject }: DashboardProps) {
     deleteProjectMutation.mutate(projectId);
   };
 
-  /* ── Computed stats ─────────────────────────────────────────────────── */
+  /* Computed stats */
   const totalProjects = projects.length;
   const totalResources = projects.reduce(
     (sum, p) => sum + (p.nodes?.length ?? 0),
@@ -45,10 +45,10 @@ export function Dashboard({ onOpenProject, onNewProject }: DashboardProps) {
         )
       : 'Never';
 
-  /* ── Render ─────────────────────────────────────────────────────────── */
+  /* Render */
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* ── Top Navigation ────────────────────────────────────────────── */}
+      {/* Top Navigation */}
       <nav className="flex h-11 items-center justify-between border-b border-border bg-card/45 px-4 backdrop-blur-sm">
         {/* Left — logo + app name */}
         <div className="flex items-center">
@@ -75,7 +75,7 @@ export function Dashboard({ onOpenProject, onNewProject }: DashboardProps) {
         </div>
       </nav>
 
-      {/* ── Hero Section ──────────────────────────────────────────────── */}
+      {/* Hero Section */}
       <div className="animate-fade-in mx-auto max-w-6xl px-8 py-12">
         <h1 className="text-3xl font-bold tracking-tight text-foreground">
           Your Workspaces
@@ -118,10 +118,10 @@ export function Dashboard({ onOpenProject, onNewProject }: DashboardProps) {
         </div>
       </div>
 
-      {/* ── Projects Grid / Empty State ───────────────────────────────── */}
+      {/* Projects Grid / Empty State */}
       <div className="mx-auto max-w-6xl px-8 pb-16">
         {isLoading ? (
-          /* ── Skeleton Grid ── */
+          /* Skeleton Grid */
           <LoadingState variant="skeleton-grid" count={3} />
         ) : projects.length > 0 ? (
           <>
@@ -197,7 +197,7 @@ export function Dashboard({ onOpenProject, onNewProject }: DashboardProps) {
             </div>
           </>
         ) : (
-          /* ── Empty State ── */
+          /* Empty State */
           <EmptyState
             title="No projects yet"
             description="Create your first cloud architecture. Drag services, connect, validate, and deploy directly to AWS in minutes."

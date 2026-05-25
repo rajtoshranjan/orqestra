@@ -2,12 +2,12 @@ import { Copy, Trash2 } from 'lucide-react';
 
 import { Button } from './ui';
 
-interface ContextMenuProps {
+type ContextMenuProps = {
   x: number;
   y: number;
   onDuplicate: () => void;
   onDelete: () => void;
-}
+};
 
 export function ContextMenu({ x, y, onDuplicate, onDelete }: ContextMenuProps) {
   return (

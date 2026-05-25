@@ -35,21 +35,21 @@ function LambdaNodeComponent({
         .join(' ')}
       style={{ background: 'var(--color-bg-elevated)' }}
     >
-      {/* ── Target Handle (left) ── */}
+      {/* Target Handle (left) */}
       <Handle
         type="target"
         position={Position.Left}
         className="!h-3 !w-3 !rounded-full !border-2 !border-[var(--color-accent)] !bg-[var(--color-bg-surface)]"
       />
 
-      {/* ── Source Handle (right) ── */}
+      {/* Source Handle (right) */}
       <Handle
         type="source"
         position={Position.Right}
         className="!h-3 !w-3 !rounded-full !border-2 !border-[var(--color-accent)] !bg-[var(--color-bg-surface)]"
       />
 
-      {/* ── Header ── */}
+      {/* Header */}
       <div className="flex items-start gap-3 px-4 pb-3 pt-4">
         <div
           className="flex size-8 shrink-0 items-center justify-center rounded-[var(--radius-sm)]"
@@ -83,7 +83,7 @@ function LambdaNodeComponent({
         </div>
       </div>
 
-      {/* ── Stats Bar ── */}
+      {/* Stats Bar */}
       <div
         className="flex items-center gap-4 rounded-b-[var(--radius-md)] px-4 py-2 text-[11px] font-medium"
         style={{
@@ -96,7 +96,7 @@ function LambdaNodeComponent({
         <span>{config.timeout}s timeout</span>
       </div>
 
-      {/* ── Status Pill ── */}
+      {/* Status Pill */}
       <div className="absolute -bottom-3 left-1/2 -translate-x-1/2">
         {hasErrors ? (
           <span

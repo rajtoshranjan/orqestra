@@ -34,7 +34,6 @@ INSTALLED_APPS = [
     "rest_framework",
     # Apps.
     "cloud_services",
-    "aws_lambda",
     "projects",
 ]
 

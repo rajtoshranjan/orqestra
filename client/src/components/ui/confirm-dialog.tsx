@@ -8,7 +8,7 @@ import {
 } from './dialog';
 import { Button } from './button';
 
-interface ConfirmDialogProps {
+type ConfirmDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
@@ -17,7 +17,7 @@ interface ConfirmDialogProps {
   cancelText?: string;
   variant?: 'default' | 'destructive';
   onConfirm: () => void;
-}
+};
 
 export function ConfirmDialog({
   open,

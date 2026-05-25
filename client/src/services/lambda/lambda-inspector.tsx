@@ -1,8 +1,12 @@
+import React from 'react';
 import { Plus, Trash2 } from 'lucide-react';
+import { useForm, useFieldArray } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 import type { ServiceInspectorProps } from '../types';
 import type { LambdaConfig, LambdaRuntime } from './types';
 import { RUNTIME_OPTIONS } from './types';
+import { lambdaConfigSchema } from '@/schemas/lambda.schema';
 import {
   getDefaultHandlerForRuntime,
   getDefaultCodeForRuntime,
@@ -10,9 +14,13 @@ import {
 } from './defaults';
 import { Button, Input } from '@/components/ui';
 
-/* ─── Shared sub-components ───────────────────────────────────────────── */
+/* Shared sub-components */
 
-function SectionHeader({ children }: { children: React.ReactNode }) {
+type SectionHeaderProps = {
+  children: React.ReactNode;
+};
+
+function SectionHeader({ children }: SectionHeaderProps) {
   return (
     <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
       {children}
@@ -20,68 +28,73 @@ function SectionHeader({ children }: { children: React.ReactNode }) {
   );
 }
 
-function FieldError({ message }: { message?: string }) {
+type FieldErrorProps = {
+  message?: string;
+};
+
+function FieldError({ message }: FieldErrorProps) {
   if (!message) return null;
   return (
     <p className="animate-fade-in mt-1 text-xs text-destructive">{message}</p>
   );
 }
 
-/* ─── Lambda Inspector ────────────────────────────────────────────────── */
+/* Lambda Inspector */
 
 export function LambdaInspector({
   config,
-  validationErrors,
   onUpdate,
 }: ServiceInspectorProps<LambdaConfig>) {
-  function patch(updates: Partial<LambdaConfig>) {
-    onUpdate((prev) => ({ ...prev, ...updates }));
-  }
+  const {
+    register,
+    control,
+    watch,
+    setValue,
+    reset,
+    formState: { errors },
+  } = useForm<LambdaConfig>({
+    resolver: zodResolver(lambdaConfigSchema),
+    defaultValues: config,
+    mode: 'all',
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'environmentVariables',
+  });
+
+  // Track active config identity so we reset default values when user selects a different Lambda node
+  const activeFunctionName = config.functionName;
+  React.useEffect(() => {
+    reset(config);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeFunctionName, reset]);
+
+  // Watch form fields to trigger updates back to parent ReactFlow state on change
+  const watchedValues = watch();
+  const lastUpdatedRef = React.useRef<string>('');
+
+  React.useEffect(() => {
+    const serialized = JSON.stringify(watchedValues);
+    if (serialized !== lastUpdatedRef.current) {
+      lastUpdatedRef.current = serialized;
+      onUpdate(() => watchedValues);
+    }
+  }, [watchedValues, onUpdate]);
 
   function handleRuntimeChange(runtime: LambdaRuntime) {
-    onUpdate((prev) => ({
-      ...prev,
-      runtime,
-      handler: getDefaultHandlerForRuntime(runtime),
-      code: getDefaultCodeForRuntime(runtime),
-    }));
-  }
-
-  function handleEnvChange(
-    id: string,
-    field: 'key' | 'value',
-    newValue: string,
-  ) {
-    onUpdate((prev) => ({
-      ...prev,
-      environmentVariables: prev.environmentVariables.map((entry) =>
-        entry.id === id ? { ...entry, [field]: newValue } : entry,
-      ),
-    }));
-  }
-
-  function addEnvVariable() {
-    onUpdate((prev) => ({
-      ...prev,
-      environmentVariables: [
-        ...prev.environmentVariables,
-        makeEnvironmentVariable(),
-      ],
-    }));
-  }
-
-  function removeEnvVariable(id: string) {
-    onUpdate((prev) => ({
-      ...prev,
-      environmentVariables: prev.environmentVariables.filter(
-        (entry) => entry.id !== id,
-      ),
-    }));
+    setValue('runtime', runtime, { shouldValidate: true });
+    setValue('handler', getDefaultHandlerForRuntime(runtime), {
+      shouldValidate: true,
+    });
+    setValue('code', getDefaultCodeForRuntime(runtime), {
+      shouldValidate: true,
+    });
   }
 
   return (
     <div className="space-y-6">
-      {/* ── Configuration Section ─────────────────────────────── */}
+      {/* Configuration Section */}
       <section>
         <SectionHeader>Configuration</SectionHeader>
         <div className="space-y-4">
@@ -91,10 +104,9 @@ export function LambdaInspector({
             <Input
               type="text"
               className="border-border/80 bg-background/50 text-foreground"
-              value={config.functionName}
-              onChange={(e) => patch({ functionName: e.target.value })}
+              {...register('functionName')}
             />
-            <FieldError message={validationErrors.functionName} />
+            <FieldError message={errors.functionName?.message} />
           </div>
 
           {/* Runtime */}
@@ -102,7 +114,7 @@ export function LambdaInspector({
             <label className="input-label">Runtime</label>
             <select
               className="flex h-9 w-full rounded-md border border-border/80 bg-background/50 px-3 py-1.5 text-sm text-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-              value={config.runtime}
+              {...register('runtime')}
               onChange={(e) =>
                 handleRuntimeChange(e.target.value as LambdaRuntime)
               }
@@ -117,7 +129,7 @@ export function LambdaInspector({
                 </option>
               ))}
             </select>
-            <FieldError message={validationErrors.runtime} />
+            <FieldError message={errors.runtime?.message} />
           </div>
 
           {/* Handler */}
@@ -126,10 +138,9 @@ export function LambdaInspector({
             <Input
               type="text"
               className="border-border/80 bg-background/50 text-foreground"
-              value={config.handler}
-              onChange={(e) => patch({ handler: e.target.value })}
+              {...register('handler')}
             />
-            <FieldError message={validationErrors.handler} />
+            <FieldError message={errors.handler?.message} />
           </div>
 
           {/* Memory Size */}
@@ -140,10 +151,9 @@ export function LambdaInspector({
               className="border-border/80 bg-background/50 text-foreground"
               min={128}
               max={10240}
-              value={config.memorySize}
-              onChange={(e) => patch({ memorySize: Number(e.target.value) })}
+              {...register('memorySize', { valueAsNumber: true })}
             />
-            <FieldError message={validationErrors.memorySize} />
+            <FieldError message={errors.memorySize?.message} />
           </div>
 
           {/* Timeout */}
@@ -154,10 +164,9 @@ export function LambdaInspector({
               className="border-border/80 bg-background/50 text-foreground"
               min={1}
               max={900}
-              value={config.timeout}
-              onChange={(e) => patch({ timeout: Number(e.target.value) })}
+              {...register('timeout', { valueAsNumber: true })}
             />
-            <FieldError message={validationErrors.timeout} />
+            <FieldError message={errors.timeout?.message} />
           </div>
 
           {/* Description */}
@@ -166,15 +175,14 @@ export function LambdaInspector({
             <Input
               type="text"
               className="border-border/80 bg-background/50 text-foreground"
-              value={config.description}
-              onChange={(e) => patch({ description: e.target.value })}
+              {...register('description')}
             />
-            <FieldError message={validationErrors.description} />
+            <FieldError message={errors.description?.message} />
           </div>
         </div>
       </section>
 
-      {/* ── Function Code Section ─────────────────────────────── */}
+      {/* Function Code Section */}
       <section>
         <SectionHeader>Function Code</SectionHeader>
         <div>
@@ -185,47 +193,40 @@ export function LambdaInspector({
               minHeight: 200,
               fontFamily: "'JetBrains Mono', monospace",
             }}
-            value={config.code}
-            onChange={(e) => patch({ code: e.target.value })}
+            {...register('code')}
           />
           <div className="mt-1 flex items-center justify-between">
-            <FieldError message={validationErrors.code} />
+            <FieldError message={errors.code?.message} />
             <span className="ml-auto text-[10px] text-muted-foreground">
-              {config.code.length} chars
+              {watchedValues.code?.length ?? 0} chars
             </span>
           </div>
         </div>
       </section>
 
-      {/* ── Environment Variables Section ──────────────────────── */}
+      {/* Environment Variables Section */}
       <section>
         <SectionHeader>Environment Variables</SectionHeader>
         <div className="space-y-2">
-          {config.environmentVariables.map((entry) => (
-            <div key={entry.id} className="flex items-center gap-2">
+          {fields.map((field, index) => (
+            <div key={field.id} className="flex items-center gap-2">
               <Input
                 type="text"
                 className="border-border/80 bg-background/50 text-foreground"
                 placeholder="KEY"
-                value={entry.key}
-                onChange={(e) =>
-                  handleEnvChange(entry.id, 'key', e.target.value)
-                }
+                {...register(`environmentVariables.${index}.key` as const)}
               />
               <Input
                 type="text"
                 className="border-border/80 bg-background/50 text-foreground"
                 placeholder="Value"
-                value={entry.value}
-                onChange={(e) =>
-                  handleEnvChange(entry.id, 'value', e.target.value)
-                }
+                {...register(`environmentVariables.${index}.value` as const)}
               />
               <Button
                 variant="ghost"
                 size="icon"
                 type="button"
-                onClick={() => removeEnvVariable(entry.id)}
+                onClick={() => remove(index)}
                 className="size-9 shrink-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                 aria-label="Remove variable"
               >
@@ -233,12 +234,17 @@ export function LambdaInspector({
               </Button>
             </div>
           ))}
-          <FieldError message={validationErrors.environmentVariables} />
+          <FieldError
+            message={
+              (errors.environmentVariables as any)?.root?.message ||
+              errors.environmentVariables?.message
+            }
+          />
           <Button
             variant="ghost"
             size="sm"
             type="button"
-            onClick={addEnvVariable}
+            onClick={() => append(makeEnvironmentVariable())}
             className="mt-1 flex items-center gap-1.5 text-primary hover:bg-accent/40"
           >
             <Plus className="size-3.5" />

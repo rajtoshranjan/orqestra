@@ -9,21 +9,10 @@
 import { registry } from './registry';
 import { lambdaService } from './lambda';
 
-// ── Register all services ────────────────────────────────────────────────
+// Register all services
 registry.register(lambdaService);
 
-// Future services — just add one line each:
-// import { s3Service } from "./s3";
-// registry.register(s3Service);
-//
-// import { dynamoDbService } from "./dynamodb";
-// registry.register(dynamoDbService);
-//
-// import { apiGatewayService } from "./api-gateway";
-// registry.register(apiGatewayService);
-//
-// import { sqsService } from "./sqs";
-// registry.register(sqsService);
+
 
 // Re-export for convenience
 export { registry } from './registry';

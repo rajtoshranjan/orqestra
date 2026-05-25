@@ -39,12 +39,14 @@ def run_command(cmd, cwd=None, timeout=300):
             "code": result.returncode,
             "stdout": result.stdout.strip(),
             "stderr": result.stderr.strip(),
+            "error": "",
         }
     except subprocess.TimeoutExpired:
         return {
             "code": -1,
             "stdout": "",
             "stderr": "Command timed out.",
+            "error": "Command timed out.",
         }
 
 

@@ -1,22 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ─── Design Tokens ───────────────────────────────────────────────────── */
+/* Design Tokens */
 
 @layer base {
   :root {
     /* Surface palette — dark first */
-    --color-bg-base: #09090b;       /* Obsidian Obsidian zinc-950 */
-    --color-bg-surface: #0f0f13;    /* Zinc-900 metallic border tint */
-    --color-bg-elevated: #16161a;   /* Elevated card border */
+    --color-bg-base: #09090b;
+    --color-bg-surface: #0f0f13;
+    --color-bg-elevated: #16161a;
     --color-bg-hover: #222227;      /* Hover state background */
     --color-bg-active: #2b2b31;     /* Active clicked state */
 
     /* Text */
-    --color-text-primary: #fafafa;  /* Sharp silver white */
-    --color-text-secondary: #a1a1aa; /* Zinc silver */
-    --color-text-muted: #52525b;    /* Zinc gray */
+    --color-text-primary: #fafafa;
+    --color-text-secondary: #a1a1aa;
+    --color-text-muted: #52525b;
     --color-text-inverse: #09090b;
 
     /* Accent (Futuristic Vapor Indigo) */
@@ -90,7 +92,7 @@
   }
 }
 
-/* ─── Base Styles ─────────────────────────────────────────────────────── */
+/* Base Styles */
 
 @layer base {
   * {
@@ -160,7 +162,7 @@
   }
 }
 
-/* ─── Utility Classes ─────────────────────────────────────────────────── */
+/* Utility Classes */
 
 @layer utilities {
   .glass {
@@ -193,7 +195,7 @@
 
 }
 
-/* ─── Animations ──────────────────────────────────────────────────────── */
+/* Animations */
 
 @keyframes fade-in {
   from {
@@ -327,7 +329,7 @@
   animation-delay: 420ms;
 }
 
-/* ─── ReactFlow Dark Theme Overrides ──────────────────────────────────── */
+/* ReactFlow Dark Theme Overrides */
 
 .react-flow__background {
   background: var(--color-bg-base) !important;
@@ -397,7 +399,7 @@
   display: none !important;
 }
 
-/* ─── Form Inputs (dark theme) ────────────────────────────────────────── */
+/* Form Inputs (dark theme) */
 
 
 

@@ -1,6 +1,6 @@
 import type { ServiceDefinition, ServiceCategory } from './types';
 
-/* ─── Service Registry ────────────────────────────────────────────────── */
+/* Service Registry */
 
 class ServiceRegistry {
   private services = new Map<string, ServiceDefinition<any>>();

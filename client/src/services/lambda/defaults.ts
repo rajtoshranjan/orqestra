@@ -4,7 +4,7 @@ import type {
   LambdaEnvironmentVariable,
 } from './types';
 
-/* ─── ID Helper ───────────────────────────────────────────────────────── */
+/* ID Helper */
 
 function makeEnvId(): string {
   return (
@@ -13,7 +13,7 @@ function makeEnvId(): string {
   );
 }
 
-/* ─── Code Templates ──────────────────────────────────────────────────── */
+/* Code Templates */
 
 export const DEFAULT_NODE_CODE = `exports.handler = async (event) => {
   console.log("Incoming event", JSON.stringify(event));
@@ -41,7 +41,7 @@ def lambda_handler(event, context):
         }),
     }`;
 
-/* ─── Runtime Defaults ────────────────────────────────────────────────── */
+/* Runtime Defaults */
 
 export function getDefaultHandlerForRuntime(runtime: LambdaRuntime): string {
   return runtime === 'python3.12'
@@ -53,7 +53,7 @@ export function getDefaultCodeForRuntime(runtime: LambdaRuntime): string {
   return runtime === 'python3.12' ? DEFAULT_PYTHON_CODE : DEFAULT_NODE_CODE;
 }
 
-/* ─── Factory ─────────────────────────────────────────────────────────── */
+/* Factory */
 
 export function makeEnvironmentVariable(): LambdaEnvironmentVariable {
   return { id: makeEnvId(), key: '', value: '' };
@@ -72,7 +72,7 @@ export function createDefaultLambdaConfig(index: number): LambdaConfig {
   };
 }
 
-/* ─── Display Name ────────────────────────────────────────────────────── */
+/* Display Name */
 
 export function getLambdaDisplayName(config: LambdaConfig): string {
   return config.functionName.trim() || 'Lambda Function';

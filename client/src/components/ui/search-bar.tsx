@@ -4,9 +4,9 @@ import { Search } from 'lucide-react';
 import { Input } from './input';
 import { cn } from '@/lib/utils';
 
-interface SearchBarProps extends React.InputHTMLAttributes<HTMLInputElement> {
+type SearchBarProps = React.InputHTMLAttributes<HTMLInputElement> & {
   wrapperClassName?: string;
-}
+};
 
 export const SearchBar = React.forwardRef<HTMLInputElement, SearchBarProps>(
   ({ className, wrapperClassName, ...props }, ref) => {

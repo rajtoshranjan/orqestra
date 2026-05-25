@@ -2,13 +2,13 @@
 
 export type LambdaRuntime = 'nodejs20.x' | 'nodejs22.x' | 'python3.12';
 
-export interface LambdaEnvironmentVariable {
+export type LambdaEnvironmentVariable = {
   id: string;
   key: string;
   value: string;
-}
+};
 
-export interface LambdaConfig {
+export type LambdaConfig = {
   functionName: string;
   runtime: LambdaRuntime;
   handler: string;
@@ -17,7 +17,7 @@ export interface LambdaConfig {
   memorySize: number;
   timeout: number;
   description: string;
-}
+};
 
 export const RUNTIME_OPTIONS: Array<{ value: LambdaRuntime; label: string }> = [
   { value: 'nodejs20.x', label: 'Node.js 20' },

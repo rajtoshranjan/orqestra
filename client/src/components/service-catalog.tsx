@@ -4,11 +4,11 @@ import { NODE_DRAG_TYPE } from '@/utils';
 import { SERVICE_CATEGORY_LABELS } from '@/services/types';
 import type { ServiceCategory } from '@/services/types';
 
-export interface ServiceCatalogProps {
+export type ServiceCatalogProps = {
   onAddNode: (serviceId: string) => void;
   collapsed: boolean;
   onToggleCollapse: () => void;
-}
+};
 
 export function ServiceCatalog({
   onAddNode,

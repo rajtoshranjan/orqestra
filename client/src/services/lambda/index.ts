@@ -3,11 +3,11 @@ import type { ServiceDefinition, ServicePlanResource } from '../types';
 import type { LambdaConfig } from './types';
 import { createDefaultLambdaConfig, getLambdaDisplayName } from './defaults';
 import { validateLambdaConfig } from './validate';
-import { LambdaNode } from './LambdaNode';
-import { LambdaInspector } from './LambdaInspector';
+import { LambdaNode } from './lambda-node';
+import { LambdaInspector } from './lambda-inspector';
 
 export const lambdaService: ServiceDefinition<LambdaConfig> = {
-  /* ── Identity ─────────────────────────── */
+  /* Identity */
   id: 'lambda',
   cloudFormationType: 'AWS::Lambda::Function',
   name: 'AWS Lambda',
@@ -18,16 +18,16 @@ export const lambdaService: ServiceDefinition<LambdaConfig> = {
   icon: FunctionSquare,
   accentColor: '#3b82f6',
 
-  /* ── Config ───────────────────────────── */
+  /* Config */
   createDefaultConfig: createDefaultLambdaConfig,
   validate: validateLambdaConfig,
   getDisplayName: getLambdaDisplayName,
 
-  /* ── UI ────────────────────────────────── */
+  /* UI */
   NodeComponent: LambdaNode as any,
   InspectorComponent: LambdaInspector,
 
-  /* ── Plan ──────────────────────────────── */
+  /* Plan */
   buildPlanResource: (
     nodeId: string,
     config: LambdaConfig,

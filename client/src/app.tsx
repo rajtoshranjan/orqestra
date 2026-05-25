@@ -4,9 +4,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { Dashboard, Editor } from './pages';
 import { Toaster } from './components/ui/toaster';
 import { createInitialDiagram } from './utils';
-import { useCreateProject } from '@/lib/api';
+import { useCreateProject } from '@/api';
 
-/* ─── Simple Hash Router ──────────────────────────────────────────────── */
+/* Simple Hash Router */
 
 type Route = { view: 'dashboard' } | { view: 'editor'; projectId: string };
 
@@ -26,7 +26,7 @@ function navigateTo(path: string) {
   window.location.hash = path;
 }
 
-/* ─── App ─────────────────────────────────────────────────────────────── */
+/* App */
 
 function App() {
   const [route, setRoute] = useState<Route>(parseHash);

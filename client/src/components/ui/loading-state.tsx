@@ -3,11 +3,11 @@ import { Loader2 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
-interface LoadingStateProps extends React.HTMLAttributes<HTMLDivElement> {
+type LoadingStateProps = React.HTMLAttributes<HTMLDivElement> & {
   message?: string;
   variant?: 'spinner' | 'skeleton-grid' | 'skeleton-card';
   count?: number;
-}
+};
 
 export function LoadingState({
   message,

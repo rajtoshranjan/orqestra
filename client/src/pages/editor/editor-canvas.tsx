@@ -9,7 +9,6 @@ import ReactFlow, {
   MiniMap,
   MarkerType,
   ReactFlowInstance,
-  ReactFlowProvider,
   useNodesState,
   useEdgesState,
 } from 'reactflow';
@@ -19,12 +18,10 @@ import type {
   DiagramEdge,
   ServiceNodeData,
   DeploymentSettings,
-  DeploymentResult,
   PlanSummary,
-  ClipboardSelection,
-  ContextMenuState,
   PersistedDiagram,
 } from '@/types';
+import { DeploymentStatus } from '@/types';
 import {
   createServiceNode,
   withValidatedData,
@@ -43,7 +40,7 @@ import {
 } from '@/utils';
 import { registry } from '@/services';
 import { toast } from '@/hooks/use-toast';
-import { useProject, useUpdateProject, camelToSnakeRecursive } from '@/lib/api';
+import { useUpdateProject, camelToSnakeRecursive } from '@/api';
 import {
   EditorToolbar,
   ServiceCatalog,
@@ -51,53 +48,65 @@ import {
   DeployDrawer,
   ContextMenu,
 } from '@/components';
+import { useAppDispatch, useAppSelector } from '@/store';
+import {
+  setNodes as setReduxNodes,
+  setEdges as setReduxEdges,
+  setLastSavedAt,
+  setClipboard,
+} from '@/store/editor-slice';
+import {
+  setDeploymentSettings,
+  setDeploymentResult,
+} from '@/store/deployment-slice';
+import {
+  setSidebarCollapsed,
+  setDeployDrawerOpen,
+  setContextMenu,
+} from '@/store/ui-slice';
 
-/* ─── Types ──────────────────────────────────────────────────────────── */
-
-interface EditorProps {
-  projectId: string;
-  onNavigateHome: () => void;
-}
-
-/* ─── Inner Canvas Editor (must be inside ReactFlowProvider) ─────────── */
-
-interface CanvasEditorProps extends EditorProps {
+type CanvasEditorProps = {
   initialProject: PersistedDiagram;
-}
+  onNavigateHome: () => void;
+};
 
-function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorProps) {
-  /* ── Build nodeTypes from registry (memoized) ───────────────── */
+export function CanvasEditor({
+  initialProject,
+  onNavigateHome,
+}: CanvasEditorProps) {
+  const dispatch = useAppDispatch();
+
+  /* Select state from Redux */
+  const {
+    projectId: currentProjectId,
+    projectName,
+    projectDescription,
+    lastSavedAt,
+    snapToGrid,
+    clipboard,
+  } = useAppSelector((state) => state.editor);
+
+  const {
+    settings: deploymentSettings,
+    result: deploymentResult,
+  } = useAppSelector((state) => state.deployment);
+
+  const {
+    sidebarCollapsed,
+    deployDrawerOpen,
+    contextMenu,
+  } = useAppSelector((state) => state.ui);
+
+  /* Build nodeTypes from registry (memoized) */
   const nodeTypes = React.useMemo(() => registry.getNodeTypes(), []);
 
-  /* ── Core state ──────────────────────────────────────────────── */
-  const [currentProjectId] = React.useState(initialProject.projectId);
-  const [projectName, setProjectName] = React.useState(
-    initialProject.projectName,
-  );
-  const [projectDescription] = React.useState(
-    initialProject.projectDescription,
-  );
+  /* Local ReactFlow state (maintains smooth 60fps canvas performance) */
   const [nodes, setNodes, onNodesChange] = useNodesState(initialProject.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialProject.edges);
-  const [deploymentSettings, setDeploymentSettings] =
-    React.useState<DeploymentSettings>(initialProject.deploymentSettings);
-  const [lastSavedAt, setLastSavedAt] = React.useState<string | null>(
-    initialProject.lastSavedAt,
-  );
+  
   const [planSummary, setPlanSummary] = React.useState<PlanSummary>(() =>
     buildPlan(initialProject.nodes, initialProject.edges),
   );
-  const [deploymentResult, setDeploymentResult] =
-    React.useState<DeploymentResult>({
-      status: 'idle',
-      logs: [
-        createLog(
-          'info',
-          'Plan the project to review the cloud resources that will be deployed.',
-        ),
-      ],
-      lastRunAt: null,
-    });
   const [reactFlowInstance, setReactFlowInstance] =
     React.useState<ReactFlowInstance<ServiceNodeData> | null>(null);
 
@@ -109,28 +118,20 @@ function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorProps) {
     projectName: initialProject.projectName,
   });
 
-  /* ── Clipboard & Context Menu ───────────────────────────────── */
-  const [clipboard, setClipboard] = React.useState<ClipboardSelection | null>(
-    null,
-  );
-  const [contextMenu, setContextMenu] = React.useState<ContextMenuState | null>(
-    null,
-  );
-  const [snapToGrid, setSnapToGrid] = React.useState(true);
+  /* Sync nodes and edges into Redux for query/deploy selections */
+  React.useEffect(() => {
+    dispatch(setReduxNodes(nodes));
+  }, [nodes, dispatch]);
 
-  /* ── NEW state ─────────────────────────────────────────────── */
-  const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false);
-  const [deployDrawerOpen, setDeployDrawerOpen] = React.useState(false);
+  React.useEffect(() => {
+    dispatch(setReduxEdges(edges));
+  }, [edges, dispatch]);
 
-  /* ── Derived ────────────────────────────────────────────────── */
-  const selectedNodes = nodes.filter((n) => n.selected);
+  /* Derived */
+  const selectedNodes = nodes.filter((node) => node.selected);
   const selectedNode = selectedNodes.length === 1 ? selectedNodes[0] : null;
-  const invalidNodeCount = nodes.filter((n) =>
-    hasValidationErrors(n.data.validationErrors),
-  ).length;
-  const readyCount = nodes.length - invalidNodeCount;
 
-  /* ── Persist Diagram ────────────────────────────────────────── */
+  /* Persist Diagram */
   const updateProjectMutation = useUpdateProject();
 
   const persistDiagram = React.useCallback(
@@ -159,7 +160,7 @@ function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorProps) {
           projectId: nextProjectId,
           data: payload,
         });
-        setLastSavedAt(timestamp);
+        dispatch(setLastSavedAt(timestamp));
 
         // Update the ref so the autosave effect recognizes this as the new base
         originalProjectRef.current = {
@@ -187,10 +188,10 @@ function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorProps) {
         }
       }
     },
-    [updateProjectMutation],
+    [dispatch, updateProjectMutation],
   );
 
-  /* ── Autosave Effect ────────────────────────────────────────── */
+  /* Autosave Effect */
   React.useEffect(() => {
     // Skip autosave if nothing changed from initial loaded state
     if (
@@ -210,7 +211,7 @@ function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorProps) {
         nodes,
         edges,
         deploymentSettings,
-        true, // silent = true
+        true,
       );
     }, 1000);
 
@@ -225,7 +226,7 @@ function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorProps) {
     persistDiagram,
   ]);
 
-  /* ── Update helpers ─────────────────────────────────────────── */
+  /* Update helpers */
   const updateNodesWithValidation = React.useCallback(
     (updater: (current: DiagramNode[]) => DiagramNode[]) => {
       setNodes((current) =>
@@ -260,7 +261,7 @@ function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorProps) {
     [selectedNode, updateNodesWithValidation],
   );
 
-  /* ── Save ──────────────────────────────────────────────────── */
+  /* Save */
   const saveCurrentDiagram = React.useCallback(() => {
     persistDiagram(
       currentProjectId,
@@ -280,7 +281,7 @@ function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorProps) {
     projectName,
   ]);
 
-  /* ── Validate & Plan ──────────────────────────────────────── */
+  /* Validate & Plan */
   const validateAndPlan = React.useCallback(() => {
     const nextNodes = nodes.map((node) => withValidatedData(node));
     const nextPlan = buildPlan(nextNodes, edges);
@@ -289,48 +290,54 @@ function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorProps) {
     setPlanSummary(nextPlan);
 
     if (nextPlan.resourceCount === 0) {
-      setDeploymentResult({
-        status: 'failed',
-        lastRunAt: new Date().toISOString(),
-        logs: [
-          createLog(
-            'error',
-            'Add at least one resource node before planning or deploying.',
-          ),
-        ],
-      });
+      dispatch(
+        setDeploymentResult({
+          status: DeploymentStatus.Failed,
+          lastRunAt: new Date().toISOString(),
+          logs: [
+            createLog(
+              'error',
+              'Add at least one resource node before planning or deploying.',
+            ),
+          ],
+        }),
+      );
       return { valid: false, plan: nextPlan, nodes: nextNodes };
     }
 
-    if (nextNodes.some((n) => hasValidationErrors(n.data.validationErrors))) {
-      setDeploymentResult({
-        status: 'failed',
-        lastRunAt: new Date().toISOString(),
-        logs: [
-          createLog(
-            'error',
-            'Some resources still have invalid configuration fields. Fix the highlighted errors and try again.',
-          ),
-        ],
-      });
+    if (nextNodes.some((node) => hasValidationErrors(node.data.validationErrors))) {
+      dispatch(
+        setDeploymentResult({
+          status: DeploymentStatus.Failed,
+          lastRunAt: new Date().toISOString(),
+          logs: [
+            createLog(
+              'error',
+              'Some resources still have invalid configuration fields. Fix the highlighted errors and try again.',
+            ),
+          ],
+        }),
+      );
       return { valid: false, plan: nextPlan, nodes: nextNodes };
     }
 
-    setDeploymentResult({
-      status: 'pending',
-      lastRunAt: new Date().toISOString(),
-      logs: [
-        createLog(
-          'info',
-          `Plan ready: ${nextPlan.resourceCount} cloud resource${nextPlan.resourceCount === 1 ? '' : 's'} prepared for deployment.`,
-        ),
-      ],
-    });
+    dispatch(
+      setDeploymentResult({
+        status: DeploymentStatus.Pending,
+        lastRunAt: new Date().toISOString(),
+        logs: [
+          createLog(
+            'info',
+            `Plan ready: ${nextPlan.resourceCount} cloud resource${nextPlan.resourceCount === 1 ? '' : 's'} prepared for deployment.`,
+          ),
+        ],
+      }),
+    );
 
     return { valid: true, plan: nextPlan, nodes: nextNodes };
-  }, [edges, nodes, setNodes]);
+  }, [edges, nodes, setNodes, dispatch]);
 
-  /* ── Add Node (generic — works for any service) ────────────── */
+  /* Add Node (generic — works for any service) */
   const handleAddNode = React.useCallback(
     (serviceId: string) => {
       updateNodesWithValidation((current) => [
@@ -345,7 +352,7 @@ function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorProps) {
     [updateNodesWithValidation],
   );
 
-  /* ── Clipboard Operations ───────────────────────────────────── */
+  /* Clipboard Operations */
   const handleCopySelection = React.useCallback(() => {
     const selection = cloneSelection(nodes, edges);
     if (!selection) {
@@ -355,12 +362,12 @@ function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorProps) {
       });
       return;
     }
-    setClipboard(selection);
+    dispatch(setClipboard(selection));
     toast({
       title: 'Copied to clipboard',
       description: `${selection.nodes.length} node${selection.nodes.length === 1 ? '' : 's'} ready to paste.`,
     });
-  }, [edges, nodes]);
+  }, [edges, nodes, dispatch]);
 
   const handlePasteSelection = React.useCallback(() => {
     if (!clipboard) {
@@ -375,26 +382,26 @@ function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorProps) {
 
   const deleteSelection = React.useCallback(() => {
     const selectedNodeIds = new Set(
-      nodes.filter((n) => n.selected).map((n) => n.id),
+      nodes.filter((node) => node.selected).map((node) => node.id),
     );
     const selectedEdgeIds = new Set(
-      edges.filter((e) => e.selected).map((e) => e.id),
+      edges.filter((edge) => edge.selected).map((edge) => edge.id),
     );
     if (selectedNodeIds.size === 0 && selectedEdgeIds.size === 0) return;
 
-    setNodes((current) => current.filter((n) => !selectedNodeIds.has(n.id)));
+    setNodes((current) => current.filter((node) => !selectedNodeIds.has(node.id)));
     setEdges((current) =>
       current.filter(
-        (e) =>
-          !selectedEdgeIds.has(e.id) &&
-          !selectedNodeIds.has(e.source) &&
-          !selectedNodeIds.has(e.target),
+        (edge) =>
+          !selectedEdgeIds.has(edge.id) &&
+          !selectedNodeIds.has(edge.source) &&
+          !selectedNodeIds.has(edge.target),
       ),
     );
-    setContextMenu(null);
-  }, [edges, nodes, setEdges, setNodes]);
+    dispatch(setContextMenu(null));
+  }, [edges, nodes, setEdges, setNodes, dispatch]);
 
-  /* ── Duplicate ──────────────────────────────────────────────── */
+  /* Duplicate */
   const handleDuplicateNode = React.useCallback(
     (nodeId: string) => {
       const node = nodes.find((n) => n.id === nodeId);
@@ -411,12 +418,12 @@ function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorProps) {
           }),
         },
       ]);
-      setContextMenu(null);
+      dispatch(setContextMenu(null));
     },
-    [nodes, setNodes],
+    [nodes, setNodes, dispatch],
   );
 
-  /* ── Deploy ─────────────────────────────────────────────────── */
+  /* Deploy */
   const handleDeploy = React.useCallback(async () => {
     const { valid, plan, nodes: validatedNodes } = validateAndPlan();
 
@@ -429,16 +436,18 @@ function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorProps) {
       return;
     }
 
-    setDeploymentResult({
-      status: 'in-progress',
-      lastRunAt: new Date().toISOString(),
-      logs: [
-        createLog(
-          'info',
-          `Starting deployment for ${plan.resourceCount} cloud resource${plan.resourceCount === 1 ? '' : 's'}.`,
-        ),
-      ],
-    });
+    dispatch(
+      setDeploymentResult({
+        status: DeploymentStatus.InProgress,
+        lastRunAt: new Date().toISOString(),
+        logs: [
+          createLog(
+            'info',
+            `Starting deployment for ${plan.resourceCount} cloud resource${plan.resourceCount === 1 ? '' : 's'}.`,
+          ),
+        ],
+      }),
+    );
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/deploy`, {
@@ -470,11 +479,13 @@ function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorProps) {
         createLog(entry.level, entry.message),
       ) ?? [createLog('success', 'Deployment completed.')];
 
-      setDeploymentResult({
-        status: 'success',
-        lastRunAt: new Date().toISOString(),
-        logs,
-      });
+      dispatch(
+        setDeploymentResult({
+          status: DeploymentStatus.Success,
+          lastRunAt: new Date().toISOString(),
+          logs,
+        }),
+      );
       toast({
         title: 'Deployment finished',
         description:
@@ -486,16 +497,18 @@ function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorProps) {
           ? error.message
           : 'The local deployment service could not be reached.';
 
-      setDeploymentResult({
-        status: 'failed',
-        lastRunAt: new Date().toISOString(),
-        logs: [
-          createLog(
-            'error',
-            `${message} Start the server and make sure AWS credentials plus the execution role ARN are configured.`,
-          ),
-        ],
-      });
+      dispatch(
+        setDeploymentResult({
+          status: DeploymentStatus.Failed,
+          lastRunAt: new Date().toISOString(),
+          logs: [
+            createLog(
+              'error',
+              `${message} Start the server and make sure AWS credentials plus the execution role ARN are configured.`,
+            ),
+          ],
+        }),
+      );
       toast({
         title: 'Deployment failed',
         description: message,
@@ -510,9 +523,10 @@ function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorProps) {
     projectDescription,
     projectName,
     validateAndPlan,
+    dispatch,
   ]);
 
-  /* ── Keyboard Shortcuts ─────────────────────────────────────── */
+  /* Keyboard Shortcuts */
   React.useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (isInputElement(event.target)) return;
@@ -548,14 +562,14 @@ function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorProps) {
     saveCurrentDiagram,
   ]);
 
-  /* ── Context menu click-away ──────────────────────────────── */
+  /* Context menu click-away */
   React.useEffect(() => {
-    const handleClickAway = () => setContextMenu(null);
+    const handleClickAway = () => dispatch(setContextMenu(null));
     window.addEventListener('click', handleClickAway);
     return () => window.removeEventListener('click', handleClickAway);
-  }, []);
+  }, [dispatch]);
 
-  /* ── Drop handler for ServiceCatalog drag ─────────────────── */
+  /* Drop handler for ServiceCatalog drag */
   const handleDrop = React.useCallback(
     (event: React.DragEvent) => {
       event.preventDefault();
@@ -583,41 +597,32 @@ function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorProps) {
     event.dataTransfer.dropEffect = 'copy';
   }, []);
 
-  /* ── Render ─────────────────────────────────────────────────── */
   return (
     <div
       className="flex h-screen w-screen flex-col overflow-hidden"
       style={{ background: 'var(--color-bg-base)' }}
     >
-      {/* ── Toolbar ──────────────────────────────────────────── */}
+      {/* Toolbar */}
       <EditorToolbar
-        projectName={projectName}
-        onProjectNameChange={setProjectName}
         onBack={onNavigateHome}
         onSave={saveCurrentDiagram}
         onPlan={() => {
           validateAndPlan();
-          setDeployDrawerOpen(true);
+          dispatch(setDeployDrawerOpen(true));
         }}
         onDeploy={() => {
-          setDeployDrawerOpen(true);
+          dispatch(setDeployDrawerOpen(true));
           void handleDeploy();
         }}
-        deploymentStatus={deploymentResult.status}
-        lastSavedAt={lastSavedAt}
-        nodeCount={nodes.length}
-        readyCount={readyCount}
-        snapToGrid={snapToGrid}
-        onToggleSnap={() => setSnapToGrid((c) => !c)}
         isSaving={updateProjectMutation.isPending}
       />
 
-      {/* ── Main Editor Area ─────────────────────────────────── */}
+      {/* Main Editor Area */}
       <div className="flex flex-1 overflow-hidden">
         {/* Service Catalog */}
         <ServiceCatalog
           collapsed={sidebarCollapsed}
-          onToggleCollapse={() => setSidebarCollapsed((c) => !c)}
+          onToggleCollapse={() => dispatch(setSidebarCollapsed(!sidebarCollapsed))}
           onAddNode={handleAddNode}
         />
 
@@ -661,13 +666,15 @@ function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorProps) {
             }}
             onNodeContextMenu={(event, node) => {
               event.preventDefault();
-              setContextMenu({
-                nodeId: node.id,
-                x: event.clientX,
-                y: event.clientY,
-              });
+              dispatch(
+                setContextMenu({
+                  nodeId: node.id,
+                  x: event.clientX,
+                  y: event.clientY,
+                }),
+              );
             }}
-            onPaneClick={() => setContextMenu(null)}
+            onPaneClick={() => dispatch(setContextMenu(null))}
             proOptions={{ hideAttribution: true }}
           >
             <Background
@@ -697,16 +704,16 @@ function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorProps) {
               onDuplicate={() => handleDuplicateNode(contextMenu.nodeId)}
               onDelete={() => {
                 setNodes((current) =>
-                  current.filter((n) => n.id !== contextMenu.nodeId),
+                  current.filter((node) => node.id !== contextMenu.nodeId),
                 );
                 setEdges((current) =>
                   current.filter(
-                    (e) =>
-                      e.source !== contextMenu.nodeId &&
-                      e.target !== contextMenu.nodeId,
+                    (edge) =>
+                      edge.source !== contextMenu.nodeId &&
+                      edge.target !== contextMenu.nodeId,
                   ),
                 );
-                setContextMenu(null);
+                dispatch(setContextMenu(null));
               }}
             />
           )}
@@ -724,9 +731,9 @@ function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorProps) {
       {/* Deploy Drawer */}
       <DeployDrawer
         open={deployDrawerOpen}
-        onClose={() => setDeployDrawerOpen(false)}
+        onClose={() => dispatch(setDeployDrawerOpen(false))}
         deploymentSettings={deploymentSettings}
-        onSettingsChange={setDeploymentSettings}
+        onSettingsChange={(settings) => dispatch(setDeploymentSettings(settings))}
         deploymentResult={deploymentResult}
         planSummary={planSummary}
         onDeploy={() => {
@@ -737,51 +744,4 @@ function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorProps) {
     </div>
   );
 }
-
-/* ─── Exported Editor (wraps with ReactFlowProvider) ─────────────────── */
-
-export function Editor({ projectId, onNavigateHome }: EditorProps) {
-  const { data: project, isLoading, error } = useProject(projectId);
-
-  if (isLoading) {
-    return (
-      <div className="flex h-screen w-screen flex-col items-center justify-center gap-4 bg-[#09090b] text-[#fafafa]">
-        {/* Sleek, premium loader */}
-        <div className="relative flex size-16 items-center justify-center">
-          <div className="absolute size-full animate-ping rounded-full bg-violet-600/30 opacity-75"></div>
-          <div className="relative size-12 animate-spin rounded-full border-4 border-violet-500 border-t-transparent"></div>
-        </div>
-        <div className="animate-pulse text-sm font-medium tracking-wide text-zinc-400">
-          Loading cloud architecture...
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !project) {
-    return (
-      <div className="flex h-screen w-screen flex-col items-center justify-center gap-4 bg-[#09090b] text-[#fafafa]">
-        <div className="text-xl font-bold text-red-500">Project Not Found</div>
-        <p className="text-sm text-zinc-400">
-          Failed to load the cloud diagram from the server.
-        </p>
-        <button
-          onClick={onNavigateHome}
-          className="rounded-md bg-zinc-800 px-4 py-2 text-sm transition hover:bg-zinc-700"
-        >
-          Go Back Home
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <ReactFlowProvider>
-      <CanvasEditor
-        projectId={projectId}
-        initialProject={project}
-        onNavigateHome={onNavigateHome}
-      />
-    </ReactFlowProvider>
-  );
-}
+export default CanvasEditor;
