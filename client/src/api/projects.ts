@@ -9,28 +9,15 @@ import type { PersistedDiagram } from '@/types';
 
 export const fetchProjects = async (): Promise<PersistedDiagram[]> => {
   const response =
-    await api.get<ServerResponse<ServerProject[]>>('/api/projects/');
+    await api.get<ServerResponse<ServerProject[]>>('/projects/');
   return response.data.data.map(mapServerToClientProject);
-};
-
-export const fetchProjectByQuery = async (
-  projectId: string,
-): Promise<PersistedDiagram | null> => {
-  const response = await api.get<ServerResponse<ServerProject[]>>(
-    '/api/projects/',
-    {
-      params: { project_id: projectId },
-    },
-  );
-  const list = response.data.data;
-  return list.length > 0 ? mapServerToClientProject(list[0]) : null;
 };
 
 export const fetchProjectById = async (
   projectId: string,
 ): Promise<PersistedDiagram> => {
   const response = await api.get<ServerResponse<ServerProject>>(
-    `/api/projects/${projectId}/`,
+    `/projects/${projectId}/`,
   );
   return mapServerToClientProject(response.data.data);
 };
@@ -40,7 +27,7 @@ export const createProject = async (
 ): Promise<PersistedDiagram> => {
   const serverPayload = mapClientToServerProject(project);
   const response = await api.post<ServerResponse<ServerProject>>(
-    '/api/projects/',
+    '/projects/',
     serverPayload,
   );
   return mapServerToClientProject(response.data.data);
@@ -52,14 +39,14 @@ export const updateProject = async (
 ): Promise<PersistedDiagram> => {
   const serverPayload = mapClientToServerProject(project);
   const response = await api.put<ServerResponse<ServerProject>>(
-    `/api/projects/${projectId}/`,
+    `/projects/${projectId}/`,
     serverPayload,
   );
   return mapServerToClientProject(response.data.data);
 };
 
 export const deleteProject = async (projectId: string): Promise<void> => {
-  await api.delete(`/api/projects/${projectId}/`);
+  await api.delete(`/projects/${projectId}/`);
 };
 
 // React Query Hooks
@@ -73,7 +60,7 @@ export const useProjects = () => {
 export const useProject = (projectId: string | null) => {
   return useQuery({
     queryKey: ['project', projectId],
-    queryFn: () => fetchProjectByQuery(projectId!),
+    queryFn: () => fetchProjectById(projectId!),
     enabled: !!projectId,
   });
 };

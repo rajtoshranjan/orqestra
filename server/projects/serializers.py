@@ -3,10 +3,6 @@ from .models import Project
 
 
 class ProjectSerializer(serializers.ModelSerializer):
-    """
-    Project model serializer utilizing native snake_case field mappings.
-    """
-
     class Meta:
         model = Project
         fields = [

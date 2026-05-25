@@ -12,7 +12,7 @@ class PlanTests(BaseTestCase):
                 "last_saved_at": "",
             }
         }
-        response = self.client.post("/api/plan", payload, format="json")
+        response = self.client.post("/plan", payload, format="json")
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.data["valid"])
         self.assertEqual(len(response.data["resources"]), 1)
@@ -29,7 +29,7 @@ class PlanTests(BaseTestCase):
                 "last_saved_at": "",
             }
         }
-        response = self.client.post("/api/plan", payload, format="json")
+        response = self.client.post("/plan", payload, format="json")
         self.assertEqual(response.status_code, 422)
         self.assertFalse(response.data["valid"])
         self.assertTrue(len(response.data["errors"]) > 0)
@@ -46,14 +46,14 @@ class PlanTests(BaseTestCase):
                 "last_saved_at": "",
             }
         }
-        response = self.client.post("/api/plan", payload, format="json")
+        response = self.client.post("/plan", payload, format="json")
         self.assertEqual(response.status_code, 200)
         resources = response.data["resources"]
         self.assertEqual(resources[0]["connection_count"], 1)
         self.assertEqual(resources[1]["connection_count"], 1)
 
     def test_plan_get_not_allowed(self):
-        response = self.client.get("/api/plan")
+        response = self.client.get("/plan")
         self.assertEqual(response.status_code, 405)
 
     def test_plan_invalid_memory_size(self):
@@ -67,6 +67,6 @@ class PlanTests(BaseTestCase):
                 "last_saved_at": "",
             }
         }
-        response = self.client.post("/api/plan", payload, format="json")
+        response = self.client.post("/plan", payload, format="json")
         self.assertEqual(response.status_code, 422)
         self.assertFalse(response.data["valid"])

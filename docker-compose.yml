@@ -21,24 +21,8 @@ services:
     build:
       context: ./server
       dockerfile: Dockerfile
-    environment:
-      HOST: 0.0.0.0
-      PORT: "3001"
-      SECRET_KEY: ${SECRET_KEY:-django-insecure-orqestra-dev-key-change-in-production}
-      DEBUG: ${DEBUG:-True}
-      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
-      ALLOWED_CORS_DOMAINS: ${ALLOWED_CORS_DOMAINS:-http://localhost:8080}
-      AWS_REGION: ${AWS_REGION:-us-east-1}
-      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
-      AWS_LAMBDA_EXECUTION_ROLE_ARN: ${AWS_LAMBDA_EXECUTION_ROLE_ARN:-}
-      AWS_ENDPOINT_URL: ${AWS_ENDPOINT_URL:-http://ministack:4566}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-mock-access-key}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-mock-secret-key}
-      DB_NAME: ${DB_NAME:-postgres}
-      DB_USER: ${DB_USER:-postgres}
-      DB_PASSWORD: ${DB_PASSWORD:-postgres}
-      DB_HOST: db
-      DB_PORT: 5432
+    env_file:
+      - .env
     depends_on:
       - db
       - ministack

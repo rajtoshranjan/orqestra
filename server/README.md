@@ -5,8 +5,8 @@ The server is a Django REST Framework API that converts saved diagrams into AWS 
 ### Endpoints
 
 - `GET /health`
-- `POST /api/plan`
-- `POST /api/deploy`
+- `POST /plan`
+- `POST /deploy`
 
 ### Requirements
 

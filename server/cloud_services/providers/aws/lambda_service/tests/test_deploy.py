@@ -12,7 +12,7 @@ class DeployTests(BaseTestCase):
                 "last_saved_at": "",
             }
         }
-        response = self.client.post("/api/deploy", payload, format="json")
+        response = self.client.post("/deploy", payload, format="json")
         self.assertEqual(response.status_code, 422)
         self.assertIn("error", response.data)
 
@@ -44,18 +44,18 @@ class DeployTests(BaseTestCase):
                 "last_saved_at": "",
             }
         }
-        response = self.client.post("/api/deploy", payload, format="json")
+        response = self.client.post("/deploy", payload, format="json")
         self.assertEqual(response.status_code, 422)
         self.assertIn("error", response.data)
         self.assertIn("logs", response.data)
 
     def test_deploy_get_not_allowed(self):
-        response = self.client.get("/api/deploy")
+        response = self.client.get("/deploy")
         self.assertEqual(response.status_code, 405)
 
     def test_deploy_invalid_json(self):
         response = self.client.post(
-            "/api/deploy",
+            "/deploy",
             "not json",
             content_type="application/json",
         )
