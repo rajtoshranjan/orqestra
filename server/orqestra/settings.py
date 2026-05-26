@@ -5,24 +5,16 @@ from utils.parsers import unwrap_boolean, unwrap_list
 
 from .env_variables import EnvVariable
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = EnvVariable.SECRET_KEY.value
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = unwrap_boolean(EnvVariable.DEBUG.value)
 
 ALLOWED_HOSTS = unwrap_list(EnvVariable.ALLOWED_HOSTS.value)
 
 
 # Application definition
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -32,6 +24,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "corsheaders",
     "rest_framework",
+
     # Apps.
     "cloud_services",
     "projects",
@@ -85,8 +78,6 @@ DATABASES = {
 
 
 # Password validation
-# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -104,8 +95,6 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/5.1/topics/i18n/
-
 LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "UTC"
@@ -116,18 +105,13 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
-
 STATIC_URL = "static/"
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 # Django REST Framework
-
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": [
         "orqestra.response_renderer.CustomJsonRenderer",
@@ -137,13 +121,11 @@ REST_FRAMEWORK = {
 
 
 # CORS
-
 CORS_ALLOWED_ORIGINS = unwrap_list(EnvVariable.ALLOWED_CORS_DOMAINS.value)
 CORS_ALLOW_ALL_ORIGINS = DEBUG
 
 
 # Logging
-
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
