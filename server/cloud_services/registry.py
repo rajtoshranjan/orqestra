@@ -19,7 +19,11 @@ class ServiceRegistry:
         if not isinstance(handler, BaseServiceHandler):
             raise TypeError("Handler must implement BaseServiceHandler")
         self._handlers[handler.service_id] = handler
-        logger.info(f"Registered cloud service handler: {handler.service_id} ({handler.display_name})")
+        logger.info(
+            "Registered cloud service handler: %s (%s)",
+            handler.service_id,
+            handler.display_name,
+        )
 
     def get(self, service_id: str) -> BaseServiceHandler:
         """Retrieve a handler by service_id."""
@@ -36,5 +40,5 @@ class ServiceRegistry:
         return service_id in self._handlers
 
 
-# Singleton instance
+# Singleton instance.
 registry = ServiceRegistry()

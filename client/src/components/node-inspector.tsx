@@ -15,7 +15,7 @@ export function NodeInspector({
   selectedNode,
   onUpdateConfig,
 }: NodeInspectorProps) {
-  /* Empty state */
+  /* Empty state. */
   if (!selectedNode) {
     return (
       <aside className="animate-slide-in-right flex h-full w-[360px] shrink-0 flex-col justify-center border-l border-border bg-card">
@@ -31,7 +31,7 @@ export function NodeInspector({
 
   const { serviceId, config, validationErrors } = selectedNode.data;
 
-  /* Look up the service definition */
+  /* Look up the service definition. */
   const service = registry.find(serviceId);
   if (!service) {
     return (
@@ -52,7 +52,7 @@ export function NodeInspector({
 
   return (
     <aside className="animate-slide-in-right flex h-full w-[360px] shrink-0 flex-col border-l border-border bg-card">
-      {/* Header */}
+      {/* Header. */}
       <div className="flex shrink-0 items-center gap-3 border-b border-border px-4 py-3">
         <div
           className="flex size-8 items-center justify-center rounded-full text-primary"
@@ -71,12 +71,12 @@ export function NodeInspector({
         </Badge>
       </div>
 
-      {/* Service-specific form (rendered via registry) */}
+      {/* Service-specific form (rendered via registry). */}
       <div className="flex-1 overflow-y-auto p-4">
         <InspectorForm
           config={config}
           validationErrors={validationErrors}
-          onUpdate={onUpdateConfig as any}
+          onUpdate={(updater) => onUpdateConfig(updater)}
         />
       </div>
     </aside>

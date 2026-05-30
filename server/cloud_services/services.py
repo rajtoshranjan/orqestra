@@ -16,7 +16,7 @@ def plan_diagram(nodes, edges) -> list[dict]:
         try:
             handler = registry.get(service_id)
 
-            # Count connections (edges where this node is source or target)
+            # Count connections (edges where this node is source or target).
             node_id = node.get("id")
             connection_count = sum(
                 1
@@ -27,7 +27,7 @@ def plan_diagram(nodes, edges) -> list[dict]:
             resource_summary = handler.build_plan_resource(node, connection_count)
             resources.append(resource_summary)
         except ValueError:
-            # Skip unregistered/unsupported services or let validation handle it
+            # Skip unregistered/unsupported services or let validation handle it.
             pass
 
     return resources
@@ -38,7 +38,7 @@ def deploy_diagram(nodes, edges, settings, logs) -> list[dict]:
     Deploy all resources in the diagram by delegating to their handlers.
     Appends deployment logs to the provided logs list.
     """
-    # Add general validation or start info
+    # Add general validation or start info.
     logs.append(
         {
             "level": "info",

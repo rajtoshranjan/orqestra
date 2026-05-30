@@ -1,6 +1,5 @@
 'use client';
 
-// Inspired by react-hot-toast library
 import * as React from 'react';
 
 import type { ToastActionElement, ToastProps } from '@/components/ui/toast';
@@ -33,21 +32,21 @@ type ActionType = typeof actionTypes;
 
 type Action =
   | {
-      type: ActionType['ADD_TOAST'];
-      toast: ToasterToast;
-    }
+    type: ActionType['ADD_TOAST'];
+    toast: ToasterToast;
+  }
   | {
-      type: ActionType['UPDATE_TOAST'];
-      toast: Partial<ToasterToast>;
-    }
+    type: ActionType['UPDATE_TOAST'];
+    toast: Partial<ToasterToast>;
+  }
   | {
-      type: ActionType['DISMISS_TOAST'];
-      toastId?: ToasterToast['id'];
-    }
+    type: ActionType['DISMISS_TOAST'];
+    toastId?: ToasterToast['id'];
+  }
   | {
-      type: ActionType['REMOVE_TOAST'];
-      toastId?: ToasterToast['id'];
-    };
+    type: ActionType['REMOVE_TOAST'];
+    toastId?: ToasterToast['id'];
+  };
 
 type State = {
   toasts: ToasterToast[];
@@ -103,9 +102,9 @@ export const reducer = (state: State, action: Action): State => {
         toasts: state.toasts.map((toasterToast) =>
           toasterToast.id === toastId || toastId === undefined
             ? {
-                ...toasterToast,
-                open: false,
-              }
+              ...toasterToast,
+              open: false,
+            }
             : toasterToast,
         ),
       };

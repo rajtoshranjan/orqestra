@@ -2,7 +2,10 @@ import { ChevronLeft, ChevronRight, GripVertical } from 'lucide-react';
 import { registry } from '@/services';
 import { NODE_DRAG_TYPE } from '@/utils';
 import { SERVICE_CATEGORY_LABELS } from '@/services/types';
-import type { ServiceCategory } from '@/services/types';
+
+interface CustomCSSProperties extends React.CSSProperties {
+  '--hover-border'?: string;
+}
 
 export type ServiceCatalogProps = {
   onAddNode: (serviceId: string) => void;
@@ -22,7 +25,7 @@ export function ServiceCatalog({
       className="duration-[var(--transition-base)] flex h-full shrink-0 flex-col overflow-hidden border-r border-[var(--color-border)] bg-[var(--color-bg-surface)] transition-all"
       style={{ width: collapsed ? 52 : 260 }}
     >
-      {/* Header */}
+      {/* Header. */}
       <div className="flex h-12 shrink-0 items-center justify-between border-b border-[var(--color-border)] px-3">
         {!collapsed && (
           <span className="animate-fade-in whitespace-nowrap text-sm font-semibold text-[var(--color-text-primary)]">
@@ -42,14 +45,14 @@ export function ServiceCatalog({
         </button>
       </div>
 
-      {/* Service List — grouped by category */}
+      {/* Service List — grouped by category. */}
       <div className="flex-1 space-y-4 overflow-y-auto overflow-x-hidden p-2">
         {[...servicesByCategory.entries()].map(([category, services]) => (
           <div key={category}>
-            {/* Category header (only when expanded and >1 category) */}
+            {/* Category header (only when expanded and >1 category). */}
             {!collapsed && servicesByCategory.size > 1 && (
               <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
-                {SERVICE_CATEGORY_LABELS[category as ServiceCategory]}
+                {SERVICE_CATEGORY_LABELS[category]}
               </p>
             )}
 
@@ -57,22 +60,28 @@ export function ServiceCatalog({
               {services.map((service) => {
                 const ServiceIcon = service.icon;
 
+                const collapsedStyle: React.CSSProperties = {
+                  background: `${service.accentColor}18`,
+                  color: service.accentColor,
+                };
+
+                const itemStyle: CustomCSSProperties = {
+                  '--hover-border': service.accentColor,
+                };
+
                 return collapsed ? (
-                  /* Collapsed: icon-only */
+                  /* Collapsed: icon-only. */
                   <button
                     key={service.id}
                     onClick={() => onAddNode(service.id)}
                     className="duration-[var(--transition-fast)] mx-auto flex size-9 items-center justify-center rounded-[var(--radius-sm)] transition-colors"
-                    style={{
-                      background: `${service.accentColor}18`,
-                      color: service.accentColor,
-                    }}
+                    style={collapsedStyle}
                     title={service.name}
                   >
                     <ServiceIcon size={16} />
                   </button>
                 ) : (
-                  /* Expanded: full card */
+                  /* Expanded: full card. */
                   <div
                     key={service.id}
                     draggable
@@ -82,11 +91,9 @@ export function ServiceCatalog({
                     }}
                     onClick={() => onAddNode(service.id)}
                     className="duration-[var(--transition-base)] animate-fade-in group cursor-grab select-none rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-3 transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)] active:cursor-grabbing"
-                    style={{
-                      ['--hover-border' as string]: service.accentColor,
-                    }}
+                    style={itemStyle}
                   >
-                    {/* Icon + Title Row */}
+                    {/* Icon + Title Row. */}
                     <div className="mb-2 flex items-center gap-2.5">
                       <div
                         className="flex size-8 shrink-0 items-center justify-center rounded-full"
@@ -113,12 +120,12 @@ export function ServiceCatalog({
                       </span>
                     </div>
 
-                    {/* Description */}
+                    {/* Description. */}
                     <p className="mb-2.5 text-xs leading-relaxed text-[var(--color-text-muted)]">
                       {service.description}
                     </p>
 
-                    {/* Drag hint */}
+                    {/* Drag hint. */}
                     <div className="duration-[var(--transition-fast)] flex items-center gap-1 text-[10px] text-[var(--color-text-muted)] opacity-0 transition-opacity group-hover:opacity-100">
                       <GripVertical className="size-3" />
                       <span>Drag to canvas</span>

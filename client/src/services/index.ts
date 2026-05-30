@@ -9,12 +9,12 @@
 import { registry } from './registry';
 import { lambdaService } from './lambda';
 
-// Register all services
+// Register all services.
 registry.register(lambdaService);
 
 
 
-// Re-export for convenience
+// Re-export for convenience.
 export { registry } from './registry';
 export type {
   ServiceDefinition,

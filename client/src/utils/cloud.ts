@@ -83,7 +83,7 @@ export function readProjectCollection(): SavedProjectRecord[] {
   if (!raw) return [];
 
   try {
-    const parsed = JSON.parse(raw) as SavedProjectRecord[];
+    const parsed: SavedProjectRecord[] = JSON.parse(raw);
     return parsed.map((project) => ({
       ...normalizePersistedDiagram(project),
       updatedAt:

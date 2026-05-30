@@ -110,7 +110,7 @@ export function CanvasEditor({
   const [reactFlowInstance, setReactFlowInstance] =
     React.useState<ReactFlowInstance<ServiceNodeData> | null>(null);
 
-  // Capture initial mount state to prevent autosave loop from refetches
+  // Capture initial mount state to prevent autosave loop from refetches.
   const originalProjectRef = React.useRef({
     nodes: initialProject.nodes,
     edges: initialProject.edges,
@@ -118,7 +118,7 @@ export function CanvasEditor({
     projectName: initialProject.projectName,
   });
 
-  /* Sync nodes and edges into Redux for query/deploy selections */
+  /* Sync nodes and edges into Redux for query/deploy selections. */
   React.useEffect(() => {
     dispatch(setReduxNodes(nodes));
   }, [nodes, dispatch]);
@@ -191,9 +191,9 @@ export function CanvasEditor({
     [dispatch, updateProjectMutation],
   );
 
-  /* Autosave Effect */
+  /* Autosave Effect. */
   React.useEffect(() => {
-    // Skip autosave if nothing changed from initial loaded state
+    // Skip autosave if nothing changed from initial loaded state.
     if (
       nodes === originalProjectRef.current.nodes &&
       edges === originalProjectRef.current.edges &&
@@ -337,7 +337,7 @@ export function CanvasEditor({
     return { valid: true, plan: nextPlan, nodes: nextNodes };
   }, [edges, nodes, setNodes, dispatch]);
 
-  /* Add Node (generic — works for any service) */
+  /* Add Node (generic — works for any service). */
   const handleAddNode = React.useCallback(
     (serviceId: string) => {
       updateNodesWithValidation((current) => [
@@ -468,10 +468,10 @@ export function CanvasEditor({
         ),
       });
 
-      const payload = (await response.json()) as {
+      const payload: {
         error?: string;
         logs?: Array<{ level: 'info' | 'success' | 'error'; message: string }>;
-      };
+      } = await response.json();
 
       if (!response.ok) throw new Error(payload.error ?? 'Deployment failed.');
 
@@ -569,14 +569,14 @@ export function CanvasEditor({
     return () => window.removeEventListener('click', handleClickAway);
   }, [dispatch]);
 
-  /* Drop handler for ServiceCatalog drag */
+  /* Drop handler for ServiceCatalog drag. */
   const handleDrop = React.useCallback(
     (event: React.DragEvent) => {
       event.preventDefault();
       const serviceId = event.dataTransfer.getData(NODE_DRAG_TYPE);
       if (!serviceId || !reactFlowInstance) return;
 
-      // Verify service exists in registry
+      // Verify service exists in registry.
       if (!registry.find(serviceId)) return;
 
       const position = reactFlowInstance.screenToFlowPosition({
@@ -686,11 +686,12 @@ export function CanvasEditor({
             <Controls position="bottom-right" />
             <MiniMap
               className="!bottom-4 !left-4 !h-28 !w-44 overflow-hidden"
-              nodeColor={(node) =>
-                countNodeErrors(node as DiagramNode) > 0
+              nodeColor={(node) => {
+                const diagNode: DiagramNode = node;
+                return countNodeErrors(diagNode) > 0
                   ? 'var(--color-warning)'
-                  : 'var(--color-accent)'
-              }
+                  : 'var(--color-accent)';
+              }}
               pannable
               zoomable
             />

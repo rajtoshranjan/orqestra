@@ -1,6 +1,6 @@
 import type { NodeProps } from 'reactflow';
 
-/* Service Categories */
+/* Service Categories. */
 
 export type ServiceCategory =
   | 'compute'
@@ -23,11 +23,11 @@ export const SERVICE_CATEGORY_LABELS: Record<ServiceCategory, string> = {
   integration: 'Integration',
 };
 
-/* Generic Validation */
+/* Generic Validation. */
 
 export type ServiceValidationErrors = Record<string, string>;
 
-/* Generic Plan Resource */
+/* Generic Plan Resource. */
 
 export type ServicePlanResource = {
   id: string;
@@ -37,7 +37,7 @@ export type ServicePlanResource = {
   details: Array<{ label: string; value: string }>;
 };
 
-/* Service Node Props (for node renderers) */
+/* Service Node Props (for node renderers). */
 
 export type ServiceNodeProps<TConfig = Record<string, unknown>> = {
   data: {
@@ -49,7 +49,7 @@ export type ServiceNodeProps<TConfig = Record<string, unknown>> = {
   selected: boolean;
 };
 
-/* Service Inspector Props (for inspector forms) */
+/* Service Inspector Props (for inspector forms). */
 
 export type ServiceInspectorProps<TConfig = Record<string, unknown>> = {
   config: TConfig;
@@ -57,7 +57,7 @@ export type ServiceInspectorProps<TConfig = Record<string, unknown>> = {
   onUpdate: (updater: (prev: TConfig) => TConfig) => void;
 };
 
-/* Service Definition (the core plugin interface) */
+/* Service Definition (the core plugin interface). */
 
 export type ServiceDefinition<TConfig = Record<string, unknown>> = {
   id: string;
@@ -69,13 +69,13 @@ export type ServiceDefinition<TConfig = Record<string, unknown>> = {
   icon: React.ComponentType<{ size?: number | string; className?: string }>;
   accentColor: string;
 
-  /* Config lifecycle */
+  /* Config lifecycle. */
 
   createDefaultConfig: (index: number) => TConfig;
   validate: (config: TConfig) => ServiceValidationErrors;
   getDisplayName: (config: TConfig) => string;
 
-  /* React components */
+  /* React components. */
 
   NodeComponent: React.ComponentType<
     NodeProps<{
@@ -87,7 +87,7 @@ export type ServiceDefinition<TConfig = Record<string, unknown>> = {
   >;
   InspectorComponent: React.ComponentType<ServiceInspectorProps<TConfig>>;
 
-  /* Plan builder */
+  /* Plan builder. */
 
   buildPlanResource: (
     nodeId: string,

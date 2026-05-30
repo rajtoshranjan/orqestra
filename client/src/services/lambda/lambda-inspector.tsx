@@ -14,7 +14,7 @@ import {
 } from './defaults';
 import { Button, Input } from '@/components/ui';
 
-/* Shared sub-components */
+/* Shared sub-components. */
 
 type SectionHeaderProps = {
   children: React.ReactNode;
@@ -39,7 +39,11 @@ function FieldError({ message }: FieldErrorProps) {
   );
 }
 
-/* Lambda Inspector */
+function isLambdaRuntime(value: string): value is LambdaRuntime {
+  return RUNTIME_OPTIONS.some((opt) => opt.value === value);
+}
+
+/* Lambda Inspector. */
 
 export function LambdaInspector({
   config,
@@ -63,14 +67,14 @@ export function LambdaInspector({
     name: 'environmentVariables',
   });
 
-  // Track active config identity so we reset default values when user selects a different Lambda node
+  // Track active config identity so we reset default values when user selects a different Lambda node.
   const activeFunctionName = config.functionName;
   React.useEffect(() => {
     reset(config);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeFunctionName, reset]);
 
-  // Watch form fields to trigger updates back to parent ReactFlow state on change
+  // Watch form fields to trigger updates back to parent ReactFlow state on change.
   const watchedValues = watch();
   const lastUpdatedRef = React.useRef<string>('');
 
@@ -81,6 +85,18 @@ export function LambdaInspector({
       onUpdate(() => watchedValues);
     }
   }, [watchedValues, onUpdate]);
+
+  const getEnvVarErrorMessage = (): string | undefined => {
+    if (!errors.environmentVariables) return undefined;
+    if (errors.environmentVariables.message) {
+      return errors.environmentVariables.message;
+    }
+    const rootErr = Object(errors.environmentVariables).root;
+    if (rootErr && typeof rootErr === 'object' && 'message' in rootErr) {
+      return String(rootErr.message);
+    }
+    return undefined;
+  };
 
   function handleRuntimeChange(runtime: LambdaRuntime) {
     setValue('runtime', runtime, { shouldValidate: true });
@@ -94,11 +110,11 @@ export function LambdaInspector({
 
   return (
     <div className="space-y-6">
-      {/* Configuration Section */}
+      {/* Configuration Section. */}
       <section>
         <SectionHeader>Configuration</SectionHeader>
         <div className="space-y-4">
-          {/* Function Name */}
+          {/* Function Name. */}
           <div>
             <label className="input-label">Function Name</label>
             <Input
@@ -109,15 +125,18 @@ export function LambdaInspector({
             <FieldError message={errors.functionName?.message} />
           </div>
 
-          {/* Runtime */}
+          {/* Runtime. */}
           <div>
             <label className="input-label">Runtime</label>
             <select
               className="flex h-9 w-full rounded-md border border-border/80 bg-background/50 px-3 py-1.5 text-sm text-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
               {...register('runtime')}
-              onChange={(e) =>
-                handleRuntimeChange(e.target.value as LambdaRuntime)
-              }
+              onChange={(e) => {
+                const val = e.target.value;
+                if (isLambdaRuntime(val)) {
+                  handleRuntimeChange(val);
+                }
+              }}
             >
               {RUNTIME_OPTIONS.map((opt) => (
                 <option
@@ -132,7 +151,7 @@ export function LambdaInspector({
             <FieldError message={errors.runtime?.message} />
           </div>
 
-          {/* Handler */}
+          {/* Handler. */}
           <div>
             <label className="input-label">Handler</label>
             <Input
@@ -143,7 +162,7 @@ export function LambdaInspector({
             <FieldError message={errors.handler?.message} />
           </div>
 
-          {/* Memory Size */}
+          {/* Memory Size. */}
           <div>
             <label className="input-label">Memory (MB)</label>
             <Input
@@ -156,7 +175,7 @@ export function LambdaInspector({
             <FieldError message={errors.memorySize?.message} />
           </div>
 
-          {/* Timeout */}
+          {/* Timeout. */}
           <div>
             <label className="input-label">Timeout (seconds)</label>
             <Input
@@ -169,7 +188,7 @@ export function LambdaInspector({
             <FieldError message={errors.timeout?.message} />
           </div>
 
-          {/* Description */}
+          {/* Description. */}
           <div>
             <label className="input-label">Description</label>
             <Input
@@ -182,7 +201,7 @@ export function LambdaInspector({
         </div>
       </section>
 
-      {/* Function Code Section */}
+      {/* Function Code Section. */}
       <section>
         <SectionHeader>Function Code</SectionHeader>
         <div>
@@ -204,7 +223,7 @@ export function LambdaInspector({
         </div>
       </section>
 
-      {/* Environment Variables Section */}
+      {/* Environment Variables Section. */}
       <section>
         <SectionHeader>Environment Variables</SectionHeader>
         <div className="space-y-2">
@@ -214,13 +233,13 @@ export function LambdaInspector({
                 type="text"
                 className="border-border/80 bg-background/50 text-foreground"
                 placeholder="KEY"
-                {...register(`environmentVariables.${index}.key` as const)}
+                {...register(`environmentVariables.${index}.key`)}
               />
               <Input
                 type="text"
                 className="border-border/80 bg-background/50 text-foreground"
                 placeholder="Value"
-                {...register(`environmentVariables.${index}.value` as const)}
+                {...register(`environmentVariables.${index}.value`)}
               />
               <Button
                 variant="ghost"
@@ -235,10 +254,7 @@ export function LambdaInspector({
             </div>
           ))}
           <FieldError
-            message={
-              (errors.environmentVariables as any)?.root?.message ||
-              errors.environmentVariables?.message
-            }
+            message={getEnvVarErrorMessage()}
           />
           <Button
             variant="ghost"

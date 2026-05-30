@@ -25,7 +25,7 @@ export function createServiceNode(
   index: number,
 ): DiagramNode {
   const service = registry.get(serviceId);
-  const config = service.createDefaultConfig(index);
+  const config: Record<string, unknown> = service.createDefaultConfig(index);
   const validationErrors = service.validate(config);
 
   return {
@@ -35,7 +35,7 @@ export function createServiceNode(
     data: {
       serviceId,
       label: service.getDisplayName(config),
-      config: config as Record<string, unknown>,
+      config,
       validationErrors,
     },
   };

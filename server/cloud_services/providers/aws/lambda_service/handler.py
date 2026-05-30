@@ -98,5 +98,5 @@ class LambdaHandler(BaseServiceHandler):
         return "unknown"
 
 
-# Auto-register handler when this module is imported
+# Auto-register handler when this module is imported.
 registry.register(LambdaHandler())
