@@ -1,5 +1,4 @@
 import React from 'react';
-import { Plus, Trash2 } from 'lucide-react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
@@ -12,32 +11,13 @@ import {
   makeEnvironmentVariable,
 } from './defaults';
 import { lambdaConfigSchema } from '@/schemas/lambda.schema';
-import { Button, Input } from '@/components/ui';
-
-/* Shared sub-components. */
-
-type SectionHeaderProps = {
-  children: React.ReactNode;
-};
-
-function SectionHeader({ children }: SectionHeaderProps) {
-  return (
-    <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-      {children}
-    </h3>
-  );
-}
-
-type FieldErrorProps = {
-  message?: string;
-};
-
-function FieldError({ message }: FieldErrorProps) {
-  if (!message) return null;
-  return (
-    <p className="animate-fade-in mt-1 text-xs text-destructive">{message}</p>
-  );
-}
+import { Input } from '@/components/ui';
+import {
+  InspectorSection,
+  InspectorField,
+  CodeEditorField,
+  KeyValueEditor,
+} from '@/components';
 
 function isLambdaRuntime(value: string): value is LambdaRuntime {
   return RUNTIME_OPTIONS.some((opt) => opt.value === value);
@@ -109,163 +89,112 @@ export function LambdaInspector({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="animate-fade-in space-y-6">
       {/* Configuration Section. */}
-      <section>
-        <SectionHeader>Configuration</SectionHeader>
-        <div className="space-y-4">
-          {/* Function Name. */}
-          <div>
-            <label className="input-label">Function Name</label>
-            <Input
-              type="text"
-              className="border-border/80 bg-background/50 text-foreground"
-              {...register('functionName')}
-            />
-            <FieldError message={errors.functionName?.message} />
-          </div>
+      <InspectorSection title="Configuration">
+        {/* Function Name. */}
+        <InspectorField
+          label="Function Name"
+          error={errors.functionName?.message}
+        >
+          <Input
+            type="text"
+            className="border-border/80 bg-background/50 text-foreground"
+            {...register('functionName')}
+          />
+        </InspectorField>
 
-          {/* Runtime. */}
-          <div>
-            <label className="input-label">Runtime</label>
-            <select
-              className="flex h-8 w-full rounded-md border border-border/80 bg-background/50 px-2.5 py-1 text-xs text-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-              {...register('runtime')}
-              onChange={(e) => {
-                const val = e.target.value;
-                if (isLambdaRuntime(val)) {
-                  handleRuntimeChange(val);
-                }
-              }}
-            >
-              {RUNTIME_OPTIONS.map((opt) => (
-                <option
-                  key={opt.value}
-                  value={opt.value}
-                  className="bg-card text-foreground"
-                >
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            <FieldError message={errors.runtime?.message} />
-          </div>
+        {/* Runtime. */}
+        <InspectorField label="Runtime" error={errors.runtime?.message}>
+          <select
+            className="flex h-8 w-full rounded-md border border-border/80 bg-background/50 px-2.5 py-1 text-xs text-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            {...register('runtime')}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (isLambdaRuntime(val)) {
+                handleRuntimeChange(val);
+              }
+            }}
+          >
+            {RUNTIME_OPTIONS.map((opt) => (
+              <option
+                key={opt.value}
+                value={opt.value}
+                className="bg-card text-foreground"
+              >
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </InspectorField>
 
-          {/* Handler. */}
-          <div>
-            <label className="input-label">Handler</label>
-            <Input
-              type="text"
-              className="border-border/80 bg-background/50 text-foreground"
-              {...register('handler')}
-            />
-            <FieldError message={errors.handler?.message} />
-          </div>
+        {/* Handler. */}
+        <InspectorField label="Handler" error={errors.handler?.message}>
+          <Input
+            type="text"
+            className="border-border/80 bg-background/50 text-foreground"
+            {...register('handler')}
+          />
+        </InspectorField>
 
-          {/* Memory Size. */}
-          <div>
-            <label className="input-label">Memory (MB)</label>
-            <Input
-              type="number"
-              className="border-border/80 bg-background/50 text-foreground"
-              min={128}
-              max={10240}
-              {...register('memorySize', { valueAsNumber: true })}
-            />
-            <FieldError message={errors.memorySize?.message} />
-          </div>
+        {/* Memory Size. */}
+        <InspectorField label="Memory (MB)" error={errors.memorySize?.message}>
+          <Input
+            type="number"
+            className="border-border/80 bg-background/50 text-foreground"
+            min={128}
+            max={10240}
+            {...register('memorySize', { valueAsNumber: true })}
+          />
+        </InspectorField>
 
-          {/* Timeout. */}
-          <div>
-            <label className="input-label">Timeout (seconds)</label>
-            <Input
-              type="number"
-              className="border-border/80 bg-background/50 text-foreground"
-              min={1}
-              max={900}
-              {...register('timeout', { valueAsNumber: true })}
-            />
-            <FieldError message={errors.timeout?.message} />
-          </div>
+        {/* Timeout. */}
+        <InspectorField
+          label="Timeout (seconds)"
+          error={errors.timeout?.message}
+        >
+          <Input
+            type="number"
+            className="border-border/80 bg-background/50 text-foreground"
+            min={1}
+            max={900}
+            {...register('timeout', { valueAsNumber: true })}
+          />
+        </InspectorField>
 
-          {/* Description. */}
-          <div>
-            <label className="input-label">Description</label>
-            <Input
-              type="text"
-              className="border-border/80 bg-background/50 text-foreground"
-              {...register('description')}
-            />
-            <FieldError message={errors.description?.message} />
-          </div>
-        </div>
-      </section>
+        {/* Description. */}
+        <InspectorField
+          label="Description"
+          error={errors.description?.message}
+          optional
+        >
+          <Input
+            type="text"
+            className="border-border/80 bg-background/50 text-foreground"
+            {...register('description')}
+          />
+        </InspectorField>
+      </InspectorSection>
 
       {/* Function Code Section. */}
-      <section>
-        <SectionHeader>Function Code</SectionHeader>
-        <div>
-          <label className="input-label">Source</label>
-          <textarea
-            className="w-full resize-y rounded-md border border-border/80 bg-background/50 px-2.5 py-1.5 font-mono text-xs text-foreground shadow-sm transition-all placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            style={{
-              minHeight: 200,
-              fontFamily: "'JetBrains Mono', monospace",
-            }}
-            {...register('code')}
-          />
-          <div className="mt-1 flex items-center justify-between">
-            <FieldError message={errors.code?.message} />
-            <span className="ml-auto text-[10px] text-muted-foreground">
-              {watchedValues.code?.length ?? 0} chars
-            </span>
-          </div>
-        </div>
-      </section>
+      <CodeEditorField
+        label="Function Code"
+        error={errors.code?.message}
+        value={watchedValues.code}
+        registerProps={register('code')}
+      />
 
       {/* Environment Variables Section. */}
-      <section>
-        <SectionHeader>Environment Variables</SectionHeader>
-        <div className="space-y-2">
-          {fields.map((field, index) => (
-            <div key={field.id} className="flex items-center gap-2">
-              <Input
-                type="text"
-                className="border-border/80 bg-background/50 text-foreground"
-                placeholder="KEY"
-                {...register(`environmentVariables.${index}.key`)}
-              />
-              <Input
-                type="text"
-                className="border-border/80 bg-background/50 text-foreground"
-                placeholder="Value"
-                {...register(`environmentVariables.${index}.value`)}
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                type="button"
-                onClick={() => remove(index)}
-                className="size-8 shrink-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                aria-label="Remove variable"
-              >
-                <Trash2 className="size-4" />
-              </Button>
-            </div>
-          ))}
-          <FieldError message={getEnvVarErrorMessage()} />
-          <Button
-            variant="ghost"
-            size="sm"
-            type="button"
-            onClick={() => append(makeEnvironmentVariable())}
-            className="mt-1 flex items-center gap-1.5 text-primary hover:bg-accent/40"
-          >
-            <Plus className="size-3.5" />
-            Add variable
-          </Button>
-        </div>
-      </section>
+      <KeyValueEditor<LambdaConfig>
+        title="Environment Variables"
+        fields={fields}
+        register={register}
+        remove={remove}
+        append={append}
+        namePrefix="environmentVariables"
+        error={getEnvVarErrorMessage()}
+        makeEmptyValue={makeEnvironmentVariable}
+      />
     </div>
   );
 }

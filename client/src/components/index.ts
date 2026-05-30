@@ -6,3 +6,4 @@ export * from './service-catalog';
 export * from './ui/toast';
 export * from './ui/toaster';
 export * from './base-node';
+export * from './base-inspector';

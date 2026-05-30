@@ -124,7 +124,7 @@ export function EditorToolbar({
           className={cn(
             'h-8 w-8 text-muted-foreground transition-all duration-200',
             snapToGrid &&
-            'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
+              'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
           )}
         >
           <Grid3x3 size={15} />
