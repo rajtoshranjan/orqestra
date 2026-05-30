@@ -1,7 +1,7 @@
 import React from 'react';
 import { ReactFlowProvider } from 'reactflow';
-import { useProject } from '@/api';
 import { CanvasEditor } from './editor-canvas';
+import { useProject } from '@/api';
 import { useAppDispatch } from '@/store';
 import { setProject } from '@/store/editor-slice';
 import { setDeploymentSettings } from '@/store/deployment-slice';
@@ -55,10 +55,7 @@ export function Editor({ projectId, onNavigateHome }: EditorProps) {
 
   return (
     <ReactFlowProvider>
-      <CanvasEditor
-        initialProject={project}
-        onNavigateHome={onNavigateHome}
-      />
+      <CanvasEditor initialProject={project} onNavigateHome={onNavigateHome} />
     </ReactFlowProvider>
   );
 }

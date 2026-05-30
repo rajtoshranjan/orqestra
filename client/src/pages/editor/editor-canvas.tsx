@@ -86,16 +86,12 @@ export function CanvasEditor({
     clipboard,
   } = useAppSelector((state) => state.editor);
 
-  const {
-    settings: deploymentSettings,
-    result: deploymentResult,
-  } = useAppSelector((state) => state.deployment);
+  const { settings: deploymentSettings, result: deploymentResult } =
+    useAppSelector((state) => state.deployment);
 
-  const {
-    sidebarCollapsed,
-    deployDrawerOpen,
-    contextMenu,
-  } = useAppSelector((state) => state.ui);
+  const { sidebarCollapsed, deployDrawerOpen, contextMenu } = useAppSelector(
+    (state) => state.ui,
+  );
 
   /* Build nodeTypes from registry (memoized) */
   const nodeTypes = React.useMemo(() => registry.getNodeTypes(), []);
@@ -103,7 +99,7 @@ export function CanvasEditor({
   /* Local ReactFlow state (maintains smooth 60fps canvas performance) */
   const [nodes, setNodes, onNodesChange] = useNodesState(initialProject.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialProject.edges);
-  
+
   const [planSummary, setPlanSummary] = React.useState<PlanSummary>(() =>
     buildPlan(initialProject.nodes, initialProject.edges),
   );
@@ -305,7 +301,9 @@ export function CanvasEditor({
       return { valid: false, plan: nextPlan, nodes: nextNodes };
     }
 
-    if (nextNodes.some((node) => hasValidationErrors(node.data.validationErrors))) {
+    if (
+      nextNodes.some((node) => hasValidationErrors(node.data.validationErrors))
+    ) {
       dispatch(
         setDeploymentResult({
           status: DeploymentStatus.Failed,
@@ -389,7 +387,9 @@ export function CanvasEditor({
     );
     if (selectedNodeIds.size === 0 && selectedEdgeIds.size === 0) return;
 
-    setNodes((current) => current.filter((node) => !selectedNodeIds.has(node.id)));
+    setNodes((current) =>
+      current.filter((node) => !selectedNodeIds.has(node.id)),
+    );
     setEdges((current) =>
       current.filter(
         (edge) =>
@@ -622,7 +622,9 @@ export function CanvasEditor({
         {/* Service Catalog */}
         <ServiceCatalog
           collapsed={sidebarCollapsed}
-          onToggleCollapse={() => dispatch(setSidebarCollapsed(!sidebarCollapsed))}
+          onToggleCollapse={() =>
+            dispatch(setSidebarCollapsed(!sidebarCollapsed))
+          }
           onAddNode={handleAddNode}
         />
 
@@ -734,7 +736,9 @@ export function CanvasEditor({
         open={deployDrawerOpen}
         onClose={() => dispatch(setDeployDrawerOpen(false))}
         deploymentSettings={deploymentSettings}
-        onSettingsChange={(settings) => dispatch(setDeploymentSettings(settings))}
+        onSettingsChange={(settings) =>
+          dispatch(setDeploymentSettings(settings))
+        }
         deploymentResult={deploymentResult}
         planSummary={planSummary}
         onDeploy={() => {

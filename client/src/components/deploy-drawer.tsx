@@ -66,7 +66,7 @@ const LOG_DOT_COLOR: Record<DeploymentLogLevel, string> = {
 
 function SectionHeader({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+    <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
       {children}
     </h3>
   );
@@ -94,17 +94,17 @@ export function DeployDrawer({
     <Sheet open={open} onOpenChange={(val) => !val && onClose()}>
       <SheetContent
         side="right"
-        className="flex w-[420px] flex-col border-l border-border bg-card p-0 shadow-xl sm:max-w-[420px]"
+        className="flex w-[360px] flex-col border-l border-border bg-card p-0 shadow-xl sm:max-w-[360px]"
       >
         {/* Header */}
-        <SheetHeader className="flex h-14 shrink-0 flex-row items-center justify-between space-y-0 border-b border-border px-5 py-0">
-          <SheetTitle className="text-sm font-semibold text-foreground">
+        <SheetHeader className="flex h-11 shrink-0 flex-row items-center justify-between space-y-0 border-b border-border px-4 py-0">
+          <SheetTitle className="text-xs font-semibold text-foreground">
             Deployment
           </SheetTitle>
         </SheetHeader>
 
         {/* Scrollable Body */}
-        <div className="flex-1 space-y-6 overflow-y-auto p-5">
+        <div className="flex-1 space-y-5 overflow-y-auto p-4">
           {/* Settings Section */}
           <section>
             <SectionHeader>Settings</SectionHeader>
@@ -137,12 +137,12 @@ export function DeployDrawer({
           <section>
             <div className="mb-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <h3 className="animate-fade-in text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <h3 className="animate-fade-in text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                   Resource Plan
                 </h3>
                 <Badge
                   variant="accent"
-                  className="rounded-full px-1.5 py-0.5 text-[10px] font-medium"
+                  className="rounded-full px-1.5 py-0.5 text-[9px] font-medium"
                 >
                   {planSummary.resourceCount}
                 </Badge>
@@ -151,9 +151,9 @@ export function DeployDrawer({
                 variant="ghost"
                 size="sm"
                 onClick={onPlan}
-                className="flex h-auto items-center gap-1 p-0 text-xs font-medium text-primary hover:bg-transparent hover:text-primary/80"
+                className="flex h-auto items-center gap-1 p-0 text-[10px] font-medium text-primary hover:bg-transparent hover:text-primary/80"
               >
-                <WandSparkles className="size-3.5" />
+                <WandSparkles className="size-3" />
                 Plan
               </Button>
             </div>
@@ -162,18 +162,18 @@ export function DeployDrawer({
               {planSummary.resources.map((resource) => (
                 <Card
                   key={resource.id}
-                  className="bg-card-elevated rounded-md border border-border/60 bg-background/35 p-3 shadow-none transition-all duration-200 hover:border-primary/30"
+                  className="bg-card-elevated rounded-md border border-border/60 bg-background/35 p-2.5 shadow-none transition-all duration-200 hover:border-primary/30"
                 >
-                  <div className="mb-1.5 flex items-center justify-between">
-                    <span className="truncate text-sm font-medium text-foreground">
+                  <div className="mb-1 flex items-center justify-between">
+                    <span className="truncate text-xs font-medium text-foreground">
                       {resource.name}
                     </span>
-                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                      <Link className="size-3" />
+                    <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                      <Link className="size-2.5" />
                       {resource.connectionCount}
                     </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-2.5 text-[10px] text-muted-foreground">
                     {resource.details.map((detail) => (
                       <span
                         key={detail.label}
@@ -203,13 +203,13 @@ export function DeployDrawer({
             <Button
               onClick={onDeploy}
               disabled={isRunning}
-              className="flex w-full items-center justify-center gap-2 bg-gradient-to-r from-primary to-[#6366f1] text-sm font-semibold text-white shadow-md hover:brightness-105 disabled:opacity-50"
-              size="lg"
+              className="flex w-full items-center justify-center gap-2 bg-gradient-to-r from-primary to-[#6366f1] text-xs font-semibold text-white shadow-md hover:brightness-105 disabled:opacity-50"
+              size="default"
             >
               {isRunning ? (
-                <Loader2 className="size-4 animate-spin" />
+                <Loader2 className="size-3.5 animate-spin" />
               ) : (
-                <CloudUpload className="size-4" />
+                <CloudUpload className="size-3.5" />
               )}
               {isRunning ? 'Deploying…' : 'Deploy to AWS'}
             </Button>
@@ -221,7 +221,7 @@ export function DeployDrawer({
               <SectionHeader>Deployment Logs</SectionHeader>
               <Badge
                 variant={statusStyle.badgeVariant}
-                className="rounded-full px-2 py-0.5 text-[10px] font-medium"
+                className="rounded-full px-1.5 py-0.5 text-[9px] font-medium"
               >
                 {statusStyle.label}
               </Badge>
@@ -232,7 +232,7 @@ export function DeployDrawer({
                 {deploymentResult.logs.map((log) => (
                   <div
                     key={log.id}
-                    className="animate-fade-in flex items-start gap-2 text-xs text-muted-foreground"
+                    className="animate-fade-in flex items-start gap-2 text-[11px] text-muted-foreground"
                   >
                     <span
                       className={`mt-1.5 size-1.5 shrink-0 rounded-full ${LOG_DOT_COLOR[log.level]}`}

@@ -12,8 +12,6 @@ import { lambdaService } from './lambda';
 // Register all services.
 registry.register(lambdaService);
 
-
-
 // Re-export for convenience.
 export { registry } from './registry';
 export type {

@@ -8,15 +8,13 @@ export type { ServiceCategory } from '@/services/types';
 
 /* Deployment */
 
-export const DeploymentStatus = {
-  Idle: 'idle',
-  Pending: 'pending',
-  InProgress: 'in-progress',
-  Success: 'success',
-  Failed: 'failed',
-} as const;
-
-export type DeploymentStatus = typeof DeploymentStatus[keyof typeof DeploymentStatus];
+export enum DeploymentStatus {
+  Idle = 'idle',
+  Pending = 'pending',
+  InProgress = 'in-progress',
+  Success = 'success',
+  Failed = 'failed',
+}
 
 export type DeploymentLogLevel = 'info' | 'success' | 'error';
 

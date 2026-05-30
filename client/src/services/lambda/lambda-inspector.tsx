@@ -6,12 +6,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { ServiceInspectorProps } from '../types';
 import type { LambdaConfig, LambdaRuntime } from './types';
 import { RUNTIME_OPTIONS } from './types';
-import { lambdaConfigSchema } from '@/schemas/lambda.schema';
 import {
   getDefaultHandlerForRuntime,
   getDefaultCodeForRuntime,
   makeEnvironmentVariable,
 } from './defaults';
+import { lambdaConfigSchema } from '@/schemas/lambda.schema';
 import { Button, Input } from '@/components/ui';
 
 /* Shared sub-components. */
@@ -22,7 +22,7 @@ type SectionHeaderProps = {
 
 function SectionHeader({ children }: SectionHeaderProps) {
   return (
-    <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+    <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
       {children}
     </h3>
   );
@@ -129,7 +129,7 @@ export function LambdaInspector({
           <div>
             <label className="input-label">Runtime</label>
             <select
-              className="flex h-9 w-full rounded-md border border-border/80 bg-background/50 px-3 py-1.5 text-sm text-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-8 w-full rounded-md border border-border/80 bg-background/50 px-2.5 py-1 text-xs text-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
               {...register('runtime')}
               onChange={(e) => {
                 const val = e.target.value;
@@ -207,7 +207,7 @@ export function LambdaInspector({
         <div>
           <label className="input-label">Source</label>
           <textarea
-            className="w-full resize-y rounded-md border border-border/80 bg-background/50 px-3 py-2.5 font-mono text-xs text-foreground shadow-sm transition-all placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className="w-full resize-y rounded-md border border-border/80 bg-background/50 px-2.5 py-1.5 font-mono text-xs text-foreground shadow-sm transition-all placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             style={{
               minHeight: 200,
               fontFamily: "'JetBrains Mono', monospace",
@@ -246,16 +246,14 @@ export function LambdaInspector({
                 size="icon"
                 type="button"
                 onClick={() => remove(index)}
-                className="size-9 shrink-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                className="size-8 shrink-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                 aria-label="Remove variable"
               >
                 <Trash2 className="size-4" />
               </Button>
             </div>
           ))}
-          <FieldError
-            message={getEnvVarErrorMessage()}
-          />
+          <FieldError message={getEnvVarErrorMessage()} />
           <Button
             variant="ghost"
             size="sm"

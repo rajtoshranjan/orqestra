@@ -1,6 +1,10 @@
 import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import type { DeploymentSettings, DeploymentResult, DeploymentLogEntry } from '@/types';
+import type {
+  DeploymentSettings,
+  DeploymentResult,
+  DeploymentLogEntry,
+} from '@/types';
 import { DeploymentStatus } from '@/types';
 
 type DeploymentState = {
@@ -24,19 +28,22 @@ export const deploymentSlice = createSlice({
   name: 'deployment',
   initialState,
   reducers: {
-    setDeploymentSettings: (state, action: PayloadAction<DeploymentSettings>) => {
+    setDeploymentSettings: (
+      state,
+      action: PayloadAction<DeploymentSettings>,
+    ) => {
       state.settings = action.payload;
     },
-    patchDeploymentSettings: (state, action: PayloadAction<Partial<DeploymentSettings>>) => {
+    patchDeploymentSettings: (
+      state,
+      action: PayloadAction<Partial<DeploymentSettings>>,
+    ) => {
       state.settings = { ...state.settings, ...action.payload };
     },
     setDeploymentResult: (state, action: PayloadAction<DeploymentResult>) => {
       state.result = action.payload;
     },
-    setDeploymentStatus: (
-      state,
-      action: PayloadAction<DeploymentStatus>,
-    ) => {
+    setDeploymentStatus: (state, action: PayloadAction<DeploymentStatus>) => {
       state.result.status = action.payload;
     },
     setDeploymentLogs: (state, action: PayloadAction<DeploymentLogEntry[]>) => {

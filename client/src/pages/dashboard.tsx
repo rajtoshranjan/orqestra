@@ -27,24 +27,6 @@ export function Dashboard({ onOpenProject, onNewProject }: DashboardProps) {
     deleteProjectMutation.mutate(projectId);
   };
 
-  /* Computed stats */
-  const totalProjects = projects.length;
-  const totalResources = projects.reduce(
-    (sum, p) => sum + (p.nodes?.length ?? 0),
-    0,
-  );
-
-  const lastActive =
-    projects.length > 0
-      ? formatRelativeTime(
-          [...projects]
-            .filter((p) => p.lastSavedAt)
-            .sort((a, b) =>
-              (b.lastSavedAt ?? '').localeCompare(a.lastSavedAt ?? ''),
-            )[0]?.lastSavedAt ?? new Date().toISOString(),
-        )
-      : 'Never';
-
   /* Render */
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -76,50 +58,9 @@ export function Dashboard({ onOpenProject, onNewProject }: DashboardProps) {
       </nav>
 
       {/* Hero Section */}
-      <div className="animate-fade-in mx-auto max-w-6xl px-8 py-12">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Your Workspaces
-        </h1>
-        <p className="mt-2 text-base text-muted-foreground">
-          Design, validate, and deploy cloud architectures
-        </p>
-
-        {/* Stats row */}
-        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {/* Total Projects */}
-          <Card className="border-border/80 bg-card/50 px-5 py-4">
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Total Projects
-            </p>
-            <p className="mt-2 text-2xl font-bold text-foreground">
-              {totalProjects}
-            </p>
-          </Card>
-
-          {/* Total Resources */}
-          <Card className="border-border/80 bg-card/50 px-5 py-4">
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Total Resources
-            </p>
-            <p className="mt-2 text-2xl font-bold text-foreground">
-              {totalResources}
-            </p>
-          </Card>
-
-          {/* Last Active */}
-          <Card className="border-border/80 bg-card/50 px-5 py-4">
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Last Active
-            </p>
-            <p className="mt-2 text-2xl font-bold text-foreground">
-              {lastActive}
-            </p>
-          </Card>
-        </div>
-      </div>
 
       {/* Projects Grid / Empty State */}
-      <div className="mx-auto max-w-6xl px-8 pb-16">
+      <div className="mx-auto mt-12 max-w-6xl px-8 pb-16">
         {isLoading ? (
           /* Skeleton Grid */
           <LoadingState variant="skeleton-grid" count={3} />
@@ -127,10 +68,10 @@ export function Dashboard({ onOpenProject, onNewProject }: DashboardProps) {
           <>
             {/* Section header */}
             <div className="mb-6 flex items-center gap-3">
-              <h2 className="text-lg font-semibold text-foreground">
+              <h2 className="text-xl font-semibold text-foreground">
                 Projects
               </h2>
-              <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-accent/20 px-2 text-[10px] font-semibold text-primary">
+              <span className="inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-accent/20 px-1.5 text-[9px] font-semibold text-primary">
                 {projects.length}
               </span>
             </div>
@@ -141,28 +82,28 @@ export function Dashboard({ onOpenProject, onNewProject }: DashboardProps) {
                 <Card
                   key={project.projectId}
                   onClick={() => onOpenProject(project.projectId)}
-                  className="group flex cursor-pointer flex-col justify-between border-border/70 bg-card/60 p-5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md"
+                  className="group flex cursor-pointer flex-col justify-between border-border/70 bg-card/60 p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md"
                 >
                   <div>
                     {/* Project name */}
-                    <h3 className="truncate text-lg font-semibold text-foreground">
+                    <h3 className="truncate text-sm font-semibold text-foreground">
                       {project.projectName}
                     </h3>
 
                     {/* Description */}
-                    <p className="mt-1 truncate text-sm text-muted-foreground">
+                    <p className="mt-1 truncate text-xs text-muted-foreground">
                       {project.projectDescription || 'No description'}
                     </p>
 
                     {/* Stats row */}
-                    <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
+                    <div className="mt-3 flex items-center gap-4 text-[10px] text-muted-foreground">
                       <span className="inline-flex items-center gap-1.5">
-                        <Layers className="size-3.5" />
+                        <Layers className="size-3" />
                         {project.nodes.length} resource
                         {project.nodes.length !== 1 ? 's' : ''}
                       </span>
                       <span className="inline-flex items-center gap-1.5">
-                        <Clock className="size-3.5" />
+                        <Clock className="size-3" />
                         {formatRelativeTime(
                           project.lastSavedAt || new Date().toISOString(),
                         )}
@@ -172,8 +113,8 @@ export function Dashboard({ onOpenProject, onNewProject }: DashboardProps) {
 
                   {/* Bottom row — Open + Delete */}
                   <div className="mt-4 flex items-center justify-between">
-                    <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary">
-                      <FolderOpen className="size-4" />
+                    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-primary">
+                      <FolderOpen className="size-3.5" />
                       Open
                     </span>
 
@@ -186,10 +127,10 @@ export function Dashboard({ onOpenProject, onNewProject }: DashboardProps) {
                         setProjectToDelete(project.projectId);
                         setConfirmOpen(true);
                       }}
-                      className="size-8 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                      className="size-7 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                       aria-label={`Delete ${project.projectName}`}
                     >
-                      <Trash2 className="size-4" />
+                      <Trash2 className="size-3.5" />
                     </Button>
                   </div>
                 </Card>

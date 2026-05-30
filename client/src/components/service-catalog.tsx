@@ -23,10 +23,10 @@ export function ServiceCatalog({
   return (
     <aside
       className="duration-[var(--transition-base)] flex h-full shrink-0 flex-col overflow-hidden border-r border-[var(--color-border)] bg-[var(--color-bg-surface)] transition-all"
-      style={{ width: collapsed ? 52 : 260 }}
+      style={{ width: collapsed ? 52 : 240 }}
     >
       {/* Header. */}
-      <div className="flex h-12 shrink-0 items-center justify-between border-b border-[var(--color-border)] px-3">
+      <div className="flex h-11 shrink-0 items-center justify-between border-b border-[var(--color-border)] px-3">
         {!collapsed && (
           <span className="animate-fade-in whitespace-nowrap text-sm font-semibold text-[var(--color-text-primary)]">
             Services
@@ -74,11 +74,11 @@ export function ServiceCatalog({
                   <button
                     key={service.id}
                     onClick={() => onAddNode(service.id)}
-                    className="duration-[var(--transition-fast)] mx-auto flex size-9 items-center justify-center rounded-[var(--radius-sm)] transition-colors"
+                    className="duration-[var(--transition-fast)] mx-auto flex size-8 items-center justify-center rounded-[var(--radius-sm)] transition-colors"
                     style={collapsedStyle}
                     title={service.name}
                   >
-                    <ServiceIcon size={16} />
+                    <ServiceIcon size={14} />
                   </button>
                 ) : (
                   /* Expanded: full card. */
@@ -90,27 +90,27 @@ export function ServiceCatalog({
                       event.dataTransfer.effectAllowed = 'copy';
                     }}
                     onClick={() => onAddNode(service.id)}
-                    className="duration-[var(--transition-base)] animate-fade-in group cursor-grab select-none rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-3 transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)] active:cursor-grabbing"
+                    className="duration-[var(--transition-base)] animate-fade-in group cursor-grab select-none rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-2.5 transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)] active:cursor-grabbing"
                     style={itemStyle}
                   >
                     {/* Icon + Title Row. */}
                     <div className="mb-2 flex items-center gap-2.5">
                       <div
-                        className="flex size-8 shrink-0 items-center justify-center rounded-full"
+                        className="flex size-7 shrink-0 items-center justify-center rounded-full"
                         style={{
                           background: `${service.accentColor}18`,
                           color: service.accentColor,
                         }}
                       >
-                        <ServiceIcon size={16} />
+                        <ServiceIcon size={14} />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-[var(--color-text-primary)]">
+                        <p className="truncate text-xs font-semibold text-[var(--color-text-primary)]">
                           {service.name}
                         </p>
                       </div>
                       <span
-                        className="whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium"
+                        className="whitespace-nowrap rounded-full px-1.5 py-0.5 text-[9px] font-medium"
                         style={{
                           background: `${service.accentColor}18`,
                           color: service.accentColor,
@@ -121,12 +121,12 @@ export function ServiceCatalog({
                     </div>
 
                     {/* Description. */}
-                    <p className="mb-2.5 text-xs leading-relaxed text-[var(--color-text-muted)]">
+                    <p className="mb-2 text-[11px] leading-relaxed text-[var(--color-text-muted)]">
                       {service.description}
                     </p>
 
                     {/* Drag hint. */}
-                    <div className="duration-[var(--transition-fast)] flex items-center gap-1 text-[10px] text-[var(--color-text-muted)] opacity-0 transition-opacity group-hover:opacity-100">
+                    <div className="duration-[var(--transition-fast)] flex items-center gap-1 text-[9px] text-[var(--color-text-muted)] opacity-0 transition-opacity group-hover:opacity-100">
                       <GripVertical className="size-3" />
                       <span>Drag to canvas</span>
                     </div>

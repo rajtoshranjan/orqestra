@@ -37,7 +37,9 @@ export function EditorToolbar({
   const { projectName, lastSavedAt, snapToGrid, nodes } = useAppSelector(
     (state) => state.editor,
   );
-  const deploymentStatus = useAppSelector((state) => state.deployment.result.status);
+  const deploymentStatus = useAppSelector(
+    (state) => state.deployment.result.status,
+  );
 
   const isDeploying =
     deploymentStatus === DeploymentStatus.Pending ||
@@ -122,7 +124,7 @@ export function EditorToolbar({
           className={cn(
             'h-8 w-8 text-muted-foreground transition-all duration-200',
             snapToGrid &&
-              'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
+            'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
           )}
         >
           <Grid3x3 size={15} />

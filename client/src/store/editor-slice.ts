@@ -1,6 +1,11 @@
 import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import type { DiagramNode, DiagramEdge, ClipboardSelection, PersistedDiagram } from '@/types';
+import type {
+  DiagramNode,
+  DiagramEdge,
+  ClipboardSelection,
+  PersistedDiagram,
+} from '@/types';
 
 type EditorState = {
   projectId: string;
