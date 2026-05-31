@@ -1,27 +1,42 @@
 # Orqestra
 
-Draw, validate, and deploy cloud architectures to AWS directly from your browser. Orqestra is a state-of-the-art SaaS visual diagramming platform integrated with reactive validations and unified deployment microservices.
+Draw, validate, and deploy cloud architectures to AWS directly from your browser. Orqestra is a visual Infrastructure-as-Code platform that enables users to design and deploy cloud architectures using a visual node-based editor and AI. Think of Orqestra as "Cursor for DevOps".
 
 ---
 
-## 🚀 Architectural & Platform Highlights
+## Core Principles & Architecture
 
-### 🎨 Premium Frontend (Vite + React SPA)
-- **Vapor Indigo Design System**: Beautiful dark-mode UI primitives (ShadCN UI styling, Outfit typography) tailored with smooth micro-animations.
-- **Redux Toolkit State Management**: Centralized slice architecture (`editorSlice`, `deploymentSlice`, `uiSlice`) to manage canvas nodes, edges, clipboard selections, and reactive sidebars—completely free of prop drilling.
-- **Zod + React Hook Form Inspectors**: Real-time form validations, regex matching, and environment variable constraints bubbling configuration updates dynamically back to the ReactFlow canvas.
-- **Pure REST API Client**: Highly optimized API endpoints mapping directly to backend RESTful detail controllers (e.g. `/projects/<uuid>/` retrieve actions) instead of query parameter filter hacks.
-- **Kebab-Case Layout**: Strictly standardized file casing across all components and page directories.
+### The Canvas Graph is the Source of Truth
+The infrastructure graph created by the user is the canonical source of truth. All validation, deployment plans, resource dependencies, and infrastructure generation derive directly from the graph. We do not introduce infrastructure state that can diverge from the graph representation.
 
-### ⚙️ Lean Django Server & Provider Plugins
-- **Decoupled Provider Registry**: Plug-and-play provider registration architecture. Services (like AWS Lambda) are registered cleanly under `cloud_services/providers/aws/lambda_service/` rather than polluting Django's app workspace.
-- **Implicit Django Conventions**: Trusting convention-over-configuration paradigms for ORM tables and automatic schema migrations.
-- **Boilerplate-Free Coding**: Clean, textual comments and highly concise, self-documenting views, models, and serializers.
-- **Native Test suite**: Backend code and services tested purely through Django's native unit testing framework (`django.test.TestCase` / `APITestCase`).
+### Plugin-Based Cloud Architecture
+Cloud resources are treated as plugins, ensuring the core orchestration layer remains completely provider-agnostic. New cloud resources are implemented through the provider registration system rather than modifications to core orchestration code.
+
+### Monorepo Structure
+- **Frontend (`client/`)**: Premium Vite + React SPA.
+- **Backend (`server/`)**: Lean Django server.
 
 ---
 
-## 🛠️ Getting Started
+## Technical Standards
+
+### Frontend (React & TypeScript)
+- **Component Organization**: We favor composition and organize components by module ownership rather than placing feature-specific components in a global folder.
+- **Strict File Naming**: All filenames must use `kebab-case` (e.g., `deployment-panel.tsx`).
+- **UI & Styling**: Exclusively utilizes Shadcn UI components over native HTML tags to maintain our premium Design System.
+- **State Management**: React Query is the source of truth for server state. Redux Toolkit is strictly for client-side canvas and UI state (e.g., `editorSlice`, `deploymentSlice`).
+- **API Boundaries**: Frontend handles payload transformation. We strictly enforce `camelCase` in the frontend and `snake_case` in the backend, bridging the gap with dedicated API mappers.
+
+### Backend (Django & DRF)
+- **Decoupled Provider Registry**: Plug-and-play provider registration architecture. Services (like AWS Lambda) are registered cleanly under provider-specific plugins.
+- **Thin Views & Fat Models/Managers**: Views remain thin and focus on permissions, queryset scoping, and serializer orchestration. Query logic resides in Managers/QuerySets.
+- **Security & Permissions**: Every user-facing endpoint enforces authentication, authorization, and resource ownership validation. We never expose unscoped data.
+- **Validation**: Centralized in serializers.
+- **Docker First**: All backend operations, checks, and migrations must be run through Docker.
+
+---
+
+## Getting Started
 
 ### Quick Start with Docker (Recommended)
 Orqestra is fully containerized for seamless development and operational parity.
@@ -33,12 +48,12 @@ Orqestra is fully containerized for seamless development and operational parity.
    ```
    *Note: Default environment settings, secrets, and database settings are safely isolated inside `.env`.*
 
-2. **Boot the entire App Stack**:
+2. **Boot the Entire App Stack**:
    ```bash
    docker compose up --build
    ```
 
-3. **Access the application**:
+3. **Access the Application**:
    Open **`http://localhost:8080`** in your browser.
 
 ---
@@ -67,7 +82,7 @@ python manage.py runserver 0.0.0.0:3001
 
 ---
 
-## 🧪 Verification & Testing
+## Verification & Testing
 
 Always execute backend validation and tests inside Docker containers to guarantee operational environment parity:
 
@@ -88,7 +103,7 @@ npm run build --prefix client
 
 ---
 
-## 🔒 Deployment Prerequisites & Local Credentials
+## Deployment Prerequisites & Local Credentials
 
 - **AWS Credentials**: The Docker Compose setup mounts your host's local `${HOME}/.aws` folder into the server container (`/root/.aws`) so the AWS CLI can utilize your local AWS credentials seamlessly.
 - **Execution Role**: To create new AWS resources, supply an IAM execution role ARN directly in the UI inspector or export `AWS_LAMBDA_EXECUTION_ROLE_ARN` inside your `.env` file before booting the stack.

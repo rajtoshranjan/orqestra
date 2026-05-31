@@ -9,14 +9,6 @@ services:
       - POSTGRES_PASSWORD=postgres
     restart: unless-stopped
 
-  ministack:
-    image: ministackorg/ministack
-    ports:
-      - "4566:4566"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    restart: unless-stopped
-
   server:
     build:
       context: ./server
@@ -42,6 +34,15 @@ services:
       - server
     ports:
       - "8080:80"
+    restart: unless-stopped
+
+  # AWS Emulator.
+  ministack:
+    image: ministackorg/ministack
+    ports:
+      - "4566:4566"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
 
   stackport:
