@@ -42,13 +42,11 @@ import {
 import { registry } from '@/services';
 import { toast } from '@/hooks/use-toast';
 import { useUpdateProject, camelToSnakeRecursive } from '@/api';
-import {
-  EditorToolbar,
-  ServiceCatalog,
-  NodeInspector,
-  DeployDrawer,
-  ContextMenu,
-} from '@/components';
+import { EditorToolbar } from './editor-toolbar';
+import { ServiceCatalog } from './service-catalog';
+import { NodeInspector } from './node-inspector';
+import { DeployDrawer } from './deploy-drawer';
+import { ContextMenu } from './context-menu';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   setNodes as setReduxNodes,
@@ -615,7 +613,6 @@ export function CanvasEditor({
       {/* Toolbar */}
       <EditorToolbar
         onBack={onNavigateHome}
-        onSave={saveCurrentDiagram}
         onPlan={() => {
           validateAndPlan();
           dispatch(setDeployDrawerOpen(true));

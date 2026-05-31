@@ -13,22 +13,16 @@ import React from 'react';
 import {
   Badge,
   Button,
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui';
+import { ProjectSettingsModal } from '@/pages/editor/project-settings-modal';
 import { cn } from '@/lib/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   setIsLocked,
-  setProjectDescription,
-  setProjectName,
   setSnapToGrid,
 } from '@/store/editor-slice';
 import { DeploymentStatus } from '@/types';
@@ -36,7 +30,6 @@ import { formatRelativeTime, hasValidationErrors } from '@/utils';
 
 export type EditorToolbarProps = {
   onBack: () => void;
-  onSave: () => void;
   onPlan: () => void;
   onDeploy: () => void;
   isSaving?: boolean;
@@ -44,17 +37,14 @@ export type EditorToolbarProps = {
 
 export function EditorToolbar({
   onBack,
-  onSave,
   onPlan,
   onDeploy,
   isSaving = false,
 }: EditorToolbarProps) {
   const dispatch = useAppDispatch();
   const [settingsOpen, setSettingsOpen] = React.useState(false);
-  const [editName, setEditName] = React.useState('');
-  const [editDesc, setEditDesc] = React.useState('');
 
-  const { projectName, projectDescription, lastSavedAt, snapToGrid, isLocked, nodes } =
+  const { projectName, lastSavedAt, snapToGrid, isLocked, nodes } =
     useAppSelector((state) => state.editor);
   const deploymentStatus = useAppSelector(
     (state) => state.deployment.result.status,
@@ -69,18 +59,6 @@ export function EditorToolbar({
     hasValidationErrors(node.data.validationErrors),
   ).length;
   const readyCount = nodeCount - invalidNodeCount;
-
-  const openSettings = () => {
-    setEditName(projectName);
-    setEditDesc(projectDescription || '');
-    setSettingsOpen(true);
-  };
-
-  const saveSettings = () => {
-    dispatch(setProjectName(editName));
-    dispatch(setProjectDescription(editDesc));
-    setSettingsOpen(false);
-  };
 
   return (
     <TooltipProvider delayDuration={300}>
@@ -112,7 +90,7 @@ export function EditorToolbar({
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={openSettings}
+                  onClick={() => setSettingsOpen(true)}
                   className="size-5 text-muted-foreground hover:bg-accent hover:text-foreground"
                 >
                   <PencilLine size={11} />
@@ -234,46 +212,10 @@ export function EditorToolbar({
         </div>
       </header>
 
-      <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Project Settings</DialogTitle>
-
-          </DialogHeader>
-          <div className="grid gap-4 py-2">
-            <div className="grid gap-2">
-              <label htmlFor="name" className="text-sm font-medium">
-                Project Name
-              </label>
-              <input
-                id="name"
-                value={editName}
-                onChange={(event) => setEditName(event.target.value)}
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-              />
-            </div>
-            <div className="grid gap-2">
-              <label htmlFor="description" className="text-sm font-medium">
-                Description
-              </label>
-              <textarea
-                id="description"
-                value={editDesc}
-                onChange={(event) => setEditDesc(event.target.value)}
-                className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setSettingsOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={saveSettings}>
-              Save changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ProjectSettingsModal 
+        open={settingsOpen} 
+        onOpenChange={setSettingsOpen} 
+      />
     </TooltipProvider>
   );
 }

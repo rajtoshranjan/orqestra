@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, GripVertical, Search } from 'lucide-react';
 import { registry } from '@/services';
 import { NODE_DRAG_TYPE } from '@/utils';
 import { SERVICE_CATEGORY_LABELS } from '@/services/types';
+import type { ServiceCategory, ServiceDefinition } from '@/services/types';
 
 interface CustomCSSProperties extends React.CSSProperties {
   '--hover-border'?: string;
@@ -26,7 +27,7 @@ export function ServiceCatalog({
     if (!searchTerm.trim()) return servicesByCategory;
 
     const lowerSearch = searchTerm.toLowerCase();
-    const filtered = new Map();
+    const filtered = new Map<ServiceCategory, ServiceDefinition[]>();
 
     for (const [category, services] of servicesByCategory.entries()) {
       const matchedServices = services.filter(

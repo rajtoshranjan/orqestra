@@ -1,6 +1,6 @@
 import { Copy, Trash2 } from 'lucide-react';
 
-import { Button } from './ui';
+import { Button } from '@/components/ui';
 
 type ContextMenuProps = {
   x: number;
