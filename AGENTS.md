@@ -133,7 +133,9 @@ Avoid:
 
 Organize components by module ownership.
 
-Do not introduce a global components folder for feature-specific components.
+Do not keep page-related components inside the common component directory. Instead, make a folder with the same name as the page file and keep the page specific component and supporting components inside the page directory itself (e.g., `client/src/pages/editor/`).
+
+Do not introduce a global components folder for feature-specific components. Only truly common, generic components (like global layout wrappers, base nodes, and UI primitives) should remain in the generic `components/` directory.
 
 Keep components close to the feature they belong to.
 
