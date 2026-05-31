@@ -2,13 +2,15 @@ from orqestra.tests import BaseTestCase
 
 
 class PlanTests(BaseTestCase):
-
     def test_plan_valid_diagram(self):
         payload = {
             "diagram": {
                 "nodes": [self._make_valid_lambda_node()],
                 "edges": [],
-                "deployment_settings": {"region": "us-east-1", "execution_role_arn": ""},
+                "deployment_settings": {
+                    "region": "us-east-1",
+                    "execution_role_arn": "",
+                },
                 "last_saved_at": "",
             }
         }

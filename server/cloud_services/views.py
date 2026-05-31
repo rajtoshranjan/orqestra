@@ -1,11 +1,12 @@
 import logging
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .serializers import RequestPayloadSerializer
+from .services import deploy_diagram, plan_diagram
 from .validators import validate_diagram
-from .services import plan_diagram, deploy_diagram
 
 logger = logging.getLogger(__name__)
 

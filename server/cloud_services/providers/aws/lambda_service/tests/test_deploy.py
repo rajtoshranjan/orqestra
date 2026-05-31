@@ -2,7 +2,6 @@ from orqestra.tests import BaseTestCase
 
 
 class DeployTests(BaseTestCase):
-
     def test_deploy_empty_diagram(self):
         payload = {
             "diagram": {
