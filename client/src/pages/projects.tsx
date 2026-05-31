@@ -96,9 +96,6 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
             <div className="animate-fade-in flex select-none flex-wrap items-center justify-between gap-4">
               {/* Left Metadata Indicator. */}
               <div className="flex items-center gap-2">
-
-
-
                 {/* Search Field. */}
                 <div className="group relative">
                   <span className="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-muted-foreground/60 transition-colors duration-200 group-focus-within:text-primary">

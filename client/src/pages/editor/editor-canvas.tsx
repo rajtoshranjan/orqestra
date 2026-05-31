@@ -89,7 +89,7 @@ export function CanvasEditor({
   const { settings: deploymentSettings, result: deploymentResult } =
     useAppSelector((state) => state.deployment);
 
-  const { sidebarCollapsed, deployDrawerOpen, contextMenu } = useAppSelector(
+  const { sidebarCollapsed, deployDrawerOpen, contextMenu, theme } = useAppSelector(
     (state) => state.ui,
   );
 
@@ -679,12 +679,14 @@ export function CanvasEditor({
             onPaneClick={() => dispatch(setContextMenu(null))}
             proOptions={{ hideAttribution: true }}
           >
-            <Background
-              variant={BackgroundVariant.Dots}
-              color="rgba(255,255,255,0.04)"
-              gap={snapToGrid ? GRID[0] : 32}
-              size={1.1}
-            />
+            {snapToGrid && (
+              <Background
+                variant={BackgroundVariant.Dots}
+                color={theme === 'light' ? 'rgba(0, 0, 0, 0.15)' : 'rgba(255, 255, 255, 0.15)'}
+                gap={GRID[0]}
+                size={1.1}
+              />
+            )}
             <Controls position="bottom-right" />
             <MiniMap
               className="!bottom-4 !left-4 !h-28 !w-44 overflow-hidden"

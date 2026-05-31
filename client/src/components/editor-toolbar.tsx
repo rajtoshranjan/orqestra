@@ -10,7 +10,14 @@ import {
 } from 'lucide-react';
 
 import { formatRelativeTime, hasValidationErrors } from '@/utils';
-import { Button, Badge } from '@/components/ui';
+import {
+  Button,
+  Badge,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setProjectName, setSnapToGrid } from '@/store/editor-slice';
@@ -52,18 +59,26 @@ export function EditorToolbar({
   const readyCount = nodeCount - invalidNodeCount;
 
   return (
-    <header className="flex h-11 shrink-0 items-center justify-between border-b border-border bg-card/90 px-3 backdrop-blur-sm">
+    <TooltipProvider delayDuration={300}>
+      <header className="flex h-11 shrink-0 items-center justify-between border-b border-border bg-card/90 px-3 backdrop-blur-sm">
       {/* LEFT: Back + Title + Name + Save status */}
       <div className="flex min-w-0 items-center gap-1">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onBack}
-          aria-label="Back to dashboard"
-          className="size-8 shrink-0 text-muted-foreground hover:bg-accent hover:text-foreground"
-        >
-          <ArrowLeft size={16} />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onBack}
+              aria-label="Back to dashboard"
+              className="size-8 shrink-0 text-muted-foreground hover:bg-accent hover:text-foreground"
+            >
+              <ArrowLeft size={16} />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="text-xs">
+            Back to dashboard
+          </TooltipContent>
+        </Tooltip>
 
         <span className="hidden select-none px-1.5 font-sans text-sm font-bold tracking-tight text-foreground sm:inline-block">
           Orqestra
@@ -120,39 +135,60 @@ export function EditorToolbar({
       {/* RIGHT: Icon actions + Plan + Deploy */}
       <div className="flex items-center gap-0.5">
         {/* Snap to Grid */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => dispatch(setSnapToGrid(!snapToGrid))}
-          aria-label="Toggle snap to grid"
-          className={cn(
-            'h-8 w-8 text-muted-foreground transition-all duration-200',
-            snapToGrid &&
-              'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
-          )}
-        >
-          <Grid3x3 size={15} />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => dispatch(setSnapToGrid(!snapToGrid))}
+              aria-label="Toggle snap to grid"
+              className={cn(
+                'h-8 w-8 text-muted-foreground transition-all duration-200',
+                snapToGrid &&
+                  'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
+              )}
+            >
+              <Grid3x3 size={15} />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="text-xs">
+            Toggle snap to grid
+          </TooltipContent>
+        </Tooltip>
 
         {/* Search */}
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Search"
-          className="size-8 text-muted-foreground"
-        >
-          <Search size={15} />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Search"
+              className="size-8 text-muted-foreground"
+            >
+              <Search size={15} />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="text-xs">
+            Search
+          </TooltipContent>
+        </Tooltip>
 
-        {/* Feedback */}
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Feedback"
-          className="size-8 text-muted-foreground"
-        >
-          <MessageSquare size={15} />
-        </Button>
+        {/* Add Comments */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Add comments"
+              className="size-8 text-muted-foreground"
+            >
+              <MessageSquare size={15} />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="text-xs">
+            Add comments
+          </TooltipContent>
+        </Tooltip>
 
         {/* Divider */}
         <div className="mx-1 h-4 w-px shrink-0 bg-border" />
@@ -185,5 +221,6 @@ export function EditorToolbar({
         </Button>
       </div>
     </header>
+    </TooltipProvider>
   );
 }
