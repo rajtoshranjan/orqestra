@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import React from 'react';
 import {
   ArrowLeft,
   Grid3x3,
@@ -7,6 +7,7 @@ import {
   Loader2,
   Lock,
   Unlock,
+  Pencil,
 } from 'lucide-react';
 
 import { formatRelativeTime, hasValidationErrors } from '@/utils';
@@ -17,6 +18,12 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -24,6 +31,7 @@ import {
   setProjectName,
   setSnapToGrid,
   setIsLocked,
+  setProjectDescription,
 } from '@/store/editor-slice';
 import { DeploymentStatus } from '@/types';
 
@@ -43,9 +51,11 @@ export function EditorToolbar({
   isSaving = false,
 }: EditorToolbarProps) {
   const dispatch = useAppDispatch();
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [settingsOpen, setSettingsOpen] = React.useState(false);
+  const [editName, setEditName] = React.useState('');
+  const [editDesc, setEditDesc] = React.useState('');
 
-  const { projectName, lastSavedAt, snapToGrid, isLocked, nodes } =
+  const { projectName, projectDescription, lastSavedAt, snapToGrid, isLocked, nodes } =
     useAppSelector((state) => state.editor);
   const deploymentStatus = useAppSelector(
     (state) => state.deployment.result.status,
@@ -60,6 +70,18 @@ export function EditorToolbar({
     hasValidationErrors(node.data.validationErrors),
   ).length;
   const readyCount = nodeCount - invalidNodeCount;
+
+  const openSettings = () => {
+    setEditName(projectName);
+    setEditDesc(projectDescription || '');
+    setSettingsOpen(true);
+  };
+
+  const saveSettings = () => {
+    dispatch(setProjectName(editName));
+    dispatch(setProjectDescription(editDesc));
+    setSettingsOpen(false);
+  };
 
   return (
     <TooltipProvider delayDuration={300}>
@@ -82,18 +104,25 @@ export function EditorToolbar({
           {/* Divider */}
           <div className="mx-1 h-4 w-px shrink-0 bg-border" />
 
-          <input
-            ref={inputRef}
-            type="text"
-            value={projectName}
-            onChange={(event) => dispatch(setProjectName(event.target.value))}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') inputRef.current?.blur();
-            }}
-            onBlur={onSave}
-            className="min-w-[80px] max-w-[200px] truncate rounded bg-transparent px-1.5 py-0.5 text-xs font-medium text-foreground outline-none transition-all focus:max-w-[280px] focus:ring-1 focus:ring-primary"
-            spellCheck={false}
-          />
+          <span className="max-w-[200px] truncate px-1.5 py-0.5 text-xs font-medium text-foreground">
+            {projectName || 'Untitled Project'}
+          </span>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={openSettings}
+                className="size-7 text-muted-foreground hover:bg-accent hover:text-foreground"
+              >
+                <Pencil size={13} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">
+              Edit Project Info
+            </TooltipContent>
+          </Tooltip>
         </div>
 
         {/* CENTER: Node count + status pill + Saved status */}
@@ -204,6 +233,49 @@ export function EditorToolbar({
           </Button>
         </div>
       </header>
+
+      <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Project Settings</DialogTitle>
+            <DialogDescription>
+              Update your project&apos;s name and description.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <label htmlFor="name" className="text-sm font-medium">
+                Project Name
+              </label>
+              <input
+                id="name"
+                value={editName}
+                onChange={(event) => setEditName(event.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
+            <div className="grid gap-2">
+              <label htmlFor="description" className="text-sm font-medium">
+                Description
+              </label>
+              <textarea
+                id="description"
+                value={editDesc}
+                onChange={(event) => setEditDesc(event.target.value)}
+                className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSettingsOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={saveSettings}>
+              Save changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </TooltipProvider>
   );
 }

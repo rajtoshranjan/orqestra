@@ -114,6 +114,7 @@ export function CanvasEditor({
     edges: initialProject.edges,
     deploymentSettings: initialProject.deploymentSettings,
     projectName: initialProject.projectName,
+    projectDescription: initialProject.projectDescription,
   });
 
   /* Sync nodes and edges into Redux for query/deploy selections. */
@@ -166,6 +167,7 @@ export function CanvasEditor({
           edges: nextEdges,
           deploymentSettings: nextSettings,
           projectName: nextProjectName,
+          projectDescription: nextProjectDescription,
         };
 
         if (!silent) {
@@ -196,7 +198,8 @@ export function CanvasEditor({
       nodes === originalProjectRef.current.nodes &&
       edges === originalProjectRef.current.edges &&
       deploymentSettings === originalProjectRef.current.deploymentSettings &&
-      projectName === originalProjectRef.current.projectName
+      projectName === originalProjectRef.current.projectName &&
+      projectDescription === originalProjectRef.current.projectDescription
     ) {
       return;
     }

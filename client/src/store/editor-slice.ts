@@ -46,6 +46,9 @@ export const editorSlice = createSlice({
     setProjectName: (state, action: PayloadAction<string>) => {
       state.projectName = action.payload;
     },
+    setProjectDescription: (state, action: PayloadAction<string>) => {
+      state.projectDescription = action.payload;
+    },
     setNodes: (state, action: PayloadAction<DiagramNode[]>) => {
       state.nodes = action.payload;
     },
@@ -70,6 +73,7 @@ export const editorSlice = createSlice({
 export const {
   setProject,
   setProjectName,
+  setProjectDescription,
   setNodes,
   setEdges,
   setLastSavedAt,
