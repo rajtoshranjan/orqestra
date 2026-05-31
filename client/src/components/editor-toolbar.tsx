@@ -5,8 +5,8 @@ import {
   WandSparkles,
   Rocket,
   Loader2,
-  Search,
-  MessageSquare,
+  Lock,
+  Unlock,
 } from 'lucide-react';
 
 import { formatRelativeTime, hasValidationErrors } from '@/utils';
@@ -20,7 +20,7 @@ import {
 } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { setProjectName, setSnapToGrid } from '@/store/editor-slice';
+import { setProjectName, setSnapToGrid, setIsLocked } from '@/store/editor-slice';
 import { DeploymentStatus } from '@/types';
 
 export type EditorToolbarProps = {
@@ -41,7 +41,7 @@ export function EditorToolbar({
   const dispatch = useAppDispatch();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { projectName, lastSavedAt, snapToGrid, nodes } = useAppSelector(
+  const { projectName, lastSavedAt, snapToGrid, isLocked, nodes } = useAppSelector(
     (state) => state.editor,
   );
   const deploymentStatus = useAppSelector(
@@ -61,166 +61,155 @@ export function EditorToolbar({
   return (
     <TooltipProvider delayDuration={300}>
       <header className="flex h-11 shrink-0 items-center justify-between border-b border-border bg-card/90 px-3 backdrop-blur-sm">
-      {/* LEFT: Back + Title + Name + Save status */}
-      <div className="flex min-w-0 items-center gap-1">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onBack}
-              aria-label="Back to dashboard"
-              className="size-8 shrink-0 text-muted-foreground hover:bg-accent hover:text-foreground"
-            >
-              <ArrowLeft size={16} />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom" className="text-xs">
-            Back to dashboard
-          </TooltipContent>
-        </Tooltip>
+        {/* LEFT: Back + Title + Name + Save status */}
+        <div className="flex min-w-0 items-center gap-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onBack}
+                aria-label="Back to dashboard"
+                className="size-8 shrink-0 text-muted-foreground hover:bg-accent hover:text-foreground"
+              >
+                <ArrowLeft size={16} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">
+              Back to dashboard
+            </TooltipContent>
+          </Tooltip>
 
-        <span className="hidden select-none px-1.5 font-sans text-sm font-bold tracking-tight text-foreground sm:inline-block">
-          Orqestra
-        </span>
-
-        {/* Divider */}
-        <div className="mx-1 h-4 w-px shrink-0 bg-border" />
-
-        <input
-          ref={inputRef}
-          type="text"
-          value={projectName}
-          onChange={(e) => dispatch(setProjectName(e.target.value))}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') inputRef.current?.blur();
-          }}
-          onBlur={onSave}
-          className="min-w-[80px] max-w-[200px] truncate rounded bg-transparent px-1.5 py-0.5 text-xs font-medium text-foreground outline-none transition-all focus:max-w-[280px] focus:ring-1 focus:ring-primary"
-          spellCheck={false}
-        />
-      </div>
-
-      {/* CENTER: Node count + status pill + Saved status */}
-      <div className="flex items-center gap-1.5">
-        <Badge
-          variant="accent"
-          className="rounded-full px-2 py-[2px] text-[10px] font-medium"
-        >
-          {nodeCount} node{nodeCount !== 1 ? 's' : ''}
-        </Badge>
-
-        <span className="hidden text-[11px] text-muted-foreground sm:inline-block">
-          {readyCount}/{nodeCount} ready
-        </span>
-
-        <span className="hidden text-[11px] text-muted-foreground/40 sm:inline-block">
-          •
-        </span>
-
-        <span className="hidden shrink-0 whitespace-nowrap text-[11px] text-muted-foreground sm:inline-block">
-          {isSaving ? (
-            <span className="flex animate-pulse items-center gap-1 text-primary">
-              <Loader2 size={10} className="animate-spin" />
-              Saving…
-            </span>
-          ) : lastSavedAt ? (
-            `Saved ${formatRelativeTime(lastSavedAt)}`
-          ) : (
-            'Unsaved'
-          )}
-        </span>
-      </div>
-
-      {/* RIGHT: Icon actions + Plan + Deploy */}
-      <div className="flex items-center gap-0.5">
-        {/* Snap to Grid */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => dispatch(setSnapToGrid(!snapToGrid))}
-              aria-label="Toggle snap to grid"
-              className={cn(
-                'h-8 w-8 text-muted-foreground transition-all duration-200',
-                snapToGrid &&
-                  'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
-              )}
-            >
-              <Grid3x3 size={15} />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom" className="text-xs">
-            Toggle snap to grid
-          </TooltipContent>
-        </Tooltip>
-
-        {/* Search */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Search"
-              className="size-8 text-muted-foreground"
-            >
-              <Search size={15} />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom" className="text-xs">
-            Search
-          </TooltipContent>
-        </Tooltip>
-
-        {/* Add Comments */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Add comments"
-              className="size-8 text-muted-foreground"
-            >
-              <MessageSquare size={15} />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom" className="text-xs">
-            Add comments
-          </TooltipContent>
-        </Tooltip>
-
-        {/* Divider */}
-        <div className="mx-1 h-4 w-px shrink-0 bg-border" />
-
-        {/* Plan */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onPlan}
-          className="flex items-center gap-1 text-muted-foreground hover:text-foreground"
-        >
-          <WandSparkles size={13} />
-          <span className="hidden sm:inline">Plan</span>
-        </Button>
-
-        <Button
-          onClick={onDeploy}
-          disabled={isDeploying}
-          size="sm"
-          className="flex items-center gap-1.5 font-semibold text-white shadow-sm disabled:opacity-60"
-        >
-          {isDeploying ? (
-            <Loader2 size={13} className="animate-spin" />
-          ) : (
-            <Rocket size={13} />
-          )}
-          <span className="hidden sm:inline">
-            {isDeploying ? 'Deploying…' : 'Deploy'}
+          <span className="hidden select-none px-1.5 font-sans text-sm font-bold tracking-tight text-foreground sm:inline-block">
+            Orqestra
           </span>
-        </Button>
-      </div>
-    </header>
+
+          {/* Divider */}
+          <div className="mx-1 h-4 w-px shrink-0 bg-border" />
+
+          <input
+            ref={inputRef}
+            type="text"
+            value={projectName}
+            onChange={(e) => dispatch(setProjectName(e.target.value))}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') inputRef.current?.blur();
+            }}
+            onBlur={onSave}
+            className="min-w-[80px] max-w-[200px] truncate rounded bg-transparent px-1.5 py-0.5 text-xs font-medium text-foreground outline-none transition-all focus:max-w-[280px] focus:ring-1 focus:ring-primary"
+            spellCheck={false}
+          />
+        </div>
+
+        {/* CENTER: Node count + status pill + Saved status */}
+        <div className="flex items-center gap-1.5">
+          <Badge
+            variant="accent"
+            className="rounded-full px-2 py-[2px] text-[10px] font-medium"
+          >
+            {nodeCount} node{nodeCount !== 1 ? 's' : ''}
+          </Badge>
+
+          <span className="hidden text-[11px] text-muted-foreground sm:inline-block">
+            {readyCount}/{nodeCount} ready
+          </span>
+
+          <span className="hidden text-[11px] text-muted-foreground/40 sm:inline-block">
+            •
+          </span>
+
+          <span className="hidden shrink-0 whitespace-nowrap text-[11px] text-muted-foreground sm:inline-block">
+            {isSaving ? (
+              <span className="flex animate-pulse items-center gap-1 text-primary">
+                <Loader2 size={10} className="animate-spin" />
+                Saving…
+              </span>
+            ) : lastSavedAt ? (
+              `Saved ${formatRelativeTime(lastSavedAt)}`
+            ) : (
+              'Unsaved'
+            )}
+          </span>
+        </div>
+
+        {/* RIGHT: Icon actions + Plan + Deploy */}
+        <div className="flex items-center gap-0.5">
+          {/* Lock/Unlock Editor */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => dispatch(setIsLocked(!isLocked))}
+                aria-label={isLocked ? 'Unlock editor' : 'Lock editor'}
+                className={cn(
+                  'h-8 w-8 text-muted-foreground transition-all duration-200',
+                  isLocked &&
+                  'bg-warning/20 text-warning hover:bg-warning/30 hover:text-warning',
+                )}
+              >
+                {isLocked ? <Lock size={15} /> : <Unlock size={15} />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">
+              {isLocked ? 'Unlock editor' : 'Lock editor'}
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Snap to Grid */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => dispatch(setSnapToGrid(!snapToGrid))}
+                aria-label="Toggle snap to grid"
+                className={cn(
+                  'h-8 w-8 text-muted-foreground transition-all duration-200',
+                  snapToGrid &&
+                  'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
+                )}
+              >
+                <Grid3x3 size={15} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">
+              Toggle snap to grid
+            </TooltipContent>
+          </Tooltip>
+
+
+          {/* Divider */}
+          <div className="mx-1 h-4 w-px shrink-0 bg-border" />
+
+          {/* Plan */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onPlan}
+            className="flex items-center gap-1 text-muted-foreground hover:text-foreground"
+          >
+            <WandSparkles size={13} />
+            <span className="hidden sm:inline">Plan</span>
+          </Button>
+
+          <Button
+            onClick={onDeploy}
+            disabled={isDeploying}
+            size="sm"
+            className="flex items-center gap-1.5 font-semibold text-white shadow-sm disabled:opacity-60"
+          >
+            {isDeploying ? (
+              <Loader2 size={13} className="animate-spin" />
+            ) : (
+              <Rocket size={13} />
+            )}
+            <span className="hidden sm:inline">
+              {isDeploying ? 'Deploying…' : 'Deploy'}
+            </span>
+          </Button>
+        </div>
+      </header>
     </TooltipProvider>
   );
 }

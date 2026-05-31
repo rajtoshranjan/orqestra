@@ -15,6 +15,7 @@ type EditorState = {
   edges: DiagramEdge[];
   lastSavedAt: string | null;
   snapToGrid: boolean;
+  isLocked: boolean;
   clipboard: ClipboardSelection | null;
 };
 
@@ -26,6 +27,7 @@ const initialState: EditorState = {
   edges: [],
   lastSavedAt: null,
   snapToGrid: true,
+  isLocked: false,
   clipboard: null,
 };
 
@@ -56,6 +58,9 @@ export const editorSlice = createSlice({
     setSnapToGrid: (state, action: PayloadAction<boolean>) => {
       state.snapToGrid = action.payload;
     },
+    setIsLocked: (state, action: PayloadAction<boolean>) => {
+      state.isLocked = action.payload;
+    },
     setClipboard: (state, action: PayloadAction<ClipboardSelection | null>) => {
       state.clipboard = action.payload;
     },
@@ -69,6 +74,7 @@ export const {
   setEdges,
   setLastSavedAt,
   setSnapToGrid,
+  setIsLocked,
   setClipboard,
 } = editorSlice.actions;
 

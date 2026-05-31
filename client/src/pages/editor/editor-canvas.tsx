@@ -83,6 +83,7 @@ export function CanvasEditor({
     projectDescription,
     lastSavedAt,
     snapToGrid,
+    isLocked,
     clipboard,
   } = useAppSelector((state) => state.editor);
 
@@ -338,6 +339,7 @@ export function CanvasEditor({
   /* Add Node (generic — works for any service). */
   const handleAddNode = React.useCallback(
     (serviceId: string) => {
+      if (isLocked) return;
       updateNodesWithValidation((current) => [
         ...current.map((node) => ({ ...node, selected: false })),
         createServiceNode(
@@ -347,7 +349,7 @@ export function CanvasEditor({
         ),
       ]);
     },
-    [updateNodesWithValidation],
+    [updateNodesWithValidation, isLocked],
   );
 
   /* Clipboard Operations */
@@ -368,6 +370,7 @@ export function CanvasEditor({
   }, [edges, nodes, dispatch]);
 
   const handlePasteSelection = React.useCallback(() => {
+    if (isLocked) return;
     if (!clipboard) {
       toast({
         title: 'Clipboard is empty',
@@ -376,9 +379,10 @@ export function CanvasEditor({
       return;
     }
     pasteSelection(clipboard, setNodes, setEdges);
-  }, [clipboard, setEdges, setNodes]);
+  }, [clipboard, setEdges, setNodes, isLocked]);
 
   const deleteSelection = React.useCallback(() => {
+    if (isLocked) return;
     const selectedNodeIds = new Set(
       nodes.filter((node) => node.selected).map((node) => node.id),
     );
@@ -399,11 +403,12 @@ export function CanvasEditor({
       ),
     );
     dispatch(setContextMenu(null));
-  }, [edges, nodes, setEdges, setNodes, dispatch]);
+  }, [edges, nodes, setEdges, setNodes, dispatch, isLocked]);
 
   /* Duplicate */
   const handleDuplicateNode = React.useCallback(
     (nodeId: string) => {
+      if (isLocked) return;
       const node = nodes.find((n) => n.id === nodeId);
       if (!node) return;
 
@@ -420,7 +425,7 @@ export function CanvasEditor({
       ]);
       dispatch(setContextMenu(null));
     },
-    [nodes, setNodes, dispatch],
+    [nodes, setNodes, dispatch, isLocked],
   );
 
   /* Deploy */
@@ -572,6 +577,7 @@ export function CanvasEditor({
   /* Drop handler for ServiceCatalog drag. */
   const handleDrop = React.useCallback(
     (event: React.DragEvent) => {
+      if (isLocked) return;
       event.preventDefault();
       const serviceId = event.dataTransfer.getData(NODE_DRAG_TYPE);
       if (!serviceId || !reactFlowInstance) return;
@@ -589,7 +595,7 @@ export function CanvasEditor({
         createServiceNode(serviceId, position, current.length + 1),
       ]);
     },
-    [reactFlowInstance, updateNodesWithValidation],
+    [reactFlowInstance, updateNodesWithValidation, isLocked],
   );
 
   const handleDragOver = React.useCallback((event: React.DragEvent) => {
@@ -642,6 +648,9 @@ export function CanvasEditor({
             nodeTypes={nodeTypes}
             snapGrid={GRID}
             snapToGrid={snapToGrid}
+            nodesDraggable={!isLocked}
+            nodesConnectable={!isLocked}
+            elementsSelectable={!isLocked}
             nodes={nodes}
             edges={edges}
             onNodesChange={onNodesChange}
@@ -668,6 +677,7 @@ export function CanvasEditor({
             }}
             onNodeContextMenu={(event, node) => {
               event.preventDefault();
+              if (isLocked) return;
               dispatch(
                 setContextMenu({
                   nodeId: node.id,
@@ -687,7 +697,7 @@ export function CanvasEditor({
                 size={1.1}
               />
             )}
-            <Controls position="bottom-right" />
+            <Controls position="bottom-right" showInteractive={false} />
             <MiniMap
               className="!bottom-4 !left-4 !h-28 !w-44 overflow-hidden"
               nodeColor={(node) => {
