@@ -68,3 +68,13 @@ repos:
       - id: isort
         args: ["--profile", "black", "--line-length=88"]
         files: \.py$
+
+  # Run frontend lint-staged checks
+  - repo: local
+    hooks:
+      - id: lint-staged
+        name: lint-staged (client)
+        entry: bash -c 'cd client && npx lint-staged'
+        language: system
+        pass_filenames: false
+        always_run: true
