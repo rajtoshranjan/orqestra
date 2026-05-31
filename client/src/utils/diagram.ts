@@ -73,7 +73,7 @@ export function createInitialDiagram(): PersistedDiagram {
     projectId: makeId(),
     projectName: createProjectName(1),
     projectDescription: 'Visual architecture project',
-    nodes: [createServiceNode('lambda', { x: 120, y: 140 }, 1)],
+    nodes: [],
     edges: [],
     deploymentSettings: DEFAULT_DEPLOYMENT_SETTINGS,
     lastSavedAt: null,
