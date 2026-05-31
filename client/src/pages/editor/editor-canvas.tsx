@@ -14,6 +14,11 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useLocalStorage } from 'usehooks-ts';
+import { EditorToolbar } from './editor-toolbar';
+import { ServiceCatalog } from './service-catalog';
+import { NodeInspector } from './node-inspector';
+import { DeployDrawer } from './deploy-drawer';
+import { ContextMenu } from './context-menu';
 import type {
   DiagramNode,
   DiagramEdge,
@@ -42,11 +47,6 @@ import {
 import { registry } from '@/services';
 import { toast } from '@/hooks/use-toast';
 import { useUpdateProject, camelToSnakeRecursive } from '@/api';
-import { EditorToolbar } from './editor-toolbar';
-import { ServiceCatalog } from './service-catalog';
-import { NodeInspector } from './node-inspector';
-import { DeployDrawer } from './deploy-drawer';
-import { ContextMenu } from './context-menu';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   setNodes as setReduxNodes,

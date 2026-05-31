@@ -6,7 +6,6 @@ import {
   PencilLine,
   Rocket,
   Unlock,
-  WandSparkles
 } from 'lucide-react';
 import React from 'react';
 
@@ -21,10 +20,7 @@ import {
 import { ProjectSettingsModal } from '@/pages/editor/project-settings-modal';
 import { cn } from '@/lib/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
-import {
-  setIsLocked,
-  setSnapToGrid,
-} from '@/store/editor-slice';
+import { setIsLocked, setSnapToGrid } from '@/store/editor-slice';
 import { DeploymentStatus } from '@/types';
 import { formatRelativeTime, hasValidationErrors } from '@/utils';
 
@@ -145,7 +141,7 @@ export function EditorToolbar({
                 className={cn(
                   'h-8 w-8 text-muted-foreground transition-all duration-200',
                   isLocked &&
-                  'bg-warning/20 text-warning hover:bg-warning/30 hover:text-warning',
+                    'bg-warning/20 text-warning hover:bg-warning/30 hover:text-warning',
                 )}
               >
                 {isLocked ? <Lock size={15} /> : <Unlock size={15} />}
@@ -167,7 +163,7 @@ export function EditorToolbar({
                 className={cn(
                   'h-8 w-8 text-muted-foreground transition-all duration-200',
                   snapToGrid &&
-                  'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
+                    'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
                 )}
               >
                 <Grid3x3 size={15} />
@@ -200,9 +196,9 @@ export function EditorToolbar({
         </div>
       </header>
 
-      <ProjectSettingsModal 
-        open={settingsOpen} 
-        onOpenChange={setSettingsOpen} 
+      <ProjectSettingsModal
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
       />
     </TooltipProvider>
   );
