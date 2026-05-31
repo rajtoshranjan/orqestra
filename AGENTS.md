@@ -156,6 +156,12 @@ Use compound components when appropriate.
 
 ---
 
+## UI Components (Shadcn)
+
+Always use shadcn UI components (from `components/ui`) instead of native HTML tag elements (like `<select>`, `<button>`, `<input>`, etc.) if they are available in the project design system.
+
+---
+
 ## TypeScript
 
 Avoid any.

@@ -6,6 +6,7 @@ import {
   Layers,
   Clock,
   Search,
+  ChevronDown,
 } from 'lucide-react';
 
 import { formatRelativeTime } from '@/utils';
@@ -17,6 +18,11 @@ import {
   EmptyState,
   LoadingState,
   ConfirmDialog,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from '@/components/ui';
 import { PageLayout } from '@/components';
 
@@ -90,21 +96,9 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
             <div className="animate-fade-in flex select-none flex-wrap items-center justify-between gap-4">
               {/* Left Metadata Indicator. */}
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Projects List
-                </span>
-                <div className="size-1 rounded-full bg-[var(--color-text-muted)]" />
-                <span className="text-[11px] text-[var(--color-text-secondary)]">
-                  Sorted by{' '}
-                  {sortBy === 'saved'
-                    ? 'last saved'
-                    : sortBy === 'resources'
-                      ? 'resources'
-                      : 'alphabetical'}
-                </span>
-              </div>
 
-              <div className="flex flex-wrap items-center gap-2.5">
+
+
                 {/* Search Field. */}
                 <div className="group relative">
                   <span className="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-muted-foreground/60 transition-colors duration-200 group-focus-within:text-primary">
@@ -120,40 +114,64 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
                 </div>
 
                 {/* Sort Selector. */}
-                <select
-                  value={sortBy}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (
-                      val === 'saved' ||
-                      val === 'resources' ||
-                      val === 'name'
-                    ) {
-                      setSortBy(val);
-                    }
-                  }}
-                  className="h-8 cursor-pointer rounded-md border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-2 text-xs text-[var(--color-text-primary)] transition-all duration-200 hover:border-[var(--color-border-hover)] focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                >
-                  <option
-                    value="saved"
-                    className="bg-[var(--color-bg-surface)] text-[var(--color-text-primary)]"
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 gap-1.5 border-[var(--color-border)] bg-[var(--color-bg-surface)] px-3 text-xs font-normal hover:bg-[var(--color-bg-elevated)]"
+                    >
+                      <span>Sort: </span>
+                      <span className="font-medium text-foreground">
+                        {sortBy === 'saved'
+                          ? 'Last Saved'
+                          : sortBy === 'resources'
+                            ? 'Most Resources'
+                            : 'Alphabetical'}
+                      </span>
+                      <ChevronDown className="size-3.5 text-muted-foreground opacity-60" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-[160px] border-[var(--color-border)] bg-[var(--color-bg-surface)]"
                   >
-                    Last Saved
-                  </option>
-                  <option
-                    value="resources"
-                    className="bg-[var(--color-bg-surface)] text-[var(--color-text-primary)]"
-                  >
-                    Most Resources
-                  </option>
-                  <option
-                    value="name"
-                    className="bg-[var(--color-bg-surface)] text-[var(--color-text-primary)]"
-                  >
-                    Alphabetical
-                  </option>
-                </select>
+                    <DropdownMenuRadioGroup
+                      value={sortBy}
+                      onValueChange={(val) => {
+                        if (
+                          val === 'saved' ||
+                          val === 'resources' ||
+                          val === 'name'
+                        ) {
+                          setSortBy(val);
+                        }
+                      }}
+                    >
+                      <DropdownMenuRadioItem
+                        value="saved"
+                        className="cursor-pointer text-xs text-foreground"
+                      >
+                        Last Saved
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem
+                        value="resources"
+                        className="cursor-pointer text-xs text-foreground"
+                      >
+                        Most Resources
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem
+                        value="name"
+                        className="cursor-pointer text-xs text-foreground"
+                      >
+                        Alphabetical
+                      </DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
 
+              <div className="flex flex-wrap items-center gap-2.5">
                 {/* Create Project Button. */}
                 <Button
                   type="button"

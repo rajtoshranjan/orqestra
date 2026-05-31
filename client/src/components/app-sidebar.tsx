@@ -1,4 +1,5 @@
 import type { ComponentType } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   Hexagon,
@@ -14,7 +15,6 @@ import { toggleSidebarCollapsed } from '@/store/ui-slice';
 export type AppShellView = 'projects' | 'settings';
 
 type AppSidebarProps = {
-  currentView: AppShellView;
   onNavigate: (path: string) => void;
 };
 
@@ -38,8 +38,9 @@ const navItems = [
   icon: ComponentType<{ className?: string }>;
 }>;
 
-export function AppSidebar({ currentView, onNavigate }: AppSidebarProps) {
+export function AppSidebar({ onNavigate }: AppSidebarProps) {
   const dispatch = useAppDispatch();
+  const location = useLocation();
   const collapsed = useAppSelector((state) => state.ui.sidebarCollapsed);
   const isCollapsed = collapsed;
 
@@ -82,7 +83,7 @@ export function AppSidebar({ currentView, onNavigate }: AppSidebarProps) {
       <nav className="flex-1 space-y-1 px-1.5 py-2" aria-label="Primary">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const active = currentView === item.view;
+          const active = location.pathname === item.path;
 
           return (
             <button

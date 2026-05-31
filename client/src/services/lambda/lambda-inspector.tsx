@@ -2,6 +2,8 @@ import React from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
+import { ChevronDown } from 'lucide-react';
+
 import type { ServiceInspectorProps } from '../types';
 import type { LambdaConfig, LambdaRuntime } from './types';
 import { RUNTIME_OPTIONS } from './types';
@@ -11,7 +13,15 @@ import {
   makeEnvironmentVariable,
 } from './defaults';
 import { lambdaConfigSchema } from '@/schemas/lambda.schema';
-import { Input } from '@/components/ui';
+import {
+  Input,
+  Button,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+} from '@/components/ui';
 import {
   InspectorSection,
   InspectorField,
@@ -106,26 +116,44 @@ export function LambdaInspector({
 
         {/* Runtime. */}
         <InspectorField label="Runtime" error={errors.runtime?.message}>
-          <select
-            className="flex h-8 w-full rounded-md border border-border/80 bg-background/50 px-2.5 py-1 text-xs text-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-            {...register('runtime')}
-            onChange={(e) => {
-              const val = e.target.value;
-              if (isLambdaRuntime(val)) {
-                handleRuntimeChange(val);
-              }
-            }}
-          >
-            {RUNTIME_OPTIONS.map((opt) => (
-              <option
-                key={opt.value}
-                value={opt.value}
-                className="bg-card text-foreground"
+          <input type="hidden" {...register('runtime')} />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="flex h-8 w-full justify-between rounded-md border border-border/80 bg-background/50 px-2.5 py-1 text-xs font-normal text-foreground shadow-sm transition-colors hover:bg-accent/50"
               >
-                {opt.label}
-              </option>
-            ))}
-          </select>
+                <span>
+                  {RUNTIME_OPTIONS.find(
+                    (opt) => opt.value === watchedValues.runtime,
+                  )?.label ||
+                    watchedValues.runtime ||
+                    'Select runtime'}
+                </span>
+                <ChevronDown className="size-3.5 opacity-60" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="max-h-[300px] w-[200px] overflow-y-auto border-border bg-card">
+              <DropdownMenuRadioGroup
+                value={watchedValues.runtime}
+                onValueChange={(val) => {
+                  if (isLambdaRuntime(val)) {
+                    handleRuntimeChange(val);
+                  }
+                }}
+              >
+                {RUNTIME_OPTIONS.map((opt) => (
+                  <DropdownMenuRadioItem
+                    key={opt.value}
+                    value={opt.value}
+                    className="cursor-pointer text-xs text-foreground"
+                  >
+                    {opt.label}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </InspectorField>
 
         {/* Handler. */}

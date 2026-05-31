@@ -1,45 +1,50 @@
 import './assets/styles.css';
 import '@/services'; // Register all AWS service plugins at startup
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
+import { Routes, Route, Navigate, Outlet, useParams } from 'react-router-dom';
 import { Projects, Editor, Settings } from './pages';
-import { AppSidebar, type AppShellView } from './components/app-sidebar';
+import { AppSidebar } from './components/app-sidebar';
 import { Toaster } from './components/ui/toaster';
 import { createInitialDiagram } from './utils';
 import { useCreateProject } from '@/api';
-
 import { useAppSelector } from '@/store';
+import { CustomRouter } from '@/lib/custom-router';
+import { history } from '@/lib/utils';
 
-/* Simple Hash Router */
+/* App Layout */
 
-type Route =
-  | { view: 'projects' }
-  | { view: 'settings' }
-  | { view: 'editor'; projectId: string };
+function AppLayout() {
+  const handleShellNavigate = useCallback((path: string) => {
+    history.push(path);
+  }, []);
 
-function parseHash(): Route {
-  const hash = window.location.hash;
-
-  // #/editor/:projectId
-  const editorMatch = hash.match(/^#\/editor\/(.+)$/);
-  if (editorMatch) {
-    return { view: 'editor', projectId: decodeURIComponent(editorMatch[1]) };
-  }
-
-  if (/^#\/(?:settings|settinga)\/?$/.test(hash)) {
-    return { view: 'settings' };
-  }
-
-  return { view: 'projects' };
+  return (
+    <div className="flex min-h-screen bg-[var(--color-bg-base)] text-foreground">
+      <AppSidebar onNavigate={handleShellNavigate} />
+      <main className="min-w-0 flex-1 overflow-y-auto bg-background">
+        <Outlet />
+      </main>
+    </div>
+  );
 }
 
-function navigateTo(path: string) {
-  window.location.hash = path;
+/* Editor Wrapper */
+
+function EditorWrapper({ onNavigateHome }: { onNavigateHome: () => void }) {
+  const { projectId } = useParams();
+  if (!projectId) return <Navigate to="/" replace />;
+  return (
+    <Editor
+      key={projectId}
+      projectId={projectId}
+      onNavigateHome={onNavigateHome}
+    />
+  );
 }
 
 /* App */
 
 function App() {
-  const [route, setRoute] = useState<Route>(parseHash);
   const theme = useAppSelector((state) => state.ui.theme);
 
   useEffect(() => {
@@ -51,14 +56,8 @@ function App() {
     }
   }, [theme]);
 
-  useEffect(() => {
-    const onHashChange = () => setRoute(parseHash());
-    window.addEventListener('hashchange', onHashChange);
-    return () => window.removeEventListener('hashchange', onHashChange);
-  }, []);
-
   const handleOpenProject = useCallback((projectId: string) => {
-    navigateTo(`/editor/${encodeURIComponent(projectId)}`);
+    history.push(`/editor/${encodeURIComponent(projectId)}`);
   }, []);
 
   const createProjectMutation = useCreateProject();
@@ -73,49 +72,39 @@ function App() {
         edges: diagram.edges,
         deploymentSettings: diagram.deploymentSettings,
       });
-      navigateTo(`/editor/${encodeURIComponent(serverProject.projectId)}`);
+      history.push(`/editor/${encodeURIComponent(serverProject.projectId)}`);
     } catch (err) {
       console.error('Failed to create new project:', err);
     }
   }, [createProjectMutation]);
 
   const handleNavigateHome = useCallback(() => {
-    navigateTo('/');
+    history.push('/');
   }, []);
-
-  const handleShellNavigate = useCallback((path: string) => {
-    navigateTo(path);
-  }, []);
-
-  const shellView: AppShellView | null =
-    route.view === 'projects' || route.view === 'settings' ? route.view : null;
 
   return (
     <>
-      {shellView && (
-        <div className="flex min-h-screen bg-[var(--color-bg-base)] text-foreground">
-          <AppSidebar
-            currentView={shellView}
-            onNavigate={handleShellNavigate}
+      <CustomRouter history={history}>
+        <Routes>
+          <Route element={<AppLayout />}>
+            <Route
+              path="/"
+              element={
+                <Projects
+                  onOpenProject={handleOpenProject}
+                  onNewProject={handleNewProject}
+                />
+              }
+            />
+            <Route path="/settings" element={<Settings />} />
+          </Route>
+          <Route
+            path="/editor/:projectId"
+            element={<EditorWrapper onNavigateHome={handleNavigateHome} />}
           />
-          <main className="min-w-0 flex-1 overflow-y-auto bg-background">
-            {route.view === 'projects' && (
-              <Projects
-                onOpenProject={handleOpenProject}
-                onNewProject={handleNewProject}
-              />
-            )}
-            {route.view === 'settings' && <Settings />}
-          </main>
-        </div>
-      )}
-      {route.view === 'editor' && (
-        <Editor
-          key={route.projectId}
-          projectId={route.projectId}
-          onNavigateHome={handleNavigateHome}
-        />
-      )}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </CustomRouter>
       <Toaster />
     </>
   );
