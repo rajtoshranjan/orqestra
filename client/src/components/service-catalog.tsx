@@ -1,4 +1,5 @@
-import { ChevronLeft, ChevronRight, GripVertical } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { ChevronLeft, ChevronRight, GripVertical, Search } from 'lucide-react';
 import { registry } from '@/services';
 import { NODE_DRAG_TYPE } from '@/utils';
 import { SERVICE_CATEGORY_LABELS } from '@/services/types';
@@ -19,6 +20,28 @@ export function ServiceCatalog({
   onToggleCollapse,
 }: ServiceCatalogProps) {
   const servicesByCategory = registry.getByCategory();
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredServicesByCategory = useMemo(() => {
+    if (!searchTerm.trim()) return servicesByCategory;
+    
+    const lowerSearch = searchTerm.toLowerCase();
+    const filtered = new Map();
+    
+    for (const [category, services] of servicesByCategory.entries()) {
+      const matchedServices = services.filter(
+        (service) => 
+          service.name.toLowerCase().includes(lowerSearch) || 
+          service.description.toLowerCase().includes(lowerSearch) ||
+          SERVICE_CATEGORY_LABELS[category].toLowerCase().includes(lowerSearch)
+      );
+      
+      if (matchedServices.length > 0) {
+        filtered.set(category, matchedServices);
+      }
+    }
+    return filtered;
+  }, [searchTerm, servicesByCategory]);
 
   return (
     <aside
@@ -45,13 +68,29 @@ export function ServiceCatalog({
         </button>
       </div>
 
+      {/* Search Bar. */}
+      {!collapsed && (
+        <div className="shrink-0 px-3 py-2 border-b border-[var(--color-border)]">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-[var(--color-text-muted)]" />
+            <input
+              type="text"
+              placeholder="Search services..."
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              className="w-full rounded-md border border-[var(--color-border)] bg-transparent py-1.5 pl-8 pr-2 text-xs text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] transition-colors focus:border-[var(--color-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
+            />
+          </div>
+        </div>
+      )}
+
       {/* Service List — grouped by category. */}
       <div className="flex-1 space-y-4 overflow-y-auto overflow-x-hidden p-2">
-        {[...servicesByCategory.entries()].map(([category, services]) => (
+        {[...filteredServicesByCategory.entries()].map(([category, services]) => (
           <div key={category}>
             {/* Category header (only when expanded and >1 category). */}
-            {!collapsed && servicesByCategory.size > 1 && (
-              <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+            {!collapsed && filteredServicesByCategory.size > 1 && (
+              <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
                 {SERVICE_CATEGORY_LABELS[category]}
               </p>
             )}
@@ -81,7 +120,7 @@ export function ServiceCatalog({
                     <ServiceIcon size={14} />
                   </button>
                 ) : (
-                  /* Expanded: full card. */
+                  /* Expanded: node-like card. */
                   <div
                     key={service.id}
                     draggable
@@ -90,45 +129,31 @@ export function ServiceCatalog({
                       event.dataTransfer.effectAllowed = 'copy';
                     }}
                     onClick={() => onAddNode(service.id)}
-                    className="duration-[var(--transition-base)] animate-fade-in group cursor-grab select-none rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg-elevated)] p-2.5 transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)] active:cursor-grabbing"
+                    className="duration-[var(--transition-base)] animate-fade-in group relative flex min-h-[56px] cursor-grab select-none items-center gap-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-2.5 shadow-sm backdrop-blur-md transition-all hover:-translate-y-[1px] hover:border-[var(--hover-border)] hover:shadow-md active:cursor-grabbing"
                     style={itemStyle}
+                    title={service.description}
                   >
-                    {/* Icon + Title Row. */}
-                    <div className="mb-2 flex items-center gap-2.5">
-                      <div
-                        className="flex size-7 shrink-0 items-center justify-center rounded-full"
-                        style={{
-                          background: `${service.accentColor}18`,
-                          color: service.accentColor,
-                        }}
-                      >
-                        <ServiceIcon size={14} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-xs font-semibold text-[var(--color-text-primary)]">
-                          {service.name}
-                        </p>
-                      </div>
-                      <span
-                        className="whitespace-nowrap rounded-full px-1.5 py-0.5 text-[9px] font-medium"
-                        style={{
-                          background: `${service.accentColor}18`,
-                          color: service.accentColor,
-                        }}
-                      >
-                        {SERVICE_CATEGORY_LABELS[service.category]}
-                      </span>
+                    {/* Left Column: Service Icon Container */}
+                    <div
+                      className="flex size-9 shrink-0 items-center justify-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg-base)] transition-colors group-hover:bg-[var(--color-bg-hover)]"
+                      style={{ color: service.accentColor }}
+                    >
+                      <ServiceIcon size={18} />
                     </div>
 
-                    {/* Description. */}
-                    <p className="mb-2 text-[11px] leading-relaxed text-[var(--color-text-muted)]">
-                      {service.description}
-                    </p>
+                    {/* Middle Column: Resource Labels */}
+                    <div className="flex min-w-0 flex-1 flex-col justify-center text-left">
+                      <p className="mb-0.5 text-[9px] font-bold uppercase leading-none tracking-wider text-[var(--color-text-muted)]">
+                        {SERVICE_CATEGORY_LABELS[service.category]}
+                      </p>
+                      <p className="truncate text-xs font-semibold leading-tight tracking-tight text-[var(--color-text-primary)]">
+                        {service.name}
+                      </p>
+                    </div>
 
-                    {/* Drag hint. */}
-                    <div className="duration-[var(--transition-fast)] flex items-center gap-1 text-[9px] text-[var(--color-text-muted)] opacity-0 transition-opacity group-hover:opacity-100">
-                      <GripVertical className="size-3" />
-                      <span>Drag to canvas</span>
+                    {/* Drag hint on hover */}
+                    <div className="flex items-center text-[var(--color-text-muted)] opacity-0 transition-opacity group-hover:opacity-100">
+                      <GripVertical size={14} />
                     </div>
                   </div>
                 );
@@ -136,6 +161,21 @@ export function ServiceCatalog({
             </div>
           </div>
         ))}
+
+        {/* Empty State for Search */}
+        {!collapsed && filteredServicesByCategory.size === 0 && (
+          <div className="mt-8 flex flex-col items-center justify-center px-4 text-center">
+            <div className="mb-3 flex size-10 items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-base)] text-[var(--color-text-muted)]">
+              <Search className="size-5" />
+            </div>
+            <h3 className="mb-1 text-xs font-semibold text-[var(--color-text-primary)]">
+              No services found
+            </h3>
+            <p className="text-[10px] leading-relaxed text-[var(--color-text-muted)]">
+              We couldn't find any services matching "{searchTerm}".
+            </p>
+          </div>
+        )}
       </div>
     </aside>
   );

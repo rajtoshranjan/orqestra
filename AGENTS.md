@@ -158,7 +158,7 @@ Use compound components when appropriate.
 
 ## UI Components (Shadcn)
 
-Always use shadcn UI components (from `components/ui`) instead of native HTML tag elements (like `<select>`, `<button>`, `<input>`, etc.) if they are available in the project design system.
+Always use shadcn UI components (from `components/ui`) instead of native HTML tag elements (like `<select>`, `<button>`, `<input>`, etc.). if they are not available in the project design system feel free to add them.
 
 ---
 
@@ -423,6 +423,12 @@ Complex reusable logic should be tested.
 ## Single Responsibility
 
 Each component, serializer, manager, hook, and permission should have a single clear responsibility.
+
+---
+
+## Variable Naming
+
+Do not use single-character variable names (e.g., `s`, `e`, `i`, `v`). Use descriptive names instead (e.g., `service`, `event`, `index`, `value`). keep the name explict but concise.
 
 ---
 

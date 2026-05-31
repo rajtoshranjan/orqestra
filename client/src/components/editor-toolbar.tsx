@@ -91,9 +91,9 @@ export function EditorToolbar({
             ref={inputRef}
             type="text"
             value={projectName}
-            onChange={(e) => dispatch(setProjectName(e.target.value))}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') inputRef.current?.blur();
+            onChange={(event) => dispatch(setProjectName(event.target.value))}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') inputRef.current?.blur();
             }}
             onBlur={onSave}
             className="min-w-[80px] max-w-[200px] truncate rounded bg-transparent px-1.5 py-0.5 text-xs font-medium text-foreground outline-none transition-all focus:max-w-[280px] focus:ring-1 focus:ring-primary"
