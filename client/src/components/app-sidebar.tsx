@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useLocalStorage } from 'usehooks-ts';
 import {
   LayoutDashboard,
   Hexagon,
@@ -9,8 +10,6 @@ import {
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { useAppDispatch, useAppSelector } from '@/store';
-import { toggleSidebarCollapsed } from '@/store/ui-slice';
 
 export type AppShellView = 'projects' | 'settings';
 
@@ -39,10 +38,11 @@ const navItems = [
 }>;
 
 export function AppSidebar({ onNavigate }: AppSidebarProps) {
-  const dispatch = useAppDispatch();
   const location = useLocation();
-  const collapsed = useAppSelector((state) => state.ui.sidebarCollapsed);
-  const isCollapsed = collapsed;
+  const [isCollapsed, setIsCollapsed] = useLocalStorage(
+    'sidebarCollapsed',
+    false,
+  );
 
   return (
     <aside
@@ -119,7 +119,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
       <div className="hidden border-t border-border p-1.5 lg:block">
         <button
           type="button"
-          onClick={() => dispatch(toggleSidebarCollapsed())}
+          onClick={() => setIsCollapsed(!isCollapsed)}
           aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           className={cn(
             'flex h-8 items-center rounded-md text-[12px] font-medium text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground',

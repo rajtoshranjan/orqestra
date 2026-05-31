@@ -13,6 +13,7 @@ import ReactFlow, {
   useEdgesState,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+import { useLocalStorage } from 'usehooks-ts';
 import type {
   DiagramNode,
   DiagramEdge,
@@ -59,11 +60,7 @@ import {
   setDeploymentSettings,
   setDeploymentResult,
 } from '@/store/deployment-slice';
-import {
-  setSidebarCollapsed,
-  setDeployDrawerOpen,
-  setContextMenu,
-} from '@/store/ui-slice';
+import { setDeployDrawerOpen, setContextMenu } from '@/store/ui-slice';
 
 type CanvasEditorProps = {
   initialProject: PersistedDiagram;
@@ -90,8 +87,12 @@ export function CanvasEditor({
   const { settings: deploymentSettings, result: deploymentResult } =
     useAppSelector((state) => state.deployment);
 
-  const { sidebarCollapsed, deployDrawerOpen, contextMenu, theme } = useAppSelector(
+  const { deployDrawerOpen, contextMenu, theme } = useAppSelector(
     (state) => state.ui,
+  );
+  const [sidebarCollapsed, setSidebarCollapsed] = useLocalStorage(
+    'sidebarCollapsed',
+    false,
   );
 
   /* Build nodeTypes from registry (memoized) */
@@ -628,9 +629,7 @@ export function CanvasEditor({
         {/* Service Catalog */}
         <ServiceCatalog
           collapsed={sidebarCollapsed}
-          onToggleCollapse={() =>
-            dispatch(setSidebarCollapsed(!sidebarCollapsed))
-          }
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
           onAddNode={handleAddNode}
         />
 
@@ -692,7 +691,11 @@ export function CanvasEditor({
             {snapToGrid && (
               <Background
                 variant={BackgroundVariant.Dots}
-                color={theme === 'light' ? 'rgba(0, 0, 0, 0.15)' : 'rgba(255, 255, 255, 0.15)'}
+                color={
+                  theme === 'light'
+                    ? 'rgba(0, 0, 0, 0.15)'
+                    : 'rgba(255, 255, 255, 0.15)'
+                }
                 gap={GRID[0]}
                 size={1.1}
               />

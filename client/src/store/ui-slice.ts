@@ -3,7 +3,6 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 import type { ContextMenuState } from '@/types';
 
 type UiState = {
-  sidebarCollapsed: boolean;
   deployDrawerOpen: boolean;
   contextMenu: ContextMenuState | null;
   theme: 'dark' | 'light';
@@ -17,7 +16,6 @@ const getInitialTheme = (): 'dark' | 'light' => {
 };
 
 const initialState: UiState = {
-  sidebarCollapsed: false,
   deployDrawerOpen: false,
   contextMenu: null,
   theme: getInitialTheme(),
@@ -27,12 +25,6 @@ export const uiSlice = createSlice({
   name: 'ui',
   initialState,
   reducers: {
-    setSidebarCollapsed: (state, action: PayloadAction<boolean>) => {
-      state.sidebarCollapsed = action.payload;
-    },
-    toggleSidebarCollapsed: (state) => {
-      state.sidebarCollapsed = !state.sidebarCollapsed;
-    },
     setDeployDrawerOpen: (state, action: PayloadAction<boolean>) => {
       state.deployDrawerOpen = action.payload;
     },
@@ -55,13 +47,7 @@ export const uiSlice = createSlice({
   },
 });
 
-export const {
-  setSidebarCollapsed,
-  toggleSidebarCollapsed,
-  setDeployDrawerOpen,
-  setContextMenu,
-  setTheme,
-  toggleTheme,
-} = uiSlice.actions;
+export const { setDeployDrawerOpen, setContextMenu, setTheme, toggleTheme } =
+  uiSlice.actions;
 
 export default uiSlice.reducer;
