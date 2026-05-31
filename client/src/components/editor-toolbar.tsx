@@ -1,39 +1,38 @@
-import React from 'react';
 import {
   ArrowLeft,
   Grid3x3,
-  WandSparkles,
-  Rocket,
   Loader2,
   Lock,
+  PencilLine,
+  Rocket,
   Unlock,
-  Pencil,
+  WandSparkles
 } from 'lucide-react';
+import React from 'react';
 
-import { formatRelativeTime, hasValidationErrors } from '@/utils';
 import {
-  Button,
   Badge,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
 } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
-  setProjectName,
-  setSnapToGrid,
   setIsLocked,
   setProjectDescription,
+  setProjectName,
+  setSnapToGrid,
 } from '@/store/editor-slice';
 import { DeploymentStatus } from '@/types';
+import { formatRelativeTime, hasValidationErrors } from '@/utils';
 
 export type EditorToolbarProps = {
   onBack: () => void;
@@ -103,26 +102,27 @@ export function EditorToolbar({
 
           {/* Divider */}
           <div className="mx-1 h-4 w-px shrink-0 bg-border" />
+          <div className="flex items-center">
+            <span className="max-w-[200px] truncate px-1 py-0.5 text-xs font-medium text-foreground">
+              {projectName || 'Untitled Project'}
+            </span>
 
-          <span className="max-w-[200px] truncate px-1.5 py-0.5 text-xs font-medium text-foreground">
-            {projectName || 'Untitled Project'}
-          </span>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={openSettings}
-                className="size-7 text-muted-foreground hover:bg-accent hover:text-foreground"
-              >
-                <Pencil size={13} />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="text-xs">
-              Edit Project Info
-            </TooltipContent>
-          </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={openSettings}
+                  className="size-5 text-muted-foreground hover:bg-accent hover:text-foreground"
+                >
+                  <PencilLine size={11} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">
+                Edit Project Info
+              </TooltipContent>
+            </Tooltip>
+          </div>
         </div>
 
         {/* CENTER: Node count + status pill + Saved status */}
@@ -169,7 +169,7 @@ export function EditorToolbar({
                 className={cn(
                   'h-8 w-8 text-muted-foreground transition-all duration-200',
                   isLocked &&
-                    'bg-warning/20 text-warning hover:bg-warning/30 hover:text-warning',
+                  'bg-warning/20 text-warning hover:bg-warning/30 hover:text-warning',
                 )}
               >
                 {isLocked ? <Lock size={15} /> : <Unlock size={15} />}
@@ -191,7 +191,7 @@ export function EditorToolbar({
                 className={cn(
                   'h-8 w-8 text-muted-foreground transition-all duration-200',
                   snapToGrid &&
-                    'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
+                  'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
                 )}
               >
                 <Grid3x3 size={15} />
@@ -238,11 +238,9 @@ export function EditorToolbar({
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Project Settings</DialogTitle>
-            <DialogDescription>
-              Update your project&apos;s name and description.
-            </DialogDescription>
+
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-4 py-2">
             <div className="grid gap-2">
               <label htmlFor="name" className="text-sm font-medium">
                 Project Name
