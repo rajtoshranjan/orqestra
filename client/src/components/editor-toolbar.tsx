@@ -61,7 +61,6 @@ export function EditorToolbar({
   return (
     <TooltipProvider delayDuration={300}>
       <header className="flex h-11 shrink-0 items-center justify-between border-b border-border bg-card/90 px-3 backdrop-blur-sm">
-        {/* LEFT: Back + Title + Name + Save status */}
         <div className="flex min-w-0 items-center gap-1">
           <Button
             variant="ghost"
