@@ -63,22 +63,15 @@ export function EditorToolbar({
       <header className="flex h-11 shrink-0 items-center justify-between border-b border-border bg-card/90 px-3 backdrop-blur-sm">
         {/* LEFT: Back + Title + Name + Save status */}
         <div className="flex min-w-0 items-center gap-1">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onBack}
-                aria-label="Back to dashboard"
-                className="size-8 shrink-0 text-muted-foreground hover:bg-accent hover:text-foreground"
-              >
-                <ArrowLeft size={16} />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="text-xs">
-              Back to dashboard
-            </TooltipContent>
-          </Tooltip>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onBack}
+            aria-label="Back to Project"
+            className="size-8 shrink-0 text-muted-foreground hover:bg-accent hover:text-foreground"
+          >
+            <ArrowLeft size={16} />
+          </Button>
 
           <span className="hidden select-none px-1.5 font-sans text-sm font-bold tracking-tight text-foreground sm:inline-block">
             Orqestra
