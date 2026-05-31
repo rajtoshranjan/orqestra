@@ -30,3 +30,11 @@ class EnvVariable(Enum):
     DB_PASSWORD = os.environ.get("DB_PASSWORD", "postgres")
     DB_HOST = os.environ.get("DB_HOST", "db")
     DB_PORT = os.environ.get("DB_PORT", "5432")
+
+    # Deployer Variables.
+    DEPLOYER_MODE = os.environ.get("DEPLOYER_MODE", "local")
+    DEPLOYER_LOCAL_URL = os.environ.get("DEPLOYER_LOCAL_URL", "http://deployer:8002")
+    DEPLOYER_LAMBDA_FUNCTION_NAME = os.environ.get(
+        "DEPLOYER_LAMBDA_FUNCTION_NAME", "orqestra-deployer"
+    )
+    SERVER_BASE_URL = os.environ.get("SERVER_BASE_URL", "http://server:3001")

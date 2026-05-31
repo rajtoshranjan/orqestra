@@ -36,6 +36,20 @@ services:
       - "8080:80"
     restart: unless-stopped
 
+  deployer:
+    build:
+      context: ./deployer
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - ministack
+    volumes:
+      - ./deployer:/app
+    ports:
+      - "8002:8002"
+    restart: unless-stopped
+
   # AWS Emulator.
   ministack:
     image: ministackorg/ministack

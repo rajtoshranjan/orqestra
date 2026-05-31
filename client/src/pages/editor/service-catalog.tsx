@@ -46,7 +46,7 @@ export function ServiceCatalog({
 
   return (
     <aside
-      className="[transition-duration:var(--transition-base)] flex h-full shrink-0 flex-col overflow-hidden border-r border-[var(--color-border)] bg-[var(--color-bg-surface)] transition-all"
+      className="flex h-full shrink-0 flex-col overflow-hidden border-r border-[var(--color-border)] bg-[var(--color-bg-surface)] transition-all [transition-duration:var(--transition-base)]"
       style={{ width: collapsed ? 52 : 240 }}
     >
       {/* Header. */}
@@ -58,7 +58,7 @@ export function ServiceCatalog({
         )}
         <button
           onClick={onToggleCollapse}
-          className="[transition-duration:var(--transition-fast)] ml-auto rounded-[var(--radius-sm)] p-1.5 text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-bg-hover)] hover:text-[var(--color-text-primary)]"
+          className="ml-auto rounded-[var(--radius-sm)] p-1.5 text-[var(--color-text-secondary)] transition-colors [transition-duration:var(--transition-fast)] hover:bg-[var(--color-bg-hover)] hover:text-[var(--color-text-primary)]"
           aria-label={collapsed ? 'Expand catalog' : 'Collapse catalog'}
         >
           {collapsed ? (
@@ -120,7 +120,7 @@ export function ServiceCatalog({
                         event.dataTransfer.effectAllowed = 'copy';
                       }}
                       onClick={() => onAddNode(service.id)}
-                      className="[transition-duration:var(--transition-fast)] mx-auto flex size-8 cursor-grab items-center justify-center rounded-[var(--radius-sm)] transition-colors active:cursor-grabbing"
+                      className="mx-auto flex size-8 cursor-grab items-center justify-center rounded-[var(--radius-sm)] transition-colors [transition-duration:var(--transition-fast)] active:cursor-grabbing"
                       style={collapsedStyle}
                       title={service.name}
                     >
@@ -136,7 +136,7 @@ export function ServiceCatalog({
                         event.dataTransfer.effectAllowed = 'copy';
                       }}
                       onClick={() => onAddNode(service.id)}
-                      className="[transition-duration:var(--transition-base)] animate-fade-in group relative flex min-h-[56px] cursor-grab select-none items-center gap-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-2.5 shadow-sm backdrop-blur-md transition-all hover:-translate-y-px hover:border-[var(--hover-border)] hover:shadow-md active:cursor-grabbing"
+                      className="animate-fade-in group relative flex min-h-[56px] cursor-grab select-none items-center gap-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-2.5 shadow-sm backdrop-blur-md transition-all [transition-duration:var(--transition-base)] hover:-translate-y-px hover:border-[var(--hover-border)] hover:shadow-md active:cursor-grabbing"
                       style={itemStyle}
                       title={service.description}
                     >

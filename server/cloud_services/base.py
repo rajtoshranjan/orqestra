@@ -45,3 +45,27 @@ class BaseServiceHandler(ABC):
         Deploy the resource described by the node.
         Appends log dictionaries to the logs list.
         """
+
+    @abstractmethod
+    def to_tofu_resource(self, node: dict, settings: dict) -> dict:
+        """
+        Generate the OpenTofu resource configuration for this node.
+
+        Returns a dict in Terraform JSON format, e.g.:
+        {"resource": {"aws_lambda_function": {"<logical_name>": {<config>}}}}
+        """
+
+    def sanitize_resource_name(self, raw_name: str) -> str:
+        """
+        Convert a raw node ID or name into a valid Terraform resource name.
+        Replaces hyphens and non-alphanumeric chars with underscores.
+        """
+        sanitized = ""
+        for char in raw_name:
+            if char.isalnum() or char == "_":
+                sanitized += char
+            else:
+                sanitized += "_"
+        if sanitized and sanitized[0].isdigit():
+            sanitized = f"n_{sanitized}"
+        return sanitized or "unnamed"

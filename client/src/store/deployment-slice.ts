@@ -10,6 +10,7 @@ import { DeploymentStatus } from '@/types';
 type DeploymentState = {
   settings: DeploymentSettings;
   result: DeploymentResult;
+  activeDeploymentId: string | null;
 };
 
 const initialState: DeploymentState = {
@@ -22,6 +23,7 @@ const initialState: DeploymentState = {
     logs: [],
     lastRunAt: null,
   },
+  activeDeploymentId: null,
 };
 
 export const deploymentSlice = createSlice({
@@ -52,6 +54,9 @@ export const deploymentSlice = createSlice({
     addDeploymentLog: (state, action: PayloadAction<DeploymentLogEntry>) => {
       state.result.logs.push(action.payload);
     },
+    setActiveDeploymentId: (state, action: PayloadAction<string | null>) => {
+      state.activeDeploymentId = action.payload;
+    },
   },
 });
 
@@ -62,6 +67,7 @@ export const {
   setDeploymentStatus,
   setDeploymentLogs,
   addDeploymentLog,
+  setActiveDeploymentId,
 } = deploymentSlice.actions;
 
 export default deploymentSlice.reducer;

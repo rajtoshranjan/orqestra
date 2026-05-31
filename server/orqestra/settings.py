@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     "rest_framework",
     # Apps.
     "cloud_services",
+    "deployments",
     "projects",
 ]
 
