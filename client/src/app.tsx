@@ -1,14 +1,20 @@
 import './assets/styles.css';
 import '@/services'; // Register all AWS service plugins at startup
 import { useState, useEffect, useCallback } from 'react';
-import { Dashboard, Editor } from './pages';
+import { Projects, Editor, Settings } from './pages';
+import { AppSidebar, type AppShellView } from './components/app-sidebar';
 import { Toaster } from './components/ui/toaster';
 import { createInitialDiagram } from './utils';
 import { useCreateProject } from '@/api';
 
+import { useAppSelector } from '@/store';
+
 /* Simple Hash Router */
 
-type Route = { view: 'dashboard' } | { view: 'editor'; projectId: string };
+type Route =
+  | { view: 'projects' }
+  | { view: 'settings' }
+  | { view: 'editor'; projectId: string };
 
 function parseHash(): Route {
   const hash = window.location.hash;
@@ -19,7 +25,11 @@ function parseHash(): Route {
     return { view: 'editor', projectId: decodeURIComponent(editorMatch[1]) };
   }
 
-  return { view: 'dashboard' };
+  if (/^#\/(?:settings|settinga)\/?$/.test(hash)) {
+    return { view: 'settings' };
+  }
+
+  return { view: 'projects' };
 }
 
 function navigateTo(path: string) {
@@ -30,6 +40,16 @@ function navigateTo(path: string) {
 
 function App() {
   const [route, setRoute] = useState<Route>(parseHash);
+  const theme = useAppSelector((state) => state.ui.theme);
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    if (theme === 'light') {
+      root.classList.add('light');
+    } else {
+      root.classList.remove('light');
+    }
+  }, [theme]);
 
   useEffect(() => {
     const onHashChange = () => setRoute(parseHash());
@@ -63,13 +83,31 @@ function App() {
     navigateTo('/');
   }, []);
 
+  const handleShellNavigate = useCallback((path: string) => {
+    navigateTo(path);
+  }, []);
+
+  const shellView: AppShellView | null =
+    route.view === 'projects' || route.view === 'settings' ? route.view : null;
+
   return (
     <>
-      {route.view === 'dashboard' && (
-        <Dashboard
-          onOpenProject={handleOpenProject}
-          onNewProject={handleNewProject}
-        />
+      {shellView && (
+        <div className="flex min-h-screen bg-[var(--color-bg-base)] text-foreground">
+          <AppSidebar
+            currentView={shellView}
+            onNavigate={handleShellNavigate}
+          />
+          <main className="min-w-0 flex-1 overflow-y-auto bg-background">
+            {route.view === 'projects' && (
+              <Projects
+                onOpenProject={handleOpenProject}
+                onNewProject={handleNewProject}
+              />
+            )}
+            {route.view === 'settings' && <Settings />}
+          </main>
+        </div>
       )}
       {route.view === 'editor' && (
         <Editor

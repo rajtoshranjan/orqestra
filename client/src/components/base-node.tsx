@@ -31,15 +31,15 @@ export function BaseServiceNode({
     <div
       className={cn(
         'base-service-node group relative flex h-full w-full items-center justify-between gap-2.5 rounded-lg border p-2.5 transition-[border-color,box-shadow,background-color] duration-200',
-        'bg-zinc-950/90 shadow-md backdrop-blur-md',
+        'border-[var(--color-border)] bg-[var(--color-bg-surface)] text-[var(--color-text-primary)] shadow-md backdrop-blur-md',
         selected && !hasErrors
-          ? 'border-violet-500/80 shadow-[0_0_12px_rgba(139,92,246,0.15)]'
+          ? 'border-[var(--color-accent)] shadow-[var(--shadow-glow)]'
           : '',
         hasErrors
-          ? 'border-amber-500/80 shadow-[0_0_12px_rgba(245,158,11,0.12)]'
+          ? 'border-[var(--color-warning)] shadow-[0_0_12px_var(--color-warning-subtle)]'
           : '',
         !selected && !hasErrors
-          ? 'border-zinc-800/80 hover:border-zinc-700/80'
+          ? 'border-[var(--color-border)] hover:border-[var(--color-accent)]'
           : '',
       )}
       style={{
@@ -47,58 +47,60 @@ export function BaseServiceNode({
         minHeight: 56,
       }}
     >
-      {/* Node Resizer */}
+      {/* Node Resizer. */}
       <NodeResizer
-        color={hasErrors ? '#f59e0b' : '#6366f1'}
+        color={hasErrors ? 'var(--color-warning)' : 'var(--color-accent)'}
         minWidth={160}
         minHeight={56}
         isVisible={selected}
         handleStyle={{
           width: 5,
           height: 5,
-          background: '#09090b',
-          border: `1px solid ${hasErrors ? '#f59e0b' : '#6366f1'}`,
+          background: 'var(--color-bg-surface)',
+          border: `1px solid ${hasErrors ? 'var(--color-warning)' : 'var(--color-accent)'}`,
           borderRadius: '1px',
         }}
         lineStyle={{
-          borderColor: hasErrors ? '#f59e0b' : '#6366f1',
+          borderColor: hasErrors
+            ? 'var(--color-warning)'
+            : 'var(--color-accent)',
           borderWidth: '1px',
         }}
       />
 
-      {/* Target Handle (left) */}
+      {/* Target Handle (left). */}
       <Handle
         type="target"
         position={Position.Left}
         className="!h-2 !w-2 !rounded-full !border-2 !border-[var(--color-accent)] !bg-[var(--color-bg-surface)]"
       />
 
-      {/* Source Handle (right) */}
+      {/* Source Handle (right). */}
       <Handle
         type="source"
         position={Position.Right}
         className="!h-2 !w-2 !rounded-full !border-2 !border-[var(--color-accent)] !bg-[var(--color-bg-surface)]"
       />
 
-      {/* Left Column: Service Icon Container */}
+      {/* Left Column: Service Icon Container. */}
       <div
-        className="node-icon-container flex size-9 shrink-0 items-center justify-center rounded-md border border-zinc-800/80 bg-zinc-900/40 transition-colors group-hover:bg-zinc-900/60"
+        className="node-icon-container flex size-9 shrink-0 items-center justify-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg-base)] transition-colors group-hover:bg-[var(--color-bg-hover)]"
         style={{ color: accentColor }}
       >
         <ServiceIcon size={18} />
       </div>
 
-      {/* Middle Column: Resource Labels */}
+      {/* Middle Column: Resource Labels. */}
       <div className="flex min-w-0 flex-1 select-none flex-col justify-center text-left">
-        <p className="mb-0.5 text-[7px] font-bold uppercase leading-none tracking-wider text-zinc-500">
+        <p className="mb-0.5 text-[7px] font-bold uppercase leading-none tracking-wider text-[var(--color-text-muted)]">
           {serviceLabel}
         </p>
-        <p className="truncate text-[10px] font-semibold leading-tight tracking-tight text-zinc-100">
+        <p className="truncate text-[10px] font-semibold leading-tight tracking-tight text-[var(--color-text-primary)]">
           {title}
         </p>
 
-        {/* Compact metadata row combining tag and stats */}
-        <div className="mt-1 flex flex-wrap items-center gap-1 text-[7.5px] leading-none text-zinc-400">
+        {/* Compact metadata row combining tag and stats. */}
+        <div className="mt-1 flex flex-wrap items-center gap-1 text-[7.5px] leading-none text-[var(--color-text-secondary)]">
           {tag && (
             <span className="runtime-tag max-w-[80px] truncate">{tag}</span>
           )}
@@ -113,7 +115,7 @@ export function BaseServiceNode({
         {children}
       </div>
 
-      {/* Pulsing Status Dot (Top Right Corner) */}
+      {/* Pulsing Status Dot (Top Right Corner). */}
       <div className="absolute right-1.5 top-1.5 flex shrink-0 select-none items-center gap-1">
         <span
           className={cn(

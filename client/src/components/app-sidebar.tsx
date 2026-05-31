@@ -1,0 +1,142 @@
+import type { ComponentType } from 'react';
+import {
+  LayoutDashboard,
+  Hexagon,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Settings as SettingsIcon,
+} from 'lucide-react';
+
+import { cn } from '@/lib/utils';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { toggleSidebarCollapsed } from '@/store/ui-slice';
+
+export type AppShellView = 'projects' | 'settings';
+
+type AppSidebarProps = {
+  currentView: AppShellView;
+  onNavigate: (path: string) => void;
+};
+
+const navItems = [
+  {
+    view: 'projects',
+    label: 'Projects',
+    path: '/',
+    icon: LayoutDashboard,
+  },
+  {
+    view: 'settings',
+    label: 'Settings',
+    path: '/settings',
+    icon: SettingsIcon,
+  },
+] satisfies Array<{
+  view: AppShellView;
+  label: string;
+  path: string;
+  icon: ComponentType<{ className?: string }>;
+}>;
+
+export function AppSidebar({ currentView, onNavigate }: AppSidebarProps) {
+  const dispatch = useAppDispatch();
+  const collapsed = useAppSelector((state) => state.ui.sidebarCollapsed);
+  const isCollapsed = collapsed;
+
+  return (
+    <aside
+      className={cn(
+        'flex min-h-screen w-14 shrink-0 flex-col border-r border-border bg-[var(--color-bg-surface)] text-card-foreground transition-all duration-300',
+        isCollapsed ? 'lg:w-14' : 'lg:w-44',
+      )}
+    >
+      <div
+        className={cn(
+          'flex h-11 shrink-0 items-center border-b border-border',
+          isCollapsed ? 'justify-center px-1' : 'justify-start px-2',
+        )}
+      >
+        <button
+          type="button"
+          onClick={() => onNavigate('/')}
+          aria-label="Go to projects"
+          className={cn(
+            'flex min-w-0 items-center justify-center gap-2 lg:justify-start',
+            isCollapsed && 'lg:justify-center',
+          )}
+        >
+          <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
+            <Hexagon className="size-3.5" />
+          </span>
+          <span
+            className={cn(
+              'hidden truncate text-sm font-bold tracking-tight lg:block',
+              isCollapsed && 'lg:hidden',
+            )}
+          >
+            Orqestra
+          </span>
+        </button>
+      </div>
+
+      <nav className="flex-1 space-y-1 px-1.5 py-2" aria-label="Primary">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const active = currentView === item.view;
+
+          return (
+            <button
+              key={item.view}
+              type="button"
+              onClick={() => onNavigate(item.path)}
+              aria-current={active ? 'page' : undefined}
+              className={cn(
+                'group relative flex h-8 items-center rounded-md text-[12px] font-medium transition-colors',
+                isCollapsed
+                  ? 'mx-auto w-8 justify-center'
+                  : 'w-full justify-start gap-2 px-2',
+                active
+                  ? 'bg-primary/10 font-semibold text-primary'
+                  : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground',
+              )}
+            >
+              {active && (
+                <span
+                  className={cn(
+                    'absolute top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-r-full bg-primary',
+                    isCollapsed ? '-left-[13px]' : 'left-0',
+                  )}
+                />
+              )}
+              <Icon className="size-3.5 shrink-0" />
+              {!isCollapsed && <span className="truncate">{item.label}</span>}
+            </button>
+          );
+        })}
+      </nav>
+
+      <div className="hidden border-t border-border p-1.5 lg:block">
+        <button
+          type="button"
+          onClick={() => dispatch(toggleSidebarCollapsed())}
+          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className={cn(
+            'flex h-8 items-center rounded-md text-[12px] font-medium text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground',
+            isCollapsed
+              ? 'mx-auto w-8 justify-center'
+              : 'w-full justify-start gap-2 px-2',
+          )}
+        >
+          {isCollapsed ? (
+            <PanelLeftOpen className="size-3.5" />
+          ) : (
+            <>
+              <PanelLeftClose className="size-3.5 shrink-0" />
+              <span className="truncate">Collapse</span>
+            </>
+          )}
+        </button>
+      </div>
+    </aside>
+  );
+}
