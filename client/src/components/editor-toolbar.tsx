@@ -9,7 +9,7 @@ import {
   MessageSquare,
 } from 'lucide-react';
 
-import { formatTimestamp, hasValidationErrors } from '@/utils';
+import { formatRelativeTime, hasValidationErrors } from '@/utils';
 import { Button, Badge } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -84,22 +84,9 @@ export function EditorToolbar({
           className="min-w-[80px] max-w-[200px] truncate rounded bg-transparent px-1.5 py-0.5 text-xs font-medium text-foreground outline-none transition-all focus:max-w-[280px] focus:ring-1 focus:ring-primary"
           spellCheck={false}
         />
-
-        <span className="hidden shrink-0 whitespace-nowrap text-[11px] text-muted-foreground sm:inline-block">
-          {isSaving ? (
-            <span className="flex animate-pulse items-center gap-1 text-primary">
-              <Loader2 size={10} className="animate-spin" />
-              Saving…
-            </span>
-          ) : lastSavedAt ? (
-            `Saved ${formatTimestamp(lastSavedAt)}`
-          ) : (
-            'Unsaved'
-          )}
-        </span>
       </div>
 
-      {/* CENTER: Node count + status pill */}
+      {/* CENTER: Node count + status pill + Saved status */}
       <div className="flex items-center gap-1.5">
         <Badge
           variant="accent"
@@ -110,6 +97,23 @@ export function EditorToolbar({
 
         <span className="hidden text-[11px] text-muted-foreground sm:inline-block">
           {readyCount}/{nodeCount} ready
+        </span>
+
+        <span className="hidden text-[11px] text-muted-foreground/40 sm:inline-block">
+          •
+        </span>
+
+        <span className="hidden shrink-0 whitespace-nowrap text-[11px] text-muted-foreground sm:inline-block">
+          {isSaving ? (
+            <span className="flex animate-pulse items-center gap-1 text-primary">
+              <Loader2 size={10} className="animate-spin" />
+              Saving…
+            </span>
+          ) : lastSavedAt ? (
+            `Saved ${formatRelativeTime(lastSavedAt)}`
+          ) : (
+            'Unsaved'
+          )}
         </span>
       </div>
 
