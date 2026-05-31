@@ -29,7 +29,7 @@ export function PageLayout({
       >
         {/* Standardized Page Header */}
         {(title || description || headerAction) && (
-          <div className="animate-fade-in relative z-10 mb-8 flex w-full shrink-0 flex-wrap items-start justify-between gap-4 border-b border-border pb-6">
+          <div className="animate-fade-in relative z-10 mb-8 flex w-full shrink-0 flex-wrap items-start justify-between gap-4">
             <div>
               {title && (
                 <h1 className="flex items-center gap-2.5 text-2xl font-extrabold tracking-tight text-foreground">
