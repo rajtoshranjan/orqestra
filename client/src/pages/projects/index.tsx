@@ -86,7 +86,7 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
       description="Design, validate, and deploy secure cloud architectures directly on a visual, interactive canvas."
     >
       {/* Main Grid View */}
-      <div className="relative z-10 mt-6 w-full flex-1">
+      <div className="relative z-10 mt-6 flex w-full flex-1 flex-col">
         {isLoading ? (
           /* Loading Skeletons */
           <LoadingState variant="skeleton-grid" count={3} />
@@ -278,14 +278,14 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
           </div>
         ) : (
           /* Empty Projects State */
-          <div className="animate-fade-in mt-4">
+          <div className="animate-fade-in mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center pb-20">
             <EmptyState
               title="No projects found"
-              description="Get started by creating a new visual architecture project from scratch."
+              description="You haven't created any architectures yet. Click below to start designing on the canvas."
               icon={LayoutDashboard}
               actionText="Create Project"
               onAction={onNewProject}
-              className="rounded-xl border border-dashed border-border bg-card/10 py-16"
+              className="py-12"
             />
           </div>
         )}
