@@ -181,8 +181,7 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
               </div>
             </div>
 
-            {/* Spacious 3-Column Projects Card Grid. */}
-            <div className="stagger-children grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="stagger-children grid grid-cols-[repeat(auto-fill,minmax(340px,1fr))] gap-5">
               {filteredProjects.map((project) => {
                 /* Extract unique AWS services used in this project nodes list. */
                 const projectServices = (project.nodes || [])

@@ -16,7 +16,7 @@ export function PageLayout({
   children,
   headerAction,
   className,
-  maxWidthClass = 'max-w-7xl',
+  maxWidthClass = 'max-w-full',
 }: PageLayoutProps) {
   return (
     <div className="relative flex min-h-full flex-col overflow-hidden bg-background font-sans text-foreground">
