@@ -31,14 +31,12 @@ import { formatRelativeTime, hasValidationErrors } from '@/utils';
 export type EditorToolbarProps = {
   onBack: () => void;
   onPlan: () => void;
-  onDeploy: () => void;
   isSaving?: boolean;
 };
 
 export function EditorToolbar({
   onBack,
   onPlan,
-  onDeploy,
   isSaving = false,
 }: EditorToolbarProps) {
   const dispatch = useAppDispatch();
@@ -183,19 +181,9 @@ export function EditorToolbar({
           {/* Divider */}
           <div className="mx-1 h-4 w-px shrink-0 bg-border" />
 
-          {/* Plan */}
+          {/* Plan & Deploy */}
           <Button
-            variant="ghost"
-            size="sm"
             onClick={onPlan}
-            className="flex items-center gap-1 text-muted-foreground hover:text-foreground"
-          >
-            <WandSparkles size={13} />
-            <span className="hidden sm:inline">Plan</span>
-          </Button>
-
-          <Button
-            onClick={onDeploy}
             disabled={isDeploying}
             size="sm"
             className="flex items-center gap-1.5 font-semibold text-white shadow-sm disabled:opacity-60"

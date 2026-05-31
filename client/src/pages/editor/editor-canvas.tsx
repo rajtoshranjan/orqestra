@@ -617,10 +617,6 @@ export function CanvasEditor({
           validateAndPlan();
           dispatch(setDeployDrawerOpen(true));
         }}
-        onDeploy={() => {
-          dispatch(setDeployDrawerOpen(true));
-          void handleDeploy();
-        }}
         isSaving={updateProjectMutation.isPending}
       />
 
