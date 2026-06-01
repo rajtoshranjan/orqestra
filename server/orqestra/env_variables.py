@@ -8,7 +8,7 @@ class EnvVariable(Enum):
         "SECRET_KEY",
         "django-insecure-orqestra-dev-key-change-in-production",
     )
-    ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1")
+    ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1,server")
     DEBUG = os.environ.get("DEBUG", "True")
     ALLOWED_CORS_DOMAINS = os.environ.get(
         "ALLOWED_CORS_DOMAINS", "http://localhost:8080,http://localhost:5173"
