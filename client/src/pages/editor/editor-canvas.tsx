@@ -19,6 +19,7 @@ import { ServiceCatalog } from './service-catalog';
 import { NodeInspector } from './node-inspector';
 import { DeployDrawer } from './deploy-drawer';
 import { ContextMenu } from './context-menu';
+import { QuickAddMenu } from './quick-add-menu';
 import type {
   DiagramNode,
   DiagramEdge,
@@ -102,6 +103,12 @@ export function CanvasEditor({
 
   const [localValidationResult, setLocalValidationResult] =
     React.useState<DeploymentResult | null>(null);
+
+  const [quickAdd, setQuickAdd] = React.useState<{
+    x: number;
+    y: number;
+    flowPosition: { x: number; y: number };
+  } | null>(null);
 
   const { deploymentResult: queryDeploymentResult } =
     useActiveDeploymentResult(currentProjectId);
@@ -435,6 +442,49 @@ export function CanvasEditor({
     [updateNodesWithValidation, isLocked],
   );
 
+  const handlePaneDoubleClick = React.useCallback(
+    (event: React.MouseEvent) => {
+      if (isLocked) return;
+
+      const target = event.target as HTMLElement;
+      const isInteractiveElement =
+        target.closest('.react-flow__node') ||
+        target.closest('aside') ||
+        target.closest('header') ||
+        target.closest('button') ||
+        target.closest('input');
+
+      if (isInteractiveElement) return;
+
+      event.preventDefault();
+      if (!reactFlowInstance) return;
+
+      const flowPosition = reactFlowInstance.screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      setQuickAdd({
+        x: event.clientX,
+        y: event.clientY,
+        flowPosition,
+      });
+    },
+    [reactFlowInstance, isLocked],
+  );
+
+  const handleQuickAddNode = React.useCallback(
+    (serviceId: string) => {
+      if (isLocked || !quickAdd) return;
+      updateNodesWithValidation((current) => [
+        ...current.map((node) => ({ ...node, selected: false })),
+        createServiceNode(serviceId, quickAdd.flowPosition, current.length + 1),
+      ]);
+      setQuickAdd(null);
+    },
+    [updateNodesWithValidation, quickAdd, isLocked],
+  );
+
   /* Clipboard Operations */
   const handleCopySelection = React.useCallback(() => {
     const selection = cloneSelection(nodes, edges);
@@ -596,6 +646,24 @@ export function CanvasEditor({
         handlePasteSelection();
         return;
       }
+      if (!metaKey && event.key === '1') {
+        event.preventDefault();
+        reactFlowInstance?.fitView({ duration: 400 });
+        return;
+      }
+      if (!metaKey && event.key === '2') {
+        event.preventDefault();
+        const selected = nodes.filter((n) => n.selected);
+        if (selected.length > 0) {
+          reactFlowInstance?.fitView({ nodes: selected, duration: 400 });
+        } else {
+          toast({
+            title: 'No selection',
+            description: 'Select at least one node to zoom to selection.',
+          });
+        }
+        return;
+      }
       if (event.key === 'Delete' || event.key === 'Backspace') {
         event.preventDefault();
         deleteSelection();
@@ -609,6 +677,8 @@ export function CanvasEditor({
     handleCopySelection,
     handlePasteSelection,
     saveCurrentDiagram,
+    reactFlowInstance,
+    nodes,
   ]);
 
   /* Context menu click-away */
@@ -689,6 +759,7 @@ export function CanvasEditor({
             deleteKeyCode={null}
             fitView
             minZoom={0.3}
+            zoomOnDoubleClick={false}
             nodeTypes={nodeTypes}
             snapGrid={GRID}
             snapToGrid={snapToGrid}
@@ -730,7 +801,11 @@ export function CanvasEditor({
                 }),
               );
             }}
-            onPaneClick={() => dispatch(setContextMenu(null))}
+            onPaneClick={() => {
+              dispatch(setContextMenu(null));
+              setQuickAdd(null);
+            }}
+            onDoubleClick={handlePaneDoubleClick}
             proOptions={{ hideAttribution: true }}
           >
             {snapToGrid && (
@@ -778,6 +853,16 @@ export function CanvasEditor({
                 );
                 dispatch(setContextMenu(null));
               }}
+            />
+          )}
+
+          {/* Quick Add Menu overlay */}
+          {quickAdd && (
+            <QuickAddMenu
+              x={quickAdd.x}
+              y={quickAdd.y}
+              onAddNode={handleQuickAddNode}
+              onClose={() => setQuickAdd(null)}
             />
           )}
         </div>

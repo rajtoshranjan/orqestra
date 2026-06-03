@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, GripVertical, Search } from 'lucide-react';
 import { registry } from '@/services';
 import { NODE_DRAG_TYPE } from '@/utils';
@@ -22,6 +22,16 @@ export function ServiceCatalog({
 }: ServiceCatalogProps) {
   const servicesByCategory = registry.getByCategory();
   const [searchTerm, setSearchTerm] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!collapsed) {
+      const timer = setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [collapsed]);
 
   const filteredServicesByCategory = useMemo(() => {
     if (!searchTerm.trim()) return servicesByCategory;
@@ -75,6 +85,7 @@ export function ServiceCatalog({
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-[var(--color-text-muted)]" />
             <input
+              ref={searchInputRef}
               type="text"
               placeholder="Search services..."
               value={searchTerm}
