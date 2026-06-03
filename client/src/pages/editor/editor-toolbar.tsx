@@ -180,9 +180,8 @@ export function EditorToolbar({
           {/* Plan & Deploy */}
           <Button
             onClick={onPlan}
-            disabled={isDeploying}
             size="sm"
-            className="flex items-center gap-1.5 font-semibold text-white shadow-sm disabled:opacity-60"
+            className="flex items-center gap-1.5 font-semibold text-white shadow-sm"
           >
             {isDeploying ? (
               <Loader2 size={13} className="animate-spin" />

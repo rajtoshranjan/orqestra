@@ -51,6 +51,7 @@ import {
   useUpdateProject,
   useDeployment,
   useProjectDeploymentState,
+  useProjectDeployments,
   useCreateDeployment,
 } from '@/api';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -103,57 +104,57 @@ export function CanvasEditor({
   const createDeploymentMutation = useCreateDeployment();
   const { data: projectDeploymentState } =
     useProjectDeploymentState(currentProjectId);
+  const { data: projectDeployments } = useProjectDeployments(currentProjectId);
   const { data: activeDeployment } = useDeployment(activeDeploymentId, true);
 
-  // Resume polling if the last deployment is still running when the page loads.
+  // Resume polling if the latest deployment is still running when the page loads.
   React.useEffect(() => {
+    const latestDeployment = projectDeployments?.[0];
     if (
       !activeDeploymentId &&
-      projectDeploymentState?.lastDeployment &&
-      !['succeeded', 'failed'].includes(
-        projectDeploymentState.lastDeployment.status,
-      )
+      latestDeployment &&
+      !['succeeded', 'failed'].includes(latestDeployment.status)
     ) {
-      dispatch(setActiveDeploymentId(projectDeploymentState.lastDeployment.id));
+      dispatch(setActiveDeploymentId(latestDeployment.id));
     }
-  }, [activeDeploymentId, projectDeploymentState, dispatch]);
+  }, [activeDeploymentId, projectDeployments, dispatch]);
 
-  // Initialize deployment result from the last deployment state on load.
+  // Initialize deployment result from the latest deployment state on load.
   React.useEffect(() => {
+    const latestDeployment = projectDeployments?.[0];
     if (
       !activeDeploymentId &&
-      projectDeploymentState?.lastDeployment &&
+      latestDeployment &&
       deploymentResult.status === DeploymentStatus.Idle
     ) {
-      const lastDeployment = projectDeploymentState.lastDeployment;
       let status = DeploymentStatus.Idle;
-      if (lastDeployment.status === 'succeeded') {
+      if (latestDeployment.status === 'succeeded') {
         status = DeploymentStatus.Success;
-      } else if (lastDeployment.status === 'failed') {
+      } else if (latestDeployment.status === 'failed') {
         status = DeploymentStatus.Failed;
       } else if (
         ['pending', 'generating', 'invoking', 'in_progress'].includes(
-          lastDeployment.status,
+          latestDeployment.status,
         )
       ) {
         status = DeploymentStatus.InProgress;
       }
 
       const logs =
-        lastDeployment.logs.map((log, index) => ({
-          id: `${lastDeployment.id}-log-${index}`,
+        latestDeployment.logs.map((log, index) => ({
+          id: `${latestDeployment.id}-log-${index}`,
           level: log.level as 'info' | 'success' | 'error',
           message: log.message,
         })) || [];
 
       if (
-        lastDeployment.errorMessage &&
-        !logs.some((log) => log.message.includes(lastDeployment.errorMessage))
+        latestDeployment.errorMessage &&
+        !logs.some((log) => log.message.includes(latestDeployment.errorMessage))
       ) {
         logs.push({
-          id: `${lastDeployment.id}-error`,
+          id: `${latestDeployment.id}-error`,
           level: 'error' as const,
-          message: lastDeployment.errorMessage,
+          message: latestDeployment.errorMessage,
         });
       }
 
@@ -161,13 +162,13 @@ export function CanvasEditor({
         setDeploymentResult({
           status,
           logs,
-          lastRunAt: lastDeployment.completedAt || lastDeployment.createdAt,
+          lastRunAt: latestDeployment.completedAt || latestDeployment.createdAt,
         }),
       );
     }
   }, [
     activeDeploymentId,
-    projectDeploymentState,
+    projectDeployments,
     deploymentResult.status,
     dispatch,
   ]);
@@ -797,7 +798,13 @@ export function CanvasEditor({
       <EditorToolbar
         onBack={onNavigateHome}
         onPlan={() => {
-          validateAndPlan();
+          const isDeploying =
+            deploymentResult.status === DeploymentStatus.Pending ||
+            deploymentResult.status === DeploymentStatus.InProgress;
+
+          if (!isDeploying) {
+            validateAndPlan();
+          }
           dispatch(setDeployDrawerOpen(true));
         }}
         isSaving={updateProjectMutation.isPending}
