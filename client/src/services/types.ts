@@ -29,12 +29,15 @@ export type ServiceValidationErrors = Record<string, string>;
 
 /* Generic Plan Resource. */
 
+export type PlanResourceAction = 'create' | 'update' | 'destroy' | 'no_change';
+
 export type ServicePlanResource = {
   id: string;
   cloudFormationType: string;
   name: string;
   connectionCount: number;
   details: Array<{ label: string; value: string }>;
+  action?: PlanResourceAction;
 };
 
 /* Service Node Props (for node renderers). */

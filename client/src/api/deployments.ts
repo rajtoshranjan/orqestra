@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from './client';
+import { snakeToCamelRecursive } from './types';
 import type { ServerResponse } from './types';
 
 /* Server types for deployment responses. */
@@ -23,6 +24,7 @@ export type ServerDeployment = {
   logs: ServerDeploymentLog[];
   error_message: string;
   tofu_plan_output: string;
+  graph_snapshot: any;
   started_at: string | null;
   completed_at: string | null;
   created_at: string;
@@ -64,6 +66,7 @@ export type ClientDeployment = {
   logs: DeploymentLog[];
   errorMessage: string;
   tofuPlanOutput: string;
+  graphSnapshot: any;
   startedAt: string | null;
   completedAt: string | null;
   createdAt: string;
@@ -98,6 +101,7 @@ const mapServerDeployment = (server: ServerDeployment): ClientDeployment => ({
   logs: server.logs,
   errorMessage: server.error_message,
   tofuPlanOutput: server.tofu_plan_output,
+  graphSnapshot: snakeToCamelRecursive(server.graph_snapshot),
   startedAt: server.started_at,
   completedAt: server.completed_at,
   createdAt: server.created_at,

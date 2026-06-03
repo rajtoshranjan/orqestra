@@ -10,13 +10,14 @@ type LambdaNodeDataShape = {
   label: string;
   config: LambdaConfig;
   validationErrors: ServiceValidationErrors;
+  deploymentStatus?: 'not_deployed' | 'deployed' | 'dirty';
 };
 
 function LambdaNodeComponent({
   data,
   selected,
 }: NodeProps<LambdaNodeDataShape>) {
-  const { config, validationErrors } = data;
+  const { config, validationErrors, deploymentStatus = 'not_deployed' } = data;
   const errorCount = Object.values(validationErrors).filter(Boolean).length;
   const hasErrors = errorCount > 0;
 
@@ -30,6 +31,7 @@ function LambdaNodeComponent({
       serviceLabel="AWS Lambda"
       title={config.functionName || 'Untitled'}
       tag={config.runtime}
+      deploymentStatus={deploymentStatus}
       statsBar={
         <>
           <span>{config.memorySize}MB</span>

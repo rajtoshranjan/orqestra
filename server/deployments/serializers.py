@@ -37,6 +37,7 @@ class DeploymentSerializer(serializers.ModelSerializer):
             "logs",
             "error_message",
             "tofu_plan_output",
+            "graph_snapshot",
             "started_at",
             "completed_at",
             "created_at",

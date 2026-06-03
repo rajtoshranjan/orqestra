@@ -54,7 +54,7 @@ export type DiagramEdge = Edge;
 
 /* Plan */
 
-export type { ServicePlanResource } from '@/services/types';
+export type { ServicePlanResource, PlanResourceAction } from '@/services/types';
 
 export type PlanSummary = {
   resourceCount: number;

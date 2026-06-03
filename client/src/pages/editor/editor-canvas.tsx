@@ -33,6 +33,7 @@ import {
   createServiceNode,
   withValidatedData,
   buildPlan,
+  enrichPlanWithDeploymentDiff,
   serializeDiagram,
   createLog,
   hasValidationErrors,
@@ -88,9 +89,11 @@ export function CanvasEditor({
     clipboard,
   } = useAppSelector((state) => state.editor);
 
-  const { settings: deploymentSettings, activeDeploymentId } = useAppSelector(
-    (state) => state.deployment,
-  );
+  const {
+    settings: deploymentSettings,
+    activeDeploymentId,
+    result: deploymentResult,
+  } = useAppSelector((state) => state.deployment);
 
   const { deployDrawerOpen, contextMenu, theme } = useAppSelector(
     (state) => state.ui,
@@ -102,56 +105,116 @@ export function CanvasEditor({
     useProjectDeploymentState(currentProjectId);
   const { data: activeDeployment } = useDeployment(activeDeploymentId, true);
 
-  const displayDeployment =
-    activeDeployment ?? projectDeploymentState?.lastDeployment;
-
-  const deploymentResult = React.useMemo(() => {
-    if (!displayDeployment) {
-      return {
-        status: DeploymentStatus.Idle,
-        logs: [],
-        lastRunAt: null,
-      };
-    }
-
-    let status = DeploymentStatus.Idle;
-    if (displayDeployment.status === 'succeeded') {
-      status = DeploymentStatus.Success;
-    } else if (displayDeployment.status === 'failed') {
-      status = DeploymentStatus.Failed;
-    } else if (
-      displayDeployment.status === 'pending' ||
-      displayDeployment.status === 'generating' ||
-      displayDeployment.status === 'invoking' ||
-      displayDeployment.status === 'in_progress'
-    ) {
-      status = DeploymentStatus.InProgress;
-    }
-
-    const logs =
-      displayDeployment.logs.map((log, index) => ({
-        id: `${displayDeployment.id}-log-${index}`,
-        level: log.level as 'info' | 'success' | 'error',
-        message: log.message,
-      })) || [];
-
+  // Resume polling if the last deployment is still running when the page loads.
+  React.useEffect(() => {
     if (
-      displayDeployment.errorMessage &&
-      !logs.some((log) => log.message.includes(displayDeployment.errorMessage))
+      !activeDeploymentId &&
+      projectDeploymentState?.lastDeployment &&
+      !['succeeded', 'failed'].includes(
+        projectDeploymentState.lastDeployment.status,
+      )
     ) {
-      logs.push({
-        id: `${displayDeployment.id}-error`,
-        level: 'error' as const,
-        message: displayDeployment.errorMessage,
-      });
+      dispatch(setActiveDeploymentId(projectDeploymentState.lastDeployment.id));
     }
+  }, [activeDeploymentId, projectDeploymentState, dispatch]);
 
-    return {
-      status,
-      logs,
-      lastRunAt: displayDeployment.completedAt || displayDeployment.createdAt,
-    };
-  }, [displayDeployment]);
+  // Initialize deployment result from the last deployment state on load.
+  React.useEffect(() => {
+    if (
+      !activeDeploymentId &&
+      projectDeploymentState?.lastDeployment &&
+      deploymentResult.status === DeploymentStatus.Idle
+    ) {
+      const lastDeployment = projectDeploymentState.lastDeployment;
+      let status = DeploymentStatus.Idle;
+      if (lastDeployment.status === 'succeeded') {
+        status = DeploymentStatus.Success;
+      } else if (lastDeployment.status === 'failed') {
+        status = DeploymentStatus.Failed;
+      } else if (
+        ['pending', 'generating', 'invoking', 'in_progress'].includes(
+          lastDeployment.status,
+        )
+      ) {
+        status = DeploymentStatus.InProgress;
+      }
+
+      const logs =
+        lastDeployment.logs.map((log, index) => ({
+          id: `${lastDeployment.id}-log-${index}`,
+          level: log.level as 'info' | 'success' | 'error',
+          message: log.message,
+        })) || [];
+
+      if (
+        lastDeployment.errorMessage &&
+        !logs.some((log) => log.message.includes(lastDeployment.errorMessage))
+      ) {
+        logs.push({
+          id: `${lastDeployment.id}-error`,
+          level: 'error' as const,
+          message: lastDeployment.errorMessage,
+        });
+      }
+
+      dispatch(
+        setDeploymentResult({
+          status,
+          logs,
+          lastRunAt: lastDeployment.completedAt || lastDeployment.createdAt,
+        }),
+      );
+    }
+  }, [
+    activeDeploymentId,
+    projectDeploymentState,
+    deploymentResult.status,
+    dispatch,
+  ]);
+
+  // Synchronize active deployment query updates to Redux.
+  React.useEffect(() => {
+    if (activeDeployment) {
+      let status = DeploymentStatus.Idle;
+      if (activeDeployment.status === 'succeeded') {
+        status = DeploymentStatus.Success;
+      } else if (activeDeployment.status === 'failed') {
+        status = DeploymentStatus.Failed;
+      } else if (
+        ['pending', 'generating', 'invoking', 'in_progress'].includes(
+          activeDeployment.status,
+        )
+      ) {
+        status = DeploymentStatus.InProgress;
+      }
+
+      const logs =
+        activeDeployment.logs.map((log, index) => ({
+          id: `${activeDeployment.id}-log-${index}`,
+          level: log.level as 'info' | 'success' | 'error',
+          message: log.message,
+        })) || [];
+
+      if (
+        activeDeployment.errorMessage &&
+        !logs.some((log) => log.message.includes(activeDeployment.errorMessage))
+      ) {
+        logs.push({
+          id: `${activeDeployment.id}-error`,
+          level: 'error' as const,
+          message: activeDeployment.errorMessage,
+        });
+      }
+
+      dispatch(
+        setDeploymentResult({
+          status,
+          logs,
+          lastRunAt: activeDeployment.completedAt || activeDeployment.createdAt,
+        }),
+      );
+    }
+  }, [activeDeployment, dispatch]);
 
   // Watch for active deployment completion
   const lastActiveStatusRef = React.useRef<string | null>(null);
@@ -208,9 +271,65 @@ export function CanvasEditor({
   const [nodes, setNodes, onNodesChange] = useNodesState(initialProject.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialProject.edges);
 
+  // Use projectDeploymentState for indicators — only updated after successful deploys.
+  const deployedGraphNodes = projectDeploymentState?.lastDeployment
+    ?.graphSnapshot?.nodes as DiagramNode[] | undefined;
+
+  const enrichedNodes = React.useMemo(() => {
+    return nodes.map((node) => {
+      const lastDeployedNode = deployedGraphNodes?.find(
+        (deployedNode) => deployedNode.id === node.id,
+      );
+
+      let deploymentStatus: 'not_deployed' | 'deployed' | 'dirty' =
+        'not_deployed';
+      if (lastDeployedNode) {
+        const currentConfigStr = JSON.stringify(node.data?.config || {});
+        const deployedConfigStr = JSON.stringify(
+          lastDeployedNode.data?.config || {},
+        );
+        if (currentConfigStr === deployedConfigStr) {
+          deploymentStatus = 'deployed';
+        } else {
+          deploymentStatus = 'dirty';
+        }
+      }
+
+      return {
+        ...node,
+        data: {
+          ...node.data,
+          deploymentStatus,
+        },
+      };
+    });
+  }, [nodes, deployedGraphNodes]);
+
   const [planSummary, setPlanSummary] = React.useState<PlanSummary>(() =>
     buildPlan(initialProject.nodes, initialProject.edges),
   );
+
+  const enrichedPlanSummary = React.useMemo(() => {
+    const diffPlan = enrichPlanWithDeploymentDiff(
+      planSummary,
+      deployedGraphNodes ?? null,
+      nodes,
+    );
+
+    return {
+      ...diffPlan,
+      resources: diffPlan.resources.map((resource) => {
+        const enrichedNode = enrichedNodes.find(
+          (node) => node.id === resource.id,
+        );
+        return {
+          ...resource,
+          deploymentStatus:
+            enrichedNode?.data?.deploymentStatus ?? 'not_deployed',
+        };
+      }),
+    };
+  }, [planSummary, enrichedNodes, deployedGraphNodes, nodes]);
   const [reactFlowInstance, setReactFlowInstance] =
     React.useState<ReactFlowInstance<ServiceNodeData> | null>(null);
 
@@ -708,7 +827,7 @@ export function CanvasEditor({
             nodesDraggable={!isLocked}
             nodesConnectable={!isLocked}
             elementsSelectable={!isLocked}
-            nodes={nodes}
+            nodes={enrichedNodes}
             edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
@@ -813,7 +932,7 @@ export function CanvasEditor({
           dispatch(setDeploymentSettings(settings))
         }
         deploymentResult={deploymentResult}
-        planSummary={planSummary}
+        planSummary={enrichedPlanSummary}
         onDeploy={() => {
           void handleDeploy();
         }}
