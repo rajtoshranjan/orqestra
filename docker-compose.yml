@@ -46,6 +46,7 @@ services:
       - ministack
     volumes:
       - ./deployer:/app
+      - tofu-deploy:/tofu-deploy
     ports:
       - "8002:8002"
     restart: unless-stopped
@@ -71,3 +72,6 @@ services:
     depends_on:
       - ministack
     restart: unless-stopped
+
+volumes:
+  tofu-deploy:

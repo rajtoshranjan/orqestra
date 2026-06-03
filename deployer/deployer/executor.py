@@ -8,7 +8,8 @@ import zipfile
 
 logger = logging.getLogger(__name__)
 
-PLUGIN_CACHE_DIR = "/app/.tofu-plugin-cache"
+PLUGIN_CACHE_DIR = "/tofu-deploy/plugin-cache"
+WORKSPACE_PARENT_DIR = "/tofu-deploy/workspaces"
 
 
 def execute_deployment(payload: dict) -> dict:
@@ -26,9 +27,17 @@ def execute_deployment(payload: dict) -> dict:
     """
     # Enable persistent plugin caching to avoid re-downloading providers.
     os.makedirs(PLUGIN_CACHE_DIR, exist_ok=True)
+    os.makedirs(WORKSPACE_PARENT_DIR, exist_ok=True)
     os.environ["TF_PLUGIN_CACHE_DIR"] = PLUGIN_CACHE_DIR
 
-    workspace = tempfile.mkdtemp(prefix="orqestra-deploy-")
+    project_id = payload.get("project_id")
+    if project_id:
+        workspace = os.path.join(WORKSPACE_PARENT_DIR, f"project-{project_id}")
+        os.makedirs(workspace, exist_ok=True)
+    else:
+        workspace = tempfile.mkdtemp(
+            prefix="orqestra-deploy-", dir=WORKSPACE_PARENT_DIR
+        )
     logs = []
 
     try:
@@ -60,6 +69,8 @@ def execute_deployment(payload: dict) -> dict:
 
         # Run tofu init.
         init_result = _run_tofu(["init", "-no-color"], workspace)
+        logger.info("tofu init stdout:\n%s", init_result.get("stdout"))
+        logger.info("tofu init stderr:\n%s", init_result.get("stderr"))
         if init_result["code"] != 0:
             logs.append(_log("error", f"tofu init failed: {init_result['stderr']}"))
             return _failure_result(logs, init_result["stderr"])
@@ -110,7 +121,21 @@ def execute_deployment(payload: dict) -> dict:
         return _failure_result(logs, str(exc))
 
     finally:
-        shutil.rmtree(workspace, ignore_errors=True)
+        if not project_id:
+            shutil.rmtree(workspace, ignore_errors=True)
+        else:
+            # Clean up config, plan, and state files so they are not left stale.
+            # But leave .terraform/ and .terraform.lock.hcl to preserve cache/init status.
+            for file_name in ["main.tf.json", "tfplan", "terraform.tfstate"]:
+                file_path = os.path.join(workspace, file_name)
+                if os.path.exists(file_path):
+                    try:
+                        os.remove(file_path)
+                    except Exception:
+                        pass
+            bundles_dir = os.path.join(workspace, "bundles")
+            if os.path.exists(bundles_dir):
+                shutil.rmtree(bundles_dir, ignore_errors=True)
 
 
 def _setup_aws_credentials(credentials: dict) -> None:
