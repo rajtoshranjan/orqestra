@@ -7,9 +7,7 @@ import { setProject } from '@/store/editor-slice';
 import {
   setDeploymentSettings,
   setActiveDeploymentId,
-  setDeploymentResult,
 } from '@/store/deployment-slice';
-import { DeploymentStatus } from '@/types';
 
 type EditorProps = {
   projectId: string;
@@ -25,13 +23,6 @@ export function Editor({ projectId, onNavigateHome }: EditorProps) {
       dispatch(setProject(project));
       dispatch(setDeploymentSettings(project.deploymentSettings));
       dispatch(setActiveDeploymentId(null));
-      dispatch(
-        setDeploymentResult({
-          status: DeploymentStatus.Idle,
-          logs: [],
-          lastRunAt: null,
-        }),
-      );
     }
   }, [project, dispatch]);
 

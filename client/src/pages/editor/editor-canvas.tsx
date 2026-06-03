@@ -14,7 +14,6 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useLocalStorage } from 'usehooks-ts';
-import { useQueryClient } from '@tanstack/react-query';
 import { EditorToolbar } from './editor-toolbar';
 import { ServiceCatalog } from './service-catalog';
 import { NodeInspector } from './node-inspector';
@@ -27,6 +26,7 @@ import type {
   DeploymentSettings,
   PlanSummary,
   PersistedDiagram,
+  DeploymentResult,
 } from '@/types';
 import { DeploymentStatus } from '@/types';
 import {
@@ -49,11 +49,10 @@ import { registry } from '@/services';
 import { toast } from '@/hooks/use-toast';
 import {
   useUpdateProject,
-  useDeployment,
   useProjectDeploymentState,
-  useProjectDeployments,
   useCreateDeployment,
 } from '@/api';
+import { useActiveDeploymentResult } from '@/hooks/use-active-deployment-result';
 import { useAppDispatch, useAppSelector } from '@/store';
 
 import {
@@ -64,7 +63,6 @@ import {
 } from '@/store/editor-slice';
 import {
   setDeploymentSettings,
-  setDeploymentResult,
   setActiveDeploymentId,
 } from '@/store/deployment-slice';
 import { setDeployDrawerOpen, setContextMenu } from '@/store/ui-slice';
@@ -90,176 +88,31 @@ export function CanvasEditor({
     clipboard,
   } = useAppSelector((state) => state.editor);
 
-  const {
-    settings: deploymentSettings,
-    activeDeploymentId,
-    result: deploymentResult,
-  } = useAppSelector((state) => state.deployment);
+  const { settings: deploymentSettings, activeDeploymentId } = useAppSelector(
+    (state) => state.deployment,
+  );
 
   const { deployDrawerOpen, contextMenu, theme } = useAppSelector(
     (state) => state.ui,
   );
 
-  const queryClient = useQueryClient();
   const createDeploymentMutation = useCreateDeployment();
   const { data: projectDeploymentState } =
     useProjectDeploymentState(currentProjectId);
-  const { data: projectDeployments } = useProjectDeployments(currentProjectId);
-  const { data: activeDeployment } = useDeployment(activeDeploymentId, true);
 
-  // Resume polling if the latest deployment is still running when the page loads.
-  React.useEffect(() => {
-    const latestDeployment = projectDeployments?.[0];
-    if (
-      !activeDeploymentId &&
-      latestDeployment &&
-      !['succeeded', 'failed'].includes(latestDeployment.status)
-    ) {
-      dispatch(setActiveDeploymentId(latestDeployment.id));
+  const [localValidationResult, setLocalValidationResult] =
+    React.useState<DeploymentResult | null>(null);
+
+  const { deploymentResult: queryDeploymentResult } =
+    useActiveDeploymentResult(currentProjectId);
+
+  const deploymentResult = React.useMemo(() => {
+    if (activeDeploymentId) {
+      return queryDeploymentResult;
     }
-  }, [activeDeploymentId, projectDeployments, dispatch]);
+    return localValidationResult || queryDeploymentResult;
+  }, [activeDeploymentId, queryDeploymentResult, localValidationResult]);
 
-  // Initialize deployment result from the latest deployment state on load.
-  React.useEffect(() => {
-    const latestDeployment = projectDeployments?.[0];
-    if (
-      !activeDeploymentId &&
-      latestDeployment &&
-      deploymentResult.status === DeploymentStatus.Idle
-    ) {
-      let status = DeploymentStatus.Idle;
-      if (latestDeployment.status === 'succeeded') {
-        status = DeploymentStatus.Success;
-      } else if (latestDeployment.status === 'failed') {
-        status = DeploymentStatus.Failed;
-      } else if (
-        ['pending', 'generating', 'invoking', 'in_progress'].includes(
-          latestDeployment.status,
-        )
-      ) {
-        status = DeploymentStatus.InProgress;
-      }
-
-      const logs =
-        latestDeployment.logs.map((log, index) => ({
-          id: `${latestDeployment.id}-log-${index}`,
-          level: log.level as 'info' | 'success' | 'error',
-          message: log.message,
-        })) || [];
-
-      if (
-        latestDeployment.errorMessage &&
-        !logs.some((log) => log.message.includes(latestDeployment.errorMessage))
-      ) {
-        logs.push({
-          id: `${latestDeployment.id}-error`,
-          level: 'error' as const,
-          message: latestDeployment.errorMessage,
-        });
-      }
-
-      dispatch(
-        setDeploymentResult({
-          status,
-          logs,
-          lastRunAt: latestDeployment.completedAt || latestDeployment.createdAt,
-        }),
-      );
-    }
-  }, [
-    activeDeploymentId,
-    projectDeployments,
-    deploymentResult.status,
-    dispatch,
-  ]);
-
-  // Synchronize active deployment query updates to Redux.
-  React.useEffect(() => {
-    if (activeDeployment) {
-      let status = DeploymentStatus.Idle;
-      if (activeDeployment.status === 'succeeded') {
-        status = DeploymentStatus.Success;
-      } else if (activeDeployment.status === 'failed') {
-        status = DeploymentStatus.Failed;
-      } else if (
-        ['pending', 'generating', 'invoking', 'in_progress'].includes(
-          activeDeployment.status,
-        )
-      ) {
-        status = DeploymentStatus.InProgress;
-      }
-
-      const logs =
-        activeDeployment.logs.map((log, index) => ({
-          id: `${activeDeployment.id}-log-${index}`,
-          level: log.level as 'info' | 'success' | 'error',
-          message: log.message,
-        })) || [];
-
-      if (
-        activeDeployment.errorMessage &&
-        !logs.some((log) => log.message.includes(activeDeployment.errorMessage))
-      ) {
-        logs.push({
-          id: `${activeDeployment.id}-error`,
-          level: 'error' as const,
-          message: activeDeployment.errorMessage,
-        });
-      }
-
-      dispatch(
-        setDeploymentResult({
-          status,
-          logs,
-          lastRunAt: activeDeployment.completedAt || activeDeployment.createdAt,
-        }),
-      );
-    }
-  }, [activeDeployment, dispatch]);
-
-  // Watch for active deployment completion
-  const lastActiveStatusRef = React.useRef<string | null>(null);
-  React.useEffect(() => {
-    if (!activeDeployment) {
-      lastActiveStatusRef.current = null;
-      return;
-    }
-
-    const currentStatus = activeDeployment.status;
-    const previousStatus = lastActiveStatusRef.current;
-
-    if (currentStatus !== previousStatus) {
-      lastActiveStatusRef.current = currentStatus;
-
-      if (currentStatus === 'succeeded') {
-        toast({
-          title: 'Deployment succeeded',
-          description:
-            'All cloud resources have been successfully provisioned.',
-        });
-        void queryClient.invalidateQueries({
-          queryKey: ['project-deployment-state', currentProjectId],
-        });
-        void queryClient.invalidateQueries({
-          queryKey: ['project-deployments', currentProjectId],
-        });
-      } else if (currentStatus === 'failed') {
-        toast({
-          title: 'Deployment failed',
-          description:
-            activeDeployment.errorMessage ||
-            'An error occurred during deployment.',
-          variant: 'destructive',
-        });
-        void queryClient.invalidateQueries({
-          queryKey: ['project-deployment-state', currentProjectId],
-        });
-        void queryClient.invalidateQueries({
-          queryKey: ['project-deployments', currentProjectId],
-        });
-      }
-    }
-  }, [activeDeployment, currentProjectId, queryClient]);
   const [sidebarCollapsed, setSidebarCollapsed] = useLocalStorage(
     'sidebarCollapsed',
     false,
@@ -277,10 +130,12 @@ export function CanvasEditor({
     ?.graphSnapshot?.nodes as DiagramNode[] | undefined;
 
   const enrichedNodes = React.useMemo(() => {
+    const deployedNodeMap = new Map(
+      (deployedGraphNodes ?? []).map((node) => [node.id, node]),
+    );
+
     return nodes.map((node) => {
-      const lastDeployedNode = deployedGraphNodes?.find(
-        (deployedNode) => deployedNode.id === node.id,
-      );
+      const lastDeployedNode = deployedNodeMap.get(node.id);
 
       let deploymentStatus: 'not_deployed' | 'deployed' | 'dirty' =
         'not_deployed';
@@ -314,23 +169,25 @@ export function CanvasEditor({
     const diffPlan = enrichPlanWithDeploymentDiff(
       planSummary,
       deployedGraphNodes ?? null,
-      nodes,
+      enrichedNodes,
+    );
+
+    const enrichedNodesMap = new Map(
+      enrichedNodes.map((node) => [node.id, node]),
     );
 
     return {
       ...diffPlan,
       resources: diffPlan.resources.map((resource) => {
-        const enrichedNode = enrichedNodes.find(
-          (node) => node.id === resource.id,
-        );
+        const enrichedNode = enrichedNodesMap.get(resource.id);
         return {
           ...resource,
           deploymentStatus:
-            enrichedNode?.data?.deploymentStatus ?? 'not_deployed',
+            (enrichedNode?.data as any)?.deploymentStatus ?? 'not_deployed',
         };
       }),
     };
-  }, [planSummary, enrichedNodes, deployedGraphNodes, nodes]);
+  }, [planSummary, enrichedNodes, deployedGraphNodes]);
   const [reactFlowInstance, setReactFlowInstance] =
     React.useState<ReactFlowInstance<ServiceNodeData> | null>(null);
 
@@ -519,51 +376,45 @@ export function CanvasEditor({
     dispatch(setActiveDeploymentId(null));
 
     if (nextPlan.resourceCount === 0) {
-      dispatch(
-        setDeploymentResult({
-          status: DeploymentStatus.Failed,
-          lastRunAt: new Date().toISOString(),
-          logs: [
-            createLog(
-              'error',
-              'Add at least one resource node before planning or deploying.',
-            ),
-          ],
-        }),
-      );
+      setLocalValidationResult({
+        status: DeploymentStatus.Failed,
+        lastRunAt: new Date().toISOString(),
+        logs: [
+          createLog(
+            'error',
+            'Add at least one resource node before planning or deploying.',
+          ),
+        ],
+      });
       return { valid: false, plan: nextPlan, nodes: nextNodes };
     }
 
     if (
       nextNodes.some((node) => hasValidationErrors(node.data.validationErrors))
     ) {
-      dispatch(
-        setDeploymentResult({
-          status: DeploymentStatus.Failed,
-          lastRunAt: new Date().toISOString(),
-          logs: [
-            createLog(
-              'error',
-              'Some resources still have invalid configuration fields. Fix the highlighted errors and try again.',
-            ),
-          ],
-        }),
-      );
-      return { valid: false, plan: nextPlan, nodes: nextNodes };
-    }
-
-    dispatch(
-      setDeploymentResult({
-        status: DeploymentStatus.Pending,
+      setLocalValidationResult({
+        status: DeploymentStatus.Failed,
         lastRunAt: new Date().toISOString(),
         logs: [
           createLog(
-            'info',
-            `Plan ready: ${nextPlan.resourceCount} cloud resource${nextPlan.resourceCount === 1 ? '' : 's'} prepared for deployment.`,
+            'error',
+            'Some resources still have invalid configuration fields. Fix the highlighted errors and try again.',
           ),
         ],
-      }),
-    );
+      });
+      return { valid: false, plan: nextPlan, nodes: nextNodes };
+    }
+
+    setLocalValidationResult({
+      status: DeploymentStatus.Pending,
+      lastRunAt: new Date().toISOString(),
+      logs: [
+        createLog(
+          'info',
+          `Plan ready: ${nextPlan.resourceCount} cloud resource${nextPlan.resourceCount === 1 ? '' : 's'} prepared for deployment.`,
+        ),
+      ],
+    });
 
     return { valid: true, plan: nextPlan, nodes: nextNodes };
   }, [edges, nodes, setNodes, dispatch]);
@@ -687,6 +538,7 @@ export function CanvasEditor({
     try {
       const deployment =
         await createDeploymentMutation.mutateAsync(currentProjectId);
+      setLocalValidationResult(null);
       dispatch(setActiveDeploymentId(deployment.id));
       toast({
         title: 'Deployment started',
@@ -698,6 +550,12 @@ export function CanvasEditor({
         error instanceof Error
           ? error.message
           : 'The deployment service could not be reached.';
+
+      setLocalValidationResult({
+        status: DeploymentStatus.Failed,
+        lastRunAt: new Date().toISOString(),
+        logs: [createLog('error', message)],
+      });
 
       toast({
         title: 'Deployment failed',
@@ -808,6 +666,7 @@ export function CanvasEditor({
           dispatch(setDeployDrawerOpen(true));
         }}
         isSaving={updateProjectMutation.isPending}
+        deploymentStatus={deploymentResult.status}
       />
 
       {/* Main Editor Area */}

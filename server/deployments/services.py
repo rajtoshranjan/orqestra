@@ -167,16 +167,18 @@ def _update_project_state(
     project = deployment.project
     graph = deployment.graph_snapshot
 
+    graph_hash = compute_graph_hash(
+        graph.get("nodes", []),
+        graph.get("edges", []),
+        graph.get("settings", {}),
+    )
+
     state, _created = ProjectDeploymentState.objects.get_or_create(
         project=project,
         defaults={
             "last_deployment": deployment,
             "tofu_state": tofu_state,
-            "deployed_graph_hash": compute_graph_hash(
-                graph.get("nodes", []),
-                graph.get("edges", []),
-                graph.get("settings", {}),
-            ),
+            "deployed_graph_hash": graph_hash,
             "last_deployed_at": timezone.now(),
         },
     )
@@ -184,11 +186,7 @@ def _update_project_state(
     if not _created:
         state.last_deployment = deployment
         state.tofu_state = tofu_state
-        state.deployed_graph_hash = compute_graph_hash(
-            graph.get("nodes", []),
-            graph.get("edges", []),
-            graph.get("settings", {}),
-        )
+        state.deployed_graph_hash = graph_hash
         state.last_deployed_at = timezone.now()
         state.save(
             update_fields=[
@@ -215,17 +213,22 @@ def _sync_deployed_resources(
         return
 
     resources = tofu_state.get("resources", [])
+    resource_objects = []
     for resource in resources:
         for instance in resource.get("instances", []):
             attributes = instance.get("attributes", {})
-            DeployedResource.objects.create(
-                deployment_state=state,
-                node_id=resource.get("name", ""),
-                service_id=_tofu_type_to_service_id(resource.get("type", "")),
-                resource_identifier=attributes.get("arn", attributes.get("id", "")),
-                config_hash="",
-                status="active",
+            resource_objects.append(
+                DeployedResource(
+                    deployment_state=state,
+                    node_id=resource.get("name", ""),
+                    service_id=_tofu_type_to_service_id(resource.get("type", "")),
+                    resource_identifier=attributes.get("arn", attributes.get("id", "")),
+                    config_hash="",
+                    status="active",
+                )
             )
+    if resource_objects:
+        DeployedResource.objects.bulk_create(resource_objects)
 
 
 def _get_existing_tofu_state(project: Project) -> dict | None:
@@ -260,17 +263,14 @@ def _build_code_bundles(deployment: Deployment) -> dict:
     bundles = {}
     nodes = deployment.graph_snapshot.get("nodes", [])
 
+    from cloud_services.registry import registry
+
     for node in nodes:
         data = node.get("data", {})
         service_id = data.get("service_id", data.get("kind", ""))
         config = data.get("config", {})
 
         if service_id == "lambda" and config.get("code", "").strip():
-            pass
-
-            # Use the sanitize method from any handler instance for name generation.
-            from cloud_services.registry import registry
-
             handler = registry.get(service_id)
             logical_name = handler.sanitize_resource_name(node["id"])
             bundles[logical_name] = {

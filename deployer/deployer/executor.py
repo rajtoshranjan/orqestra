@@ -8,6 +8,8 @@ import zipfile
 
 logger = logging.getLogger(__name__)
 
+PLUGIN_CACHE_DIR = "/app/.tofu-plugin-cache"
+
 
 def execute_deployment(payload: dict) -> dict:
     """
@@ -22,6 +24,10 @@ def execute_deployment(payload: dict) -> dict:
     7. Read the resulting terraform.tfstate.
     8. Return structured results.
     """
+    # Enable persistent plugin caching to avoid re-downloading providers.
+    os.makedirs(PLUGIN_CACHE_DIR, exist_ok=True)
+    os.environ["TF_PLUGIN_CACHE_DIR"] = PLUGIN_CACHE_DIR
+
     workspace = tempfile.mkdtemp(prefix="orqestra-deploy-")
     logs = []
 
@@ -60,7 +66,9 @@ def execute_deployment(payload: dict) -> dict:
         logs.append(_log("info", "OpenTofu initialized."))
 
         # Run tofu plan.
-        plan_result = _run_tofu(["plan", "-no-color", "-input=false"], workspace)
+        plan_result = _run_tofu(
+            ["plan", "-no-color", "-input=false", "-out=tfplan"], workspace
+        )
         plan_output = plan_result["stdout"]
         if plan_result["code"] != 0:
             logs.append(_log("error", f"tofu plan failed: {plan_result['stderr']}"))
@@ -69,7 +77,7 @@ def execute_deployment(payload: dict) -> dict:
 
         # Run tofu apply.
         apply_result = _run_tofu(
-            ["apply", "-auto-approve", "-no-color", "-input=false"],
+            ["apply", "-no-color", "tfplan"],
             workspace,
         )
         if apply_result["code"] != 0:

@@ -28,21 +28,20 @@ export type EditorToolbarProps = {
   onBack: () => void;
   onPlan: () => void;
   isSaving?: boolean;
+  deploymentStatus: DeploymentStatus;
 };
 
 export function EditorToolbar({
   onBack,
   onPlan,
   isSaving = false,
+  deploymentStatus,
 }: EditorToolbarProps) {
   const dispatch = useAppDispatch();
   const [settingsOpen, setSettingsOpen] = React.useState(false);
 
   const { projectName, lastSavedAt, snapToGrid, isLocked, nodes } =
     useAppSelector((state) => state.editor);
-  const deploymentStatus = useAppSelector(
-    (state) => state.deployment.result.status,
-  );
 
   const isDeploying =
     deploymentStatus === DeploymentStatus.Pending ||

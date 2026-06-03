@@ -7,6 +7,14 @@ def plan_diagram(nodes, edges) -> list[dict]:
     """
     resources = []
 
+    # Pre-compute connection counts in O(N+E).
+    connection_counts = {}
+    for edge in edges:
+        source = edge.get("source", "")
+        target = edge.get("target", "")
+        connection_counts[source] = connection_counts.get(source, 0) + 1
+        connection_counts[target] = connection_counts.get(target, 0) + 1
+
     for node in nodes:
         data = node.get("data", {})
         service_id = data.get("service_id", data.get("kind", ""))
@@ -15,15 +23,8 @@ def plan_diagram(nodes, edges) -> list[dict]:
 
         try:
             handler = registry.get(service_id)
-
-            # Count connections (edges where this node is source or target).
             node_id = node.get("id")
-            connection_count = sum(
-                1
-                for edge in edges
-                if edge.get("source") == node_id or edge.get("target") == node_id
-            )
-
+            connection_count = connection_counts.get(node_id, 0)
             resource_summary = handler.build_plan_resource(node, connection_count)
             resources.append(resource_summary)
         except ValueError:

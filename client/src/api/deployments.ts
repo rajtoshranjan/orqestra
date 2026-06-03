@@ -154,15 +154,6 @@ export const fetchDeployment = async (
   return mapServerDeployment(response.data.data);
 };
 
-export const fetchProjectDeployments = async (
-  projectId: string,
-): Promise<ClientDeployment[]> => {
-  const response = await api.get<ServerResponse<ServerDeployment[]>>(
-    `/deployments/project/${projectId}/`,
-  );
-  return response.data.data.map(mapServerDeployment);
-};
-
 export const fetchProjectDeploymentState = async (
   projectId: string,
 ): Promise<ClientProjectDeploymentState | null> => {
@@ -211,16 +202,8 @@ export const useDeployment = (
       if (!enablePolling) return false;
       const status = query.state.data?.status;
       if (status && TERMINAL_STATUSES.has(status)) return false;
-      return 3000;
+      return 2000;
     },
-  });
-};
-
-export const useProjectDeployments = (projectId: string | null) => {
-  return useQuery({
-    queryKey: ['project-deployments', projectId],
-    queryFn: () => fetchProjectDeployments(projectId!),
-    enabled: !!projectId,
   });
 };
 

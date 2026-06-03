@@ -77,29 +77,42 @@ export function enrichPlanWithDeploymentDiff(
   }
 
   const deployedNodeMap = new Map(deployedNodes.map((node) => [node.id, node]));
+  const currentNodeMap = new Map(currentNodes.map((node) => [node.id, node]));
   const currentNodeIds = new Set(currentNodes.map((node) => node.id));
 
   type EnrichedResource = ServicePlanResource & { action: PlanResourceAction };
 
   const enrichedResources: EnrichedResource[] = planSummary.resources.map(
     (resource) => {
-      const deployedNode = deployedNodeMap.get(resource.id);
+      const currentNode = currentNodeMap.get(resource.id);
 
-      if (!deployedNode) {
+      if (!currentNode) {
         return { ...resource, action: 'create' as const };
       }
 
-      const currentConfig = JSON.stringify(
-        currentNodes.find((node) => node.id === resource.id)?.data?.config ??
-          {},
-      );
-      const deployedConfig = JSON.stringify(deployedNode.data?.config ?? {});
-
-      if (currentConfig === deployedConfig) {
-        return { ...resource, action: 'no_change' as const };
+      // Check if status is already pre-computed on node data, else compute it.
+      let deploymentStatus = (currentNode.data as any)?.deploymentStatus;
+      if (!deploymentStatus) {
+        const deployedNode = deployedNodeMap.get(resource.id);
+        if (deployedNode) {
+          const currentConfig = JSON.stringify(currentNode.data?.config ?? {});
+          const deployedConfig = JSON.stringify(
+            deployedNode.data?.config ?? {},
+          );
+          deploymentStatus =
+            currentConfig === deployedConfig ? 'deployed' : 'dirty';
+        } else {
+          deploymentStatus = 'not_deployed';
+        }
       }
 
-      return { ...resource, action: 'update' as const };
+      if (deploymentStatus === 'deployed') {
+        return { ...resource, action: 'no_change' as const };
+      } else if (deploymentStatus === 'dirty') {
+        return { ...resource, action: 'update' as const };
+      }
+
+      return { ...resource, action: 'create' as const };
     },
   );
 
