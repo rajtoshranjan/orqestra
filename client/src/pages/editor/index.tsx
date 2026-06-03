@@ -4,7 +4,12 @@ import { CanvasEditor } from './editor-canvas';
 import { useProject } from '@/api';
 import { useAppDispatch } from '@/store';
 import { setProject } from '@/store/editor-slice';
-import { setDeploymentSettings } from '@/store/deployment-slice';
+import {
+  setDeploymentSettings,
+  setActiveDeploymentId,
+  setDeploymentResult,
+} from '@/store/deployment-slice';
+import { DeploymentStatus } from '@/types';
 
 type EditorProps = {
   projectId: string;
@@ -19,6 +24,14 @@ export function Editor({ projectId, onNavigateHome }: EditorProps) {
     if (project) {
       dispatch(setProject(project));
       dispatch(setDeploymentSettings(project.deploymentSettings));
+      dispatch(setActiveDeploymentId(null));
+      dispatch(
+        setDeploymentResult({
+          status: DeploymentStatus.Idle,
+          logs: [],
+          lastRunAt: null,
+        }),
+      );
     }
   }, [project, dispatch]);
 

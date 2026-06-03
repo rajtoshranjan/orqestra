@@ -118,6 +118,10 @@ export function DeployDrawer({
   const isRunning = status === 'in-progress';
   const statusStyle = STATUS_STYLES[status];
 
+  const hasChanges = planSummary.resources.some(
+    (resource) => resource.action && resource.action !== 'no_change',
+  );
+
   function patchSettings(patch: Partial<DeploymentSettings>) {
     onSettingsChange({ ...deploymentSettings, ...patch });
   }
@@ -283,7 +287,7 @@ export function DeployDrawer({
             <SectionHeader>Deploy</SectionHeader>
             <Button
               onClick={onDeploy}
-              disabled={isRunning}
+              disabled={isRunning || !hasChanges}
               className="flex w-full items-center justify-center gap-2 bg-gradient-to-r from-primary to-[#6366f1] text-xs font-semibold text-white shadow-md hover:brightness-105 disabled:opacity-50"
               size="default"
             >
@@ -294,6 +298,11 @@ export function DeployDrawer({
               )}
               {isRunning ? 'Deploying…' : 'Deploy to AWS'}
             </Button>
+            {!hasChanges && !isRunning && (
+              <p className="mt-1.5 text-center text-[10px] text-muted-foreground">
+                No changes detected in the architecture plan.
+              </p>
+            )}
           </section>
 
           {/* Deployment Logs Section */}

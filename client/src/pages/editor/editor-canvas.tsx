@@ -515,6 +515,8 @@ export function CanvasEditor({
     setNodes(nextNodes);
     setPlanSummary(nextPlan);
 
+    dispatch(setActiveDeploymentId(null));
+
     if (nextPlan.resourceCount === 0) {
       dispatch(
         setDeploymentResult({
