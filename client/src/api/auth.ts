@@ -24,13 +24,12 @@ export type OrganisationMemberInfo = {
 
 // APIs.
 export const loginRequest = async (payload: Record<string, any>) => {
-  const response = await api.post<ServerResponse<{ access: string; refresh: string }>>(
-    '/accounts/login/',
-    {
-      username: payload.email,
-      password: payload.password,
-    }
-  );
+  const response = await api.post<
+    ServerResponse<{ access: string; refresh: string }>
+  >('/accounts/login/', {
+    username: payload.email,
+    password: payload.password,
+  });
   return response.data;
 };
 
@@ -49,15 +48,21 @@ export const getUserInfoRequest = async () => {
 };
 
 export const updateProfileRequest = async (payload: { name: string }) => {
-  const response = await api.patch<ServerResponse<UserInfo>>('/accounts/me/', payload);
+  const response = await api.patch<ServerResponse<UserInfo>>(
+    '/accounts/me/',
+    payload,
+  );
   return response.data.data;
 };
 
 export const changePasswordRequest = async (payload: Record<string, any>) => {
-  const response = await api.post<ServerResponse<void>>('/accounts/change-password/', {
-    current_password: payload.currentPassword,
-    new_password: payload.newPassword,
-  });
+  const response = await api.post<ServerResponse<void>>(
+    '/accounts/change-password/',
+    {
+      current_password: payload.currentPassword,
+      new_password: payload.newPassword,
+    },
+  );
   return response.data;
 };
 
@@ -70,17 +75,38 @@ export const logoutRequest = async (refreshToken: string) => {
 
 // Organisations APIs.
 export const fetchOrganisations = async (): Promise<OrganisationInfo[]> => {
-  const response = await api.get<ServerResponse<OrganisationInfo[]>>('/organisations/');
+  const response =
+    await api.get<ServerResponse<OrganisationInfo[]>>('/organisations/');
   return response.data.data;
 };
 
-export const createOrganisation = async (payload: { name: string }): Promise<OrganisationInfo> => {
-  const response = await api.post<ServerResponse<OrganisationInfo>>('/organisations/', payload);
+export const createOrganisation = async (payload: {
+  name: string;
+}): Promise<OrganisationInfo> => {
+  const response = await api.post<ServerResponse<OrganisationInfo>>(
+    '/organisations/',
+    payload,
+  );
   return response.data.data;
 };
 
-export const fetchOrganisationMembers = async (): Promise<OrganisationMemberInfo[]> => {
-  const response = await api.get<ServerResponse<any[]>>('/organisations/members/');
+export const updateOrganisation = async (payload: {
+  organisationId: string;
+  name: string;
+}): Promise<OrganisationInfo> => {
+  const response = await api.patch<ServerResponse<OrganisationInfo>>(
+    `/organisations/${payload.organisationId}/`,
+    { name: payload.name },
+  );
+  return response.data.data;
+};
+
+export const fetchOrganisationMembers = async (): Promise<
+  OrganisationMemberInfo[]
+> => {
+  const response = await api.get<ServerResponse<any[]>>(
+    '/organisations/members/',
+  );
   // Map snake_case response fields to camelCase
   return response.data.data.map((member) => ({
     id: member.id,
@@ -90,12 +116,20 @@ export const fetchOrganisationMembers = async (): Promise<OrganisationMemberInfo
   }));
 };
 
-export const addOrganisationMember = async (payload: { email: string; role: string }): Promise<any> => {
-  const response = await api.post<ServerResponse<any>>('/organisations/members/', payload);
+export const addOrganisationMember = async (payload: {
+  email: string;
+  role: string;
+}): Promise<any> => {
+  const response = await api.post<ServerResponse<any>>(
+    '/organisations/members/',
+    payload,
+  );
   return response.data.data;
 };
 
-export const removeOrganisationMember = async (memberId: string): Promise<void> => {
+export const removeOrganisationMember = async (
+  memberId: string,
+): Promise<void> => {
   await api.delete(`/organisations/members/${memberId}/`);
 };
 
@@ -148,6 +182,16 @@ export const useCreateOrganisation = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: createOrganisation,
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['organisations'] });
+    },
+  });
+};
+
+export const useUpdateOrganisation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: updateOrganisation,
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['organisations'] });
     },
