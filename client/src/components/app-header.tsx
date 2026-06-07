@@ -1,245 +1,131 @@
-import { useState, useEffect } from 'react';
-import { Building2, Plus, ChevronDown, LogOut } from 'lucide-react';
+import { ChevronDown, LogOut, Settings as SettingsIcon } from 'lucide-react';
 
+import { useLocation } from 'react-router-dom';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogFooter,
-  DialogTitle,
-} from './ui/dialog';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { cn } from '@/lib/utils';
-import {
-  useGetUserInfo,
-  useOrganisations,
-  useCreateOrganisation,
-} from '@/api/auth';
-import { localStorageManager } from '@/lib/utils/local-storage-manager';
+
+import { useGetUserInfo, useOrganisations } from '@/api/auth';
 import { logout } from '@/api/client';
+import { history } from '@/lib/utils';
+import { localStorageManager } from '@/lib/utils/local-storage-manager';
+
+const getCurrentSectionLabel = (): string => {
+  if (window.location.pathname === '/') {
+    return 'Projects';
+  }
+
+  if (window.location.pathname === '/preferences') {
+    return 'Preferences';
+  }
+
+  return window.location.pathname.replace('/', '');
+};
+
+const shouldShowOrganisationContext = (pathname: string): boolean => {
+  return pathname !== '/preferences';
+};
+
+const getInitials = (name?: string): string => {
+  if (!name) {
+    return 'U';
+  }
+
+  return name
+    .split(' ')
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+};
 
 export function AppHeader() {
+  const location = useLocation();
   const isAuthenticated = localStorageManager.hasToken();
-
   const { data: user } = useGetUserInfo(isAuthenticated);
-  const { data: orgs } = useOrganisations(isAuthenticated);
-  const createOrgMutation = useCreateOrganisation();
+  const { data: organisations } = useOrganisations(isAuthenticated);
+  const activeOrganisationId = localStorageManager.getActiveOrgId();
+  const activeOrganisation =
+    organisations?.find(
+      (organisation) => organisation.id === activeOrganisationId,
+    ) || organisations?.[0];
+  const showOrganisationContext = shouldShowOrganisationContext(
+    location.pathname,
+  );
 
-  const activeOrgId = localStorageManager.getActiveOrgId();
-  const activeOrg = orgs?.find((o) => o.id === activeOrgId) || orgs?.[0];
-
-  // Organisation Creation Dialog States.
-  const [createOrgDialogOpen, setCreateOrgDialogOpen] = useState(false);
-  const [newOrgName, setNewOrgName] = useState('');
-
-  // Set default active org if not set or if current active org is invalid.
-  useEffect(() => {
-    if (isAuthenticated && orgs && orgs.length > 0) {
-      const isValidOrg = orgs.some((o) => o.id === activeOrgId);
-      if (!activeOrgId || !isValidOrg) {
-        localStorageManager.setActiveOrgId(orgs[0].id);
-        window.location.reload();
-      }
-    }
-  }, [orgs, activeOrgId, isAuthenticated]);
-
-  const handleSwitchOrg = (orgId: string) => {
-    localStorageManager.setActiveOrgId(orgId);
-    window.location.reload();
-  };
-
-  const handleCreateOrgClick = () => {
-    setNewOrgName('');
-    setCreateOrgDialogOpen(true);
-  };
-
-  const handleCreateOrgSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newOrgName.trim()) {
-      createOrgMutation.mutate(
-        { name: newOrgName.trim() },
-        {
-          onSuccess: (newOrg) => {
-            localStorageManager.setActiveOrgId(newOrg.id);
-            setCreateOrgDialogOpen(false);
-            window.location.reload();
-          },
-        },
-      );
-    }
-  };
-
-  if (!isAuthenticated) return null;
-
-  // Get initials for user avatar
-  const getInitials = (name?: string) => {
-    if (!name) return 'U';
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
-    <header className="bg-[var(--color-bg-surface)]/70 z-20 flex h-14 shrink-0 items-center justify-between border-b border-border px-6 backdrop-blur-md">
-      {/* Left section: Breadcrumb/Page context or empty */}
-      <div className="flex items-center gap-2">
-        <span className="select-none text-xs font-semibold text-muted-foreground">
-          Console
-        </span>
-        <span className="text-xs text-muted-foreground/30">/</span>
-        <span className="text-xs font-bold capitalize text-foreground">
-          {window.location.pathname === '/'
-            ? 'Projects'
-            : window.location.pathname.replace('/', '')}
+    <header className="bg-[var(--color-bg-surface)]/70 z-20 flex h-11 shrink-0 items-center justify-between border-b border-border px-6 backdrop-blur-md">
+      <div className="flex min-w-0 items-center gap-2">
+        {showOrganisationContext && activeOrganisation?.name ? (
+          <>
+            <span className="truncate text-xs font-semibold text-muted-foreground">
+              {activeOrganisation.name}
+            </span>
+            <span className="text-xs text-muted-foreground/30">/</span>
+          </>
+        ) : null}
+        <span className="truncate text-xs font-bold capitalize text-foreground">
+          {getCurrentSectionLabel()}
         </span>
       </div>
 
-      {/* Right section: Org Switcher and Profile Dropdown */}
-      <div className="flex items-center gap-4">
-        {/* Organisation Switcher */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              className="flex h-8 items-center gap-2 rounded-md border border-border bg-[var(--color-bg-surface)] px-3 text-xs font-semibold text-foreground shadow-sm transition-colors hover:bg-accent/50"
-            >
-              <Building2 className="size-3.5 shrink-0 text-primary" />
-              <span className="max-w-[150px] truncate">
-                {activeOrg ? activeOrg.name : 'Select Org'}
-              </span>
-              <ChevronDown className="size-3 shrink-0 text-muted-foreground" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className="w-48 border-border bg-[var(--color-bg-surface)] text-foreground"
-            align="end"
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            className="group flex h-8 items-center gap-2 rounded-full border border-border bg-[var(--color-bg-surface)] pl-1.5 pr-3 text-xs font-semibold text-muted-foreground shadow-sm transition-all hover:bg-accent/50 hover:text-foreground"
           >
-            <DropdownMenuLabel className="px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Organisations
-            </DropdownMenuLabel>
-            {orgs?.map((o) => (
-              <DropdownMenuItem
-                key={o.id}
-                onClick={() => handleSwitchOrg(o.id)}
-                className={cn(
-                  'cursor-pointer px-2.5 py-2 text-xs',
-                  o.id === activeOrgId && 'bg-accent/30 font-bold text-primary',
-                )}
-              >
-                {o.name}
-              </DropdownMenuItem>
-            ))}
-            <DropdownMenuSeparator className="bg-border" />
-            <DropdownMenuItem
-              onClick={handleCreateOrgClick}
-              className="flex cursor-pointer items-center gap-2 px-2.5 py-2 text-xs text-primary focus:bg-primary/5 focus:text-primary"
-            >
-              <Plus className="size-3.5" />
-              New Org
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* User Profile dropdown */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              className="group flex h-8 items-center gap-2 rounded-full border border-border bg-[var(--color-bg-surface)] pl-1.5 pr-3 text-xs font-semibold text-muted-foreground shadow-sm transition-all hover:bg-accent/50 hover:text-foreground"
-            >
-              <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-[10px] font-bold text-primary">
-                {getInitials(user?.name)}
-              </span>
-              <span className="hidden max-w-[100px] truncate text-left font-medium text-foreground sm:inline">
-                {user ? user.name : 'Profile'}
-              </span>
-              <ChevronDown className="size-3 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-y-0.5" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className="w-48 border-border bg-[var(--color-bg-surface)] text-foreground"
-            align="end"
+            <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-[10px] font-bold text-primary">
+              {getInitials(user?.name)}
+            </span>
+            <span className="hidden max-w-[100px] truncate text-left font-medium text-foreground sm:inline">
+              {user ? user.name : 'Profile'}
+            </span>
+            <ChevronDown className="size-3 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-y-0.5" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          className="w-48 border-border bg-[var(--color-bg-surface)] text-foreground"
+          align="end"
+        >
+          {user && (
+            <>
+              <div className="px-2.5 py-2">
+                <p className="truncate text-xs font-bold text-foreground">
+                  {user.name}
+                </p>
+                <p className="mt-0.5 truncate text-[10px] text-muted-foreground">
+                  {user.email}
+                </p>
+              </div>
+              <DropdownMenuSeparator className="bg-border" />
+            </>
+          )}
+          <DropdownMenuItem
+            onClick={() => history.push('/preferences')}
+            className="flex cursor-pointer items-center gap-2 px-2.5 py-2 text-xs text-foreground hover:bg-accent/50 focus:bg-accent/50"
           >
-            {user && (
-              <>
-                <div className="px-2.5 py-2">
-                  <p className="truncate text-xs font-bold text-foreground">
-                    {user.name}
-                  </p>
-                  <p className="mt-0.5 truncate text-[10px] text-muted-foreground">
-                    {user.email}
-                  </p>
-                </div>
-                <DropdownMenuSeparator className="bg-border" />
-              </>
-            )}
-            <DropdownMenuItem
-              onClick={logout}
-              className="flex cursor-pointer items-center gap-2 px-2.5 py-2 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive focus:bg-destructive/10 focus:text-destructive"
-            >
-              <LogOut className="size-3.5" />
-              Log Out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
-      {/* Organisation Creation Modal Dialog */}
-      <Dialog open={createOrgDialogOpen} onOpenChange={setCreateOrgDialogOpen}>
-        <DialogContent className="border-border bg-[var(--color-bg-surface)] text-foreground sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-sm font-bold text-foreground">
-              Create Organisation
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleCreateOrgSubmit} className="space-y-4">
-            <div className="space-y-1">
-              <label
-                htmlFor="orgName"
-                className="text-xs font-semibold text-muted-foreground"
-              >
-                Organisation Name
-              </label>
-              <Input
-                id="orgName"
-                value={newOrgName}
-                onChange={(e) => setNewOrgName(e.target.value)}
-                placeholder="My Awesome Org"
-                className="h-8 border-input text-xs text-foreground focus-visible:ring-primary"
-              />
-            </div>
-            <DialogFooter className="mt-4 gap-2 sm:gap-0">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setCreateOrgDialogOpen(false)}
-                className="h-8 border-border text-xs text-foreground hover:bg-accent/50"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                className="h-8 text-xs"
-                disabled={!newOrgName.trim() || createOrgMutation.isPending}
-              >
-                {createOrgMutation.isPending ? 'Creating...' : 'Create'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+            <SettingsIcon className="size-3.5" />
+            Preferences
+          </DropdownMenuItem>
+          <DropdownMenuSeparator className="bg-border" />
+          <DropdownMenuItem
+            onClick={logout}
+            className="flex cursor-pointer items-center gap-2 px-2.5 py-2 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive focus:bg-destructive/10 focus:text-destructive"
+          >
+            <LogOut className="size-3.5" />
+            Log Out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </header>
   );
 }

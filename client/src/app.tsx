@@ -5,7 +5,7 @@ import { Routes, Route, Navigate, Outlet, useParams } from 'react-router-dom';
 import {
   Projects,
   Editor,
-  Settings,
+  Preferences,
   LoginPage,
   SignUpPage,
   AuthLayout,
@@ -117,7 +117,7 @@ function App() {
                   />
                 }
               />
-              <Route path="/settings" element={<Settings />} />
+              <Route path="/preferences" element={<Preferences />} />
             </Route>
             <Route
               path="/editor/:projectId"

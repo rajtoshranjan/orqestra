@@ -27,13 +27,13 @@ const themeOptions = [
   },
 ] as const;
 
-export function Settings() {
+export function Preferences() {
   const dispatch = useAppDispatch();
   const theme = useAppSelector((state) => state.ui.theme);
 
   return (
     <PageLayout
-      title="Settings"
+      title="Preferences"
       description="Manage workspace preferences for the project dashboard and editor."
       maxWidthClass="max-w-5xl"
     >
