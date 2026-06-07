@@ -5,6 +5,7 @@ import {
   Lock,
   PencilLine,
   Rocket,
+  Sparkles,
   Unlock,
 } from 'lucide-react';
 import React from 'react';
@@ -22,35 +23,68 @@ import { cn } from '@/lib/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setIsLocked, setSnapToGrid } from '@/store/editor-slice';
 import { DeploymentStatus } from '@/types';
+import type { DiagramNode } from '@/types';
 import { formatRelativeTime, hasValidationErrors } from '@/utils';
+
+/**
+ * Derives toolbar-relevant node counts from the Redux nodes array.
+ * Returns a stable reference when counts haven't changed, preventing
+ * unnecessary toolbar re-renders during drag operations.
+ */
+const selectNodeCounts = (nodes: DiagramNode[]) => {
+  const nodeCount = nodes.length;
+  const invalidNodeCount = nodes.filter((node) =>
+    hasValidationErrors(node.data.validationErrors),
+  ).length;
+  return { nodeCount, invalidNodeCount };
+};
 
 export type EditorToolbarProps = {
   onBack: () => void;
   onPlan: () => void;
+  onAutoLayout?: () => void;
   isSaving?: boolean;
   deploymentStatus: DeploymentStatus;
 };
 
-export function EditorToolbar({
+function EditorToolbarComponent({
   onBack,
   onPlan,
+  onAutoLayout,
   isSaving = false,
   deploymentStatus,
 }: EditorToolbarProps) {
   const dispatch = useAppDispatch();
   const [settingsOpen, setSettingsOpen] = React.useState(false);
 
-  const { projectName, lastSavedAt, snapToGrid, isLocked, nodes } =
-    useAppSelector((state) => state.editor);
+  const { projectName, lastSavedAt, snapToGrid, isLocked } = useAppSelector(
+    (state) => ({
+      projectName: state.editor.projectName,
+      lastSavedAt: state.editor.lastSavedAt,
+      snapToGrid: state.editor.snapToGrid,
+      isLocked: state.editor.isLocked,
+    }),
+    (prev, next) =>
+      prev.projectName === next.projectName &&
+      prev.lastSavedAt === next.lastSavedAt &&
+      prev.snapToGrid === next.snapToGrid &&
+      prev.isLocked === next.isLocked,
+  );
+
+  const { nodeCount, invalidNodeCount } = useAppSelector(
+    (state) => {
+      const counts = selectNodeCounts(state.editor.nodes);
+      return counts;
+    },
+    (prev, next) =>
+      prev.nodeCount === next.nodeCount &&
+      prev.invalidNodeCount === next.invalidNodeCount,
+  );
 
   const isDeploying =
     deploymentStatus === DeploymentStatus.Pending ||
     deploymentStatus === DeploymentStatus.InProgress;
 
-  const nodeCount = nodes.length;
-  const invalidNodeCount = nodes.filter((node) =>
-    hasValidationErrors(node.data.validationErrors),
-  ).length;
   const readyCount = nodeCount - invalidNodeCount;
 
   return (
@@ -173,6 +207,24 @@ export function EditorToolbar({
             </TooltipContent>
           </Tooltip>
 
+          {/* Auto Layout */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onAutoLayout}
+                aria-label="Auto layout diagram"
+                className="size-8 text-muted-foreground transition-all duration-200 hover:bg-accent/20 hover:text-primary"
+              >
+                <Sparkles size={15} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">
+              Auto layout diagram (Alt+L)
+            </TooltipContent>
+          </Tooltip>
+
           {/* Divider */}
           <div className="mx-1 h-4 w-px shrink-0 bg-border" />
 
@@ -201,3 +253,5 @@ export function EditorToolbar({
     </TooltipProvider>
   );
 }
+
+export const EditorToolbar = React.memo(EditorToolbarComponent);

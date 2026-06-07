@@ -40,7 +40,7 @@ class CloudServicesViewSet(viewsets.ViewSet):
         nodes = diagram.get("nodes", [])
         edges = diagram.get("edges", [])
 
-        errors = validate_diagram(nodes)
+        errors = validate_diagram(nodes, edges)
         resources = plan_diagram(nodes, edges)
 
         response_data = {

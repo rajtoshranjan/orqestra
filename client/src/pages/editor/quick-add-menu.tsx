@@ -2,12 +2,30 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { Search } from 'lucide-react';
 import { registry } from '@/services';
 import { SERVICE_CATEGORY_LABELS } from '@/services/types';
+import { NODE_DRAG_TYPE } from '@/utils';
 
 type QuickAddMenuProps = {
   x: number;
   y: number;
   onAddNode: (serviceId: string) => void;
   onClose: () => void;
+};
+
+const SYNONYMS: Record<string, string[]> = {
+  database: ['dynamodb', 'rds', 'aurora', 'elasticache', 'opensearch'],
+  db: ['dynamodb', 'rds', 'aurora', 'elasticache', 'opensearch'],
+  redis: ['elasticache'],
+  pubsub: ['sns', 'sqs', 'kinesis'],
+  queue: ['sqs'],
+  notification: ['sns'],
+  broker: ['sqs', 'sns', 'eventbridge'],
+  storage: ['s3', 'efs', 'ecr'],
+  compute: ['lambda'],
+  serverless: ['lambda', 'api-gateway', 'dynamodb'],
+  network: ['vpc', 'subnet', 'security-group'],
+  gateway: ['api-gateway'],
+  router: ['api-gateway', 'eventbridge'],
+  flow: ['step-function'],
 };
 
 export function QuickAddMenu({ x, y, onAddNode, onClose }: QuickAddMenuProps) {
@@ -21,11 +39,20 @@ export function QuickAddMenu({ x, y, onAddNode, onClose }: QuickAddMenuProps) {
   const filteredServices = useMemo(() => {
     const term = searchTerm.toLowerCase().trim();
     if (!term) return services;
+
+    const matchedServiceIdsFromSynonyms = new Set<string>();
+    for (const [key, value] of Object.entries(SYNONYMS)) {
+      if (key.includes(term) || term.includes(key)) {
+        value.forEach((id) => matchedServiceIdsFromSynonyms.add(id));
+      }
+    }
+
     return services.filter(
       (s) =>
         s.name.toLowerCase().includes(term) ||
         s.description.toLowerCase().includes(term) ||
-        SERVICE_CATEGORY_LABELS[s.category].toLowerCase().includes(term),
+        SERVICE_CATEGORY_LABELS[s.category].toLowerCase().includes(term) ||
+        matchedServiceIdsFromSynonyms.has(s.id),
     );
   }, [searchTerm, services]);
 
@@ -89,7 +116,7 @@ export function QuickAddMenu({ x, y, onAddNode, onClose }: QuickAddMenuProps) {
   return (
     <div
       ref={menuRef}
-      className="glass animate-scale-in fixed z-50 flex w-[260px] flex-col overflow-hidden rounded-lg border border-border/80 bg-popover shadow-xl"
+      className="glass animate-scale-in fixed z-[2000] flex w-[260px] flex-col overflow-hidden rounded-lg border border-border/85 bg-popover/95 shadow-2xl backdrop-blur-md"
       style={{ left: x, top: y }}
     >
       {/* Search Input */}
@@ -114,12 +141,18 @@ export function QuickAddMenu({ x, y, onAddNode, onClose }: QuickAddMenuProps) {
           return (
             <button
               key={service.id}
+              draggable
+              onDragStart={(event) => {
+                event.dataTransfer.setData(NODE_DRAG_TYPE, service.id);
+                event.dataTransfer.effectAllowed = 'copy';
+                onClose();
+              }}
               onClick={() => {
                 onAddNode(service.id);
                 onClose();
               }}
               onMouseEnter={() => setSelectedIndex(index)}
-              className={`flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-xs transition-colors duration-150 ${
+              className={`flex w-full cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-xs transition-colors duration-150 ${
                 isSelected
                   ? 'bg-accent text-foreground'
                   : 'text-muted-foreground hover:bg-accent/40'
@@ -131,7 +164,7 @@ export function QuickAddMenu({ x, y, onAddNode, onClose }: QuickAddMenuProps) {
               >
                 <ServiceIcon size={13} />
               </div>
-              <div className="flex min-w-0 flex-col">
+              <div className="flex min-w-0 flex-1 flex-col">
                 <span className="truncate font-medium text-foreground">
                   {service.name}
                 </span>
@@ -148,6 +181,13 @@ export function QuickAddMenu({ x, y, onAddNode, onClose }: QuickAddMenuProps) {
             No matching services found
           </div>
         )}
+      </div>
+
+      {/* Footer Instructions */}
+      <div className="flex select-none items-center justify-between border-t border-border/40 bg-muted/40 px-2.5 py-1 text-[8.5px] text-muted-foreground">
+        <span>↑↓ to navigate</span>
+        <span>Enter to add</span>
+        <span>Drag to canvas</span>
       </div>
     </div>
   );

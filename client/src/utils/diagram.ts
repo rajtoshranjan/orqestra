@@ -1,3 +1,4 @@
+import { validateNodeArchitectureRules } from './validation-engine';
 import type {
   DiagramNode,
   DiagramEdge,
@@ -41,11 +42,18 @@ export function createServiceNode(
   };
 }
 
-export function withValidatedData(node: DiagramNode): DiagramNode {
+export function withValidatedData(
+  node: DiagramNode,
+  nodes: DiagramNode[] = [],
+  edges: DiagramEdge[] = [],
+): DiagramNode {
   const service = registry.find(node.data.serviceId);
   if (!service) return node;
 
-  const validationErrors = service.validate(node.data.config);
+  let validationErrors = service.validate(node.data.config, nodes, edges);
+  const structuralErrors = validateNodeArchitectureRules(node, nodes, edges);
+  validationErrors = { ...validationErrors, ...structuralErrors };
+
   return {
     ...node,
     data: {
@@ -140,4 +148,185 @@ export function isInputElement(target: EventTarget | null) {
     tag === 'select' ||
     Boolean(target.closest("[contenteditable='true']"))
   );
+}
+
+export function getNodeAbsolutePosition(
+  node: any,
+  nodes: any[],
+): { x: number; y: number } {
+  let x = node.position.x;
+  let y = node.position.y;
+  let current = node;
+  while (current.parentNode) {
+    const parent = nodes.find((n) => n.id === current.parentNode);
+    if (!parent) break;
+    x += parent.position.x;
+    y += parent.position.y;
+    current = parent;
+  }
+  return { x, y };
+}
+
+export function getNodeDimensions(node: any): {
+  width: number;
+  height: number;
+} {
+  const width =
+    node.width ??
+    node.style?.width ??
+    (node.data?.serviceId === 'vpc' || node.isContainer ? 360 : 200);
+  const height =
+    node.height ??
+    node.style?.height ??
+    (node.data?.serviceId === 'vpc' || node.isContainer ? 240 : 100);
+  return {
+    width: typeof width === 'number' ? width : parseInt(String(width)) || 200,
+    height:
+      typeof height === 'number' ? height : parseInt(String(height)) || 100,
+  };
+}
+
+export function getDescendants(parentId: string, nodes: any[]): string[] {
+  const children = nodes.filter((n) => n.parentNode === parentId);
+  let descendants = children.map((c) => c.id);
+  for (const child of children) {
+    descendants = [...descendants, ...getDescendants(child.id, nodes)];
+  }
+  return descendants;
+}
+
+export function adjustParentSizes(nodes: any[]): any[] {
+  const nodeMap = new Map(nodes.map((n) => [n.id, { ...n }]));
+  const childMap = new Map<string, string[]>();
+
+  // Map children
+  for (const node of nodes) {
+    if (node.parentNode) {
+      if (!childMap.has(node.parentNode)) {
+        childMap.set(node.parentNode, []);
+      }
+      childMap.get(node.parentNode)!.push(node.id);
+    }
+  }
+
+  // Get depth helper
+  const getDepth = (nodeId: string): number => {
+    let depth = 0;
+    let curr = nodeMap.get(nodeId);
+    while (curr?.parentNode) {
+      depth++;
+      curr = nodeMap.get(curr.parentNode);
+    }
+    return depth;
+  };
+
+  const CONTAINER_SERVICE_IDS = new Set([
+    'vpc',
+    'subnet',
+    'region',
+    'availability-zone',
+    'environment',
+    'app-group',
+    'trust-boundary',
+    'shared-services',
+    'account',
+  ]);
+
+  // Find all containers and sort by depth descending (deepest first)
+  const containers = Array.from(nodeMap.values())
+    .filter((n) => CONTAINER_SERVICE_IDS.has(n.data?.serviceId || ''))
+    .map((n) => ({ id: n.id, depth: getDepth(n.id) }))
+    .sort((a, b) => b.depth - a.depth);
+
+  const PADDING = 24;
+
+  // Process bottom-up
+  for (const containerInfo of containers) {
+    const parentNode = nodeMap.get(containerInfo.id)!;
+    const childrenIds = childMap.get(parentNode.id) || [];
+    if (childrenIds.length === 0) continue;
+
+    let maxRight = 240;
+    let maxBottom = 140;
+
+    for (const cid of childrenIds) {
+      const child = nodeMap.get(cid)!;
+      const dim = getNodeDimensions(child);
+      const childRight = child.position.x + dim.width + PADDING;
+      const childBottom = child.position.y + dim.height + PADDING;
+
+      maxRight = Math.max(maxRight, childRight);
+      maxBottom = Math.max(maxBottom, childBottom);
+    }
+
+    const currentW = Number(parentNode.style?.width) || 240;
+    const currentH = Number(parentNode.style?.height) || 140;
+
+    parentNode.style = {
+      width: Math.max(currentW, maxRight),
+      height: Math.max(currentH, maxBottom),
+    };
+  }
+
+  return Array.from(nodeMap.values());
+}
+
+export function findBestParentForPosition(
+  position: { x: number; y: number },
+  childServiceId: string,
+  nodes: any[],
+): any | null {
+  const childService = registry.find(childServiceId);
+  if (!childService) return null;
+
+  const CONTAINER_SERVICE_IDS = new Set([
+    'vpc',
+    'subnet',
+    'region',
+    'availability-zone',
+    'environment',
+    'app-group',
+    'trust-boundary',
+    'shared-services',
+    'account',
+  ]);
+
+  const isContainer = CONTAINER_SERVICE_IDS.has(childServiceId);
+  const childW = isContainer ? 240 : 200;
+  const childH = isContainer ? 140 : 100;
+
+  const center = {
+    x: position.x + childW / 2,
+    y: position.y + childH / 2,
+  };
+
+  let bestParent: any = null;
+  for (const n of nodes) {
+    const parentService = registry.find(n.data?.serviceId || '');
+    if (!parentService || !parentService.isContainer) continue;
+
+    const parentPos = getNodeAbsolutePosition(n, nodes);
+    const parentDim = getNodeDimensions(n);
+
+    if (
+      center.x >= parentPos.x &&
+      center.x <= parentPos.x + parentDim.width &&
+      center.y >= parentPos.y &&
+      center.y <= parentPos.y + parentDim.height
+    ) {
+      if (childService.allowedParents?.includes(n.data.serviceId)) {
+        if (!bestParent) {
+          bestParent = n;
+        } else {
+          const bestParentPos = getNodeAbsolutePosition(bestParent, nodes);
+          const nPos = getNodeAbsolutePosition(n, nodes);
+          if (nPos.x > bestParentPos.x || nPos.y > bestParentPos.y) {
+            bestParent = n;
+          }
+        }
+      }
+    }
+  }
+
+  return bestParent;
 }

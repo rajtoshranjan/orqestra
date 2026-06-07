@@ -67,7 +67,7 @@ def build_tofu_config(nodes: list, edges: list, settings: dict) -> dict:
             continue
 
         handler = registry.get(service_id)
-        resource_block = handler.to_tofu_resource(node, settings)
+        resource_block = handler.to_tofu_resource(node, settings, nodes, edges)
 
         # Merge the resource block into the top-level config.
         for resource_type, resources in resource_block.get("resource", {}).items():

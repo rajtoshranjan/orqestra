@@ -1,11 +1,12 @@
 from .registry import registry
 
 
-def validate_diagram(nodes) -> list[str]:
+def validate_diagram(nodes, edges=None) -> list[str]:
     """
     Validate all nodes in a diagram by delegating to their respective registered handlers.
     """
     problems = []
+    edges = edges or []
 
     for node in nodes:
         data = node.get("data", {})
@@ -16,7 +17,7 @@ def validate_diagram(nodes) -> list[str]:
 
         try:
             handler = registry.get(service_id)
-            errors = handler.validate(node)
+            errors = handler.validate(node, nodes, edges)
             problems.extend(errors)
         except ValueError:
             node_id = node.get("id", "unknown")

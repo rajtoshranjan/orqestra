@@ -1,6 +1,6 @@
 import type { AccountConfig } from './types';
 
-export function createDefaultAccountConfig(_index: number): AccountConfig {
+export function createDefaultAccountConfig(): AccountConfig {
   return {
     accountId: '123456789012',
     isCollapsed: false,

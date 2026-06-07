@@ -1,0 +1,1 @@
+# Lambda Layer service package.
