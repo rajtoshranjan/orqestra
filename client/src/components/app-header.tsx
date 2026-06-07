@@ -1,12 +1,5 @@
 import { useState, useEffect } from 'react';
-import {
-  Building2,
-  Plus,
-  ChevronDown,
-  LogOut,
-  FolderGit2,
-  Settings as LucideSettings,
-} from 'lucide-react';
+import { Building2, Plus, ChevronDown, LogOut } from 'lucide-react';
 
 import {
   DropdownMenu,
@@ -98,37 +91,19 @@ export function AppHeader() {
       .slice(0, 2);
   };
 
-  const getPageIconAndLabel = () => {
-    const path = window.location.pathname;
-    if (path.includes('/settings')) {
-      return {
-        label: 'Settings',
-        icon: LucideSettings,
-      };
-    }
-    return {
-      label: 'Projects',
-      icon: FolderGit2,
-    };
-  };
-
-  const page = getPageIconAndLabel();
-  const PageIcon = page.icon;
-
   return (
-    <header className="bg-[var(--color-bg-surface)]/70 z-20 flex h-14 shrink-0 items-center justify-between border-b border-border px-6 shadow-[0_1px_4px_rgba(0,0,0,0.05)] backdrop-blur-md">
-      {/* Left section: Breadcrumb/Page context */}
+    <header className="bg-[var(--color-bg-surface)]/70 z-20 flex h-14 shrink-0 items-center justify-between border-b border-border px-6 backdrop-blur-md">
+      {/* Left section: Breadcrumb/Page context or empty */}
       <div className="flex items-center gap-2">
-        <span className="hidden select-none items-center gap-1 rounded border border-border/80 bg-accent/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground sm:inline-flex">
+        <span className="select-none text-xs font-semibold text-muted-foreground">
           Console
         </span>
-        <span className="hidden select-none text-xs text-muted-foreground/30 sm:inline">
-          /
+        <span className="text-xs text-muted-foreground/30">/</span>
+        <span className="text-xs font-bold capitalize text-foreground">
+          {window.location.pathname === '/'
+            ? 'Projects'
+            : window.location.pathname.replace('/', '')}
         </span>
-        <div className="animate-fade-in flex select-none items-center gap-2 rounded-md border border-border/80 bg-[var(--color-bg-surface)] px-2.5 py-1 text-xs font-bold text-foreground shadow-sm">
-          <PageIcon className="size-3.5 shrink-0 text-primary" />
-          <span>{page.label}</span>
-        </div>
       </div>
 
       {/* Right section: Org Switcher and Profile Dropdown */}
@@ -138,13 +113,13 @@ export function AppHeader() {
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              className="group flex h-8 items-center gap-2 rounded-md border border-border bg-[var(--color-bg-surface)] px-3 text-xs font-semibold text-foreground shadow-sm transition-all hover:border-primary/30 hover:bg-accent/40 focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="flex h-8 items-center gap-2 rounded-md border border-border bg-[var(--color-bg-surface)] px-3 text-xs font-semibold text-foreground shadow-sm transition-colors hover:bg-accent/50"
             >
               <Building2 className="size-3.5 shrink-0 text-primary" />
-              <span className="max-w-[150px] truncate font-medium">
+              <span className="max-w-[150px] truncate">
                 {activeOrg ? activeOrg.name : 'Select Org'}
               </span>
-              <ChevronDown className="size-3 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-y-0.5" />
+              <ChevronDown className="size-3 shrink-0 text-muted-foreground" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -182,9 +157,9 @@ export function AppHeader() {
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              className="group flex h-8 items-center gap-2 rounded-full border border-border bg-[var(--color-bg-surface)] pl-1.5 pr-3 text-xs font-semibold text-muted-foreground shadow-sm transition-all hover:border-primary/30 hover:bg-accent/40 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="group flex h-8 items-center gap-2 rounded-full border border-border bg-[var(--color-bg-surface)] pl-1.5 pr-3 text-xs font-semibold text-muted-foreground shadow-sm transition-all hover:bg-accent/50 hover:text-foreground"
             >
-              <span className="flex size-6 shrink-0 select-none items-center justify-center rounded-full border border-primary/20 bg-gradient-to-tr from-primary to-indigo-500 text-[10px] font-bold text-white shadow-sm">
+              <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-[10px] font-bold text-primary">
                 {getInitials(user?.name)}
               </span>
               <span className="hidden max-w-[100px] truncate text-left font-medium text-foreground sm:inline">
