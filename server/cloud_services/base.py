@@ -3,40 +3,72 @@ from abc import ABC, abstractmethod
 
 class BaseServiceHandler(ABC):
     """
-    Abstract base class that all cloud service handlers must implement.
-    Allows for dynamic discovery, validation, planning, and deployment.
+    Provider-agnostic abstract base for all cloud service handlers.
+
+    Every cloud resource — regardless of provider (AWS, Azure, GCP, Kubernetes)
+    — must implement this interface. Provider-specific properties and helpers
+    belong in provider-level base classes (e.g. BaseAWSHandler), not here.
+
+    The orchestration layer (deployments, validation, planning) only depends
+    on this interface, ensuring it remains provider-agnostic.
     """
 
     @property
     @abstractmethod
     def service_id(self) -> str:
-        """The unique identifier for the service (e.g. 'lambda', 's3', 'dynamodb')."""
-
-    @property
-    @abstractmethod
-    def cloud_formation_type(self) -> str:
-        """The AWS CloudFormation type (e.g. 'AWS::Lambda::Function')."""
+        """
+        Unique service identifier that matches the frontend service registry.
+        Examples: 'lambda', 's3', 'dynamodb', 'ec2'.
+        """
 
     @property
     @abstractmethod
     def display_name(self) -> str:
-        """User-friendly name (e.g. 'AWS Lambda')."""
+        """User-facing display name. Examples: 'AWS Lambda', 'Amazon S3'."""
+
+    @property
+    def provider_name(self) -> str:
+        """
+        Cloud provider identifier. Defaults to 'aws'.
+        Override in provider-level base classes (e.g. 'azure', 'gcp', 'kubernetes').
+        """
+        return "aws"
+
+    @property
+    def resource_family(self) -> str:
+        """
+        Broad resource family for grouping and analytics.
+        Examples: 'compute', 'storage', 'networking', 'database', 'security',
+                  'integration', 'monitoring'.
+        Override per handler. Defaults to 'general'.
+        """
+        return "general"
 
     @abstractmethod
-    def get_serializer_class(self):
-        """Return the Django Rest Framework Serializer class for this service's config."""
+    def get_serializer_class(self):  # type: ignore[return]
+        """Return the DRF Serializer class for this service's config payload."""
 
     @abstractmethod
     def validate(self, node: dict, nodes: list = None, edges: list = None) -> list[str]:
         """
-        Validate the configuration of a node.
-        Returns a list of error strings, or an empty list if valid.
+        Validate the configuration of a graph node.
+
+        Returns a list of error strings describing any problems found.
+        Returns an empty list if the configuration is valid.
+
+        Args:
+            node: The graph node dict containing 'id', 'data.config', etc.
+            nodes: All nodes in the graph (for relationship validation).
+            edges: All edges in the graph (for relationship validation).
         """
 
     @abstractmethod
     def build_plan_resource(self, node: dict, connection_count: int) -> dict:
         """
-        Build a plan resource details dictionary from a node and connection details.
+        Build a deployment plan resource descriptor from a node.
+
+        Returns a dict describing what this node will deploy, used to
+        build the human-readable deployment preview.
         """
 
     @abstractmethod
@@ -44,16 +76,27 @@ class BaseServiceHandler(ABC):
         self, node: dict, settings: dict, nodes: list = None, edges: list = None
     ) -> dict:
         """
-        Generate the OpenTofu resource configuration for this node.
+        Generate the OpenTofu (Terraform) resource configuration for this node.
 
-        Returns a dict in Terraform JSON format, e.g.:
-        {"resource": {"aws_lambda_function": {"<logical_name>": {<config>}}}}
+        Returns a dict in Terraform JSON format:
+            {"resource": {"aws_lambda_function": {"<logical_name>": {<config>}}}}
+
+        Logical-only resources (regions, environments, groups) should return
+        an empty dict rather than raise an exception.
+
+        Args:
+            node: The graph node dict.
+            settings: Deployment settings (region, credentials, etc.).
+            nodes: All nodes in the graph.
+            edges: All edges in the graph.
         """
 
     def sanitize_resource_name(self, raw_name: str) -> str:
         """
-        Convert a raw node ID or name into a valid Terraform resource name.
-        Replaces hyphens and non-alphanumeric chars with underscores.
+        Convert a raw node ID or label into a valid Terraform resource name.
+
+        Replaces all non-alphanumeric characters (except underscores) with
+        underscores, and ensures the name does not start with a digit.
         """
         sanitized = ""
         for char in raw_name:

@@ -1,10 +1,14 @@
 import logging
 
-from projects.models import Project
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+
+from organisations.helpers import get_active_organisation
+from organisations.permissions import IsOrganisationMember
+from projects.models import Project
 
 from .models import Deployment, ProjectDeploymentState
 from .serializers import (
@@ -24,8 +28,14 @@ class DeploymentViewSet(viewsets.GenericViewSet):
     Conforms to DRF guidelines in agent.md by using framework primitives.
     """
 
-    permission_classes = [AllowAny]
     queryset = Deployment.objects.all()
+
+    def get_permissions(self):
+        if self.action == "callback":
+            self.permission_classes = [AllowAny]
+        else:
+            self.permission_classes = [IsOrganisationMember]
+        return super(DeploymentViewSet, self).get_permissions()
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -42,12 +52,13 @@ class DeploymentViewSet(viewsets.GenericViewSet):
         serializer.is_valid(raise_exception=True)
 
         project_id = serializer.validated_data["project_id"]
+        active_org = get_active_organisation(request)
 
         try:
-            project = Project.objects.get(id=project_id)
+            project = Project.objects.get(id=project_id, organisation=active_org)
         except Project.DoesNotExist:
             return Response(
-                {"error": f"Project '{project_id}' not found."},
+                {"error": f"Project '{project_id}' not found in this organisation."},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
@@ -70,7 +81,11 @@ class DeploymentViewSet(viewsets.GenericViewSet):
 
     def retrieve(self, request, pk=None):
         """Get deployment status and logs (GET /deployments/<pk>/)."""
+        active_org = get_active_organisation(request)
         instance = self.get_object()
+        if instance.project.organisation != active_org:
+            raise NotFound()
+
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
@@ -96,7 +111,13 @@ class DeploymentViewSet(viewsets.GenericViewSet):
     @action(detail=False, methods=["get"], url_path="project/(?P<project_id>[^/.]+)")
     def project_deployments(self, request, project_id=None):
         """List deployments for a project (GET /deployments/project/<project_id>/)."""
-        deployments = Deployment.objects.for_project(project_id).order_by(
+        active_org = get_active_organisation(request)
+        try:
+            project = Project.objects.get(id=project_id, organisation=active_org)
+        except Project.DoesNotExist:
+            raise NotFound()
+
+        deployments = Deployment.objects.for_project(project.id).order_by(
             "-created_at"
         )[:20]
         serializer = DeploymentSerializer(deployments, many=True)
@@ -107,11 +128,17 @@ class DeploymentViewSet(viewsets.GenericViewSet):
     )
     def project_state(self, request, project_id=None):
         """Get current deployment state for a project (GET /deployments/project/<project_id>/state/)."""
+        active_org = get_active_organisation(request)
+        try:
+            project = Project.objects.get(id=project_id, organisation=active_org)
+        except Project.DoesNotExist:
+            raise NotFound()
+
         try:
             state = (
                 ProjectDeploymentState.objects.select_related("last_deployment")
                 .prefetch_related("resources")
-                .get(project_id=project_id)
+                .get(project_id=project.id)
             )
         except ProjectDeploymentState.DoesNotExist:
             return Response(

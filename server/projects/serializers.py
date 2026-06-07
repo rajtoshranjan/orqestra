@@ -8,6 +8,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         model = Project
         fields = [
             "id",
+            "organisation",
             "name",
             "description",
             "nodes",
@@ -16,4 +17,4 @@ class ProjectSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "created_at", "updated_at"]
+        read_only_fields = ["id", "organisation", "created_at", "updated_at"]

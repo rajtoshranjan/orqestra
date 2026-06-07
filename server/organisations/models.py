@@ -1,0 +1,44 @@
+from django.conf import settings
+from django.db import models
+
+from orqestra.models import BaseModel
+
+from .constants import OrganisationMemberRole
+
+
+class Organisation(BaseModel):
+    name = models.CharField(max_length=100)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="owned_organisations",
+    )
+
+    class Meta(BaseModel.Meta):
+        db_table = "organisations"
+
+    def __str__(self):
+        return self.name
+
+
+class OrganisationMember(BaseModel):
+    organisation = models.ForeignKey(
+        Organisation, on_delete=models.CASCADE, related_name="members"
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="organisation_memberships",
+    )
+    role = models.CharField(
+        max_length=10,
+        choices=OrganisationMemberRole.choices(),
+        default=OrganisationMemberRole.REGULAR.value,
+    )
+
+    class Meta(BaseModel.Meta):
+        db_table = "organisation_members"
+        unique_together = ("organisation", "user")
+
+    def __str__(self):
+        return f"{self.user.email} - {self.organisation.name} ({self.role})"

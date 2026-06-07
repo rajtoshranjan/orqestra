@@ -12,12 +12,24 @@ class CustomJsonRenderer(JSONRenderer):
         status_code = response_instance.status_code
         is_success = 200 <= status_code < 300
 
+        data = response_body if is_success else {}
+        message = self._get_message(response_body, is_success)
+
+        if is_success and isinstance(response_body, dict):
+            if "data" in response_body:
+                data = response_body["data"]
+            elif "message" in response_body and len(response_body) == 1:
+                data = {}
+
+            if "message" in response_body:
+                message = response_body["message"]
+
         response = {
-            "data": response_body if is_success else {},
+            "data": data,
             "meta": {
                 "success": is_success,
                 "status_code": status_code,
-                "message": self._get_message(response_body, is_success),
+                "message": message,
                 "type": "success" if is_success else "error",
             },
         }

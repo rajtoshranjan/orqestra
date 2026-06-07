@@ -1,9 +1,10 @@
 from unittest.mock import patch
 
 from django.urls import reverse
+from rest_framework import status
+
 from orqestra.tests import BaseTestCase
 from projects.models import Project
-from rest_framework import status
 
 from .models import Deployment, DeploymentStatus, ProjectDeploymentState
 
@@ -14,6 +15,7 @@ class DeploymentTests(BaseTestCase):
     def setUp(self):
         super().setUp()
         self.project = Project.objects.create(
+            organisation=self.organisation,
             name="Test Project",
             description="Testing IaC",
             nodes=[self._make_valid_lambda_node("lambda-1", "test-function")],

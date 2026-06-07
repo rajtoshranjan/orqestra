@@ -1,0 +1,1 @@
+# Amazon MQ service package.
