@@ -11,7 +11,6 @@ import {
 
 import { formatRelativeTime } from '@/utils';
 import { useProjects, useDeleteProject } from '@/api';
-import { registry } from '@/services';
 import {
   Button,
   Card,
@@ -183,15 +182,6 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
 
             <div className="stagger-children grid grid-cols-[repeat(auto-fill,minmax(340px,1fr))] gap-5">
               {filteredProjects.map((project) => {
-                /* Extract unique AWS services used in this project nodes list. */
-                const projectServices = (project.nodes || [])
-                  .map((node) => registry.find(node.data?.serviceId))
-                  .filter((s): s is NonNullable<typeof s> => !!s)
-                  .filter(
-                    (service, idx, self) =>
-                      self.findIndex((s) => s.id === service.id) === idx,
-                  );
-
                 return (
                   <Card
                     key={project.projectId}
@@ -210,27 +200,6 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
                               'No description provided.'}
                           </p>
                         </div>
-
-                        {/* Service Icons Array on the top-right, clean and minimal. */}
-                        {projectServices.length > 0 && (
-                          <div className="bg-[var(--color-bg-base)]/60 flex shrink-0 items-center gap-1 rounded-md border border-[var(--color-border)] p-1 transition-all duration-300 group-hover:border-[var(--color-border-hover)] group-hover:bg-[var(--color-bg-base)]">
-                            {projectServices.map((service) => {
-                              const ServiceIcon = service.icon;
-                              return (
-                                <div
-                                  key={service.id}
-                                  className="flex size-6 shrink-0 items-center justify-center rounded border border-[var(--color-border)] bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)] transition-all duration-300 group-hover:border-[var(--color-border-hover)] group-hover:text-[var(--color-text-primary)]"
-                                  title={service.name}
-                                >
-                                  <ServiceIcon
-                                    size={12}
-                                    className="font-bold"
-                                  />
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
                       </div>
 
                       {/* Stats row. */}

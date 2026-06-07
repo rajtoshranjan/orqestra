@@ -3,17 +3,24 @@ import ReactFlow, {
   addEdge,
   Background,
   BackgroundVariant,
-  Connection,
   ConnectionMode,
   Controls,
   MiniMap,
   MarkerType,
-  ReactFlowInstance,
+  type Node,
+  type NodeDragHandler,
+  type NodeMouseHandler,
+  type OnConnect,
+  type OnConnectEnd,
+  type OnConnectStart,
+  type OnError,
+  type ReactFlowInstance,
   useNodesState,
   useEdgesState,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useLocalStorage } from 'usehooks-ts';
+import { Sparkles, Grid3x3, Lock, Rocket } from 'lucide-react';
 import { EditorToolbar } from './editor-toolbar';
 import { ServiceCatalog } from './service-catalog';
 import { NodeInspector } from './node-inspector';
@@ -45,7 +52,17 @@ import {
   makeId,
   GRID,
   NODE_DRAG_TYPE,
+  getNodeAbsolutePosition,
+  getNodeDimensions,
+  getDescendants,
+  createServerlessApiTemplate,
+  createEventDrivenTemplate,
+  createSecureVpcTemplate,
+  createMicroservicesTemplate,
+  adjustParentSizes,
+  findBestParentForPosition,
 } from '@/utils';
+import { cn } from '@/lib/utils';
 import { registry } from '@/services';
 import { toast } from '@/hooks/use-toast';
 import {
@@ -55,6 +72,7 @@ import {
 } from '@/api';
 import { useActiveDeploymentResult } from '@/hooks/use-active-deployment-result';
 import { useAppDispatch, useAppSelector } from '@/store';
+import { autoLayoutDiagram } from '@/utils/auto-layout';
 
 import {
   setNodes as setReduxNodes,
@@ -67,6 +85,118 @@ import {
   setActiveDeploymentId,
 } from '@/store/deployment-slice';
 import { setDeployDrawerOpen, setContextMenu } from '@/store/ui-slice';
+
+const PRO_OPTIONS = { hideAttribution: true };
+const CONTAINER_CHILD_PADDING = 24;
+const CONTAINER_HEADER_HEIGHT = 56;
+
+type DeploymentNodeStatus = 'not_deployed' | 'deployed' | 'dirty';
+
+type EnrichedServiceNodeData = ServiceNodeData & {
+  deploymentStatus: DeploymentNodeStatus;
+  isDragOver: boolean;
+  isConnectingActive: boolean;
+  isValidTarget: boolean;
+  onToggleCollapse: () => void;
+};
+
+type DragParentLookupResult = {
+  bestParent: DiagramNode | null;
+  absoluteDraggedPosition: { x: number; y: number };
+  nodesWithDraggedNode: DiagramNode[];
+};
+
+const getMiniMapNodeColor = (node: Node<ServiceNodeData>) => {
+  const diagNode: DiagramNode = node;
+  return countNodeErrors(diagNode) > 0
+    ? 'var(--color-warning)'
+    : 'var(--color-accent)';
+};
+
+const getNodesWithDraggedNode = (
+  draggedNode: DiagramNode,
+  currentNodes: DiagramNode[],
+): DiagramNode[] =>
+  currentNodes.map((currentNode) => {
+    if (currentNode.id !== draggedNode.id) {
+      return currentNode;
+    }
+
+    return {
+      ...currentNode,
+      position: draggedNode.position,
+      positionAbsolute: draggedNode.positionAbsolute,
+      parentNode: draggedNode.parentNode,
+      width: draggedNode.width ?? currentNode.width,
+      height: draggedNode.height ?? currentNode.height,
+      style: draggedNode.style ?? currentNode.style,
+    };
+  });
+
+const findBestParentForDraggedNode = (
+  draggedNode: DiagramNode,
+  currentNodes: DiagramNode[],
+): DragParentLookupResult => {
+  const nodesWithDraggedNode = getNodesWithDraggedNode(
+    draggedNode,
+    currentNodes,
+  );
+  const absoluteDraggedPosition = getNodeAbsolutePosition(
+    draggedNode,
+    nodesWithDraggedNode,
+  );
+  const draggedDimensions = getNodeDimensions(draggedNode);
+  const center = {
+    x: absoluteDraggedPosition.x + draggedDimensions.width / 2,
+    y: absoluteDraggedPosition.y + draggedDimensions.height / 2,
+  };
+  const childService = registry.find(draggedNode.data.serviceId);
+
+  let bestParent: DiagramNode | null = null;
+
+  for (const candidateNode of nodesWithDraggedNode) {
+    if (candidateNode.id === draggedNode.id) continue;
+
+    const service = registry.find(candidateNode.data.serviceId);
+    if (!service || !service.isContainer) continue;
+    if (!childService?.allowedParents?.includes(candidateNode.data.serviceId)) {
+      continue;
+    }
+
+    const parentPosition = getNodeAbsolutePosition(
+      candidateNode,
+      nodesWithDraggedNode,
+    );
+    const parentDimensions = getNodeDimensions(candidateNode);
+
+    const isWithinParent =
+      center.x >= parentPosition.x &&
+      center.x <= parentPosition.x + parentDimensions.width &&
+      center.y >= parentPosition.y &&
+      center.y <= parentPosition.y + parentDimensions.height;
+
+    if (!isWithinParent) continue;
+
+    if (!bestParent) {
+      bestParent = candidateNode;
+      continue;
+    }
+
+    const bestParentPosition = getNodeAbsolutePosition(
+      bestParent,
+      nodesWithDraggedNode,
+    );
+
+    if (
+      parentPosition.x > bestParentPosition.x ||
+      parentPosition.y > bestParentPosition.y
+    ) {
+      bestParent = candidateNode;
+    }
+  }
+
+  return { bestParent, absoluteDraggedPosition, nodesWithDraggedNode };
+};
 
 type CanvasEditorProps = {
   initialProject: PersistedDiagram;
@@ -110,6 +240,13 @@ export function CanvasEditor({
     flowPosition: { x: number; y: number };
   } | null>(null);
 
+  const [connectingSource, setConnectingSource] = React.useState<string | null>(
+    null,
+  );
+  const [dragOverNodeId, setDragOverNodeId] = React.useState<string | null>(
+    null,
+  );
+
   const { deploymentResult: queryDeploymentResult } =
     useActiveDeploymentResult(currentProjectId);
 
@@ -132,20 +269,69 @@ export function CanvasEditor({
   const [nodes, setNodes, onNodesChange] = useNodesState(initialProject.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialProject.edges);
 
+  const nodesRef = React.useRef(nodes);
+  const edgesRef = React.useRef(edges);
+  const deploymentResultRef = React.useRef(deploymentResult);
+
+  nodesRef.current = nodes;
+  edgesRef.current = edges;
+  deploymentResultRef.current = deploymentResult;
+
   // Use projectDeploymentState for indicators — only updated after successful deploys.
   const deployedGraphNodes = projectDeploymentState?.lastDeployment
     ?.graphSnapshot?.nodes as DiagramNode[] | undefined;
+
+  const handleToggleCollapse = React.useCallback(
+    (nodeId: string) => {
+      setNodes((current) => {
+        const targetNode = current.find((n) => n.id === nodeId);
+        if (!targetNode) return current;
+
+        const nextCollapsed = !targetNode.data.config.isCollapsed;
+        const descendants = getDescendants(nodeId, current);
+
+        return current.map((n) => {
+          if (n.id === nodeId) {
+            return {
+              ...n,
+              data: {
+                ...n.data,
+                config: {
+                  ...n.data.config,
+                  isCollapsed: nextCollapsed,
+                },
+              },
+            };
+          }
+          if (descendants.includes(n.id)) {
+            return {
+              ...n,
+              hidden: nextCollapsed,
+            };
+          }
+          return n;
+        });
+      });
+    },
+    [setNodes],
+  );
 
   const enrichedNodes = React.useMemo(() => {
     const deployedNodeMap = new Map(
       (deployedGraphNodes ?? []).map((node) => [node.id, node]),
     );
 
-    return nodes.map((node) => {
+    const sourceNode = connectingSource
+      ? nodes.find((n) => n.id === connectingSource)
+      : null;
+    const sourceService = sourceNode
+      ? registry.find(sourceNode.data.serviceId)
+      : null;
+
+    const mappedNodes = nodes.map((node) => {
       const lastDeployedNode = deployedNodeMap.get(node.id);
 
-      let deploymentStatus: 'not_deployed' | 'deployed' | 'dirty' =
-        'not_deployed';
+      let deploymentStatus: DeploymentNodeStatus = 'not_deployed';
       if (lastDeployedNode) {
         const currentConfigStr = JSON.stringify(node.data?.config || {});
         const deployedConfigStr = JSON.stringify(
@@ -158,15 +344,178 @@ export function CanvasEditor({
         }
       }
 
+      // Target connection validity check
+      let isValidTarget = true;
+      if (connectingSource) {
+        if (node.id === connectingSource) {
+          isValidTarget = false;
+        } else if (sourceService) {
+          const targetServiceId = node.data.serviceId;
+          const isForbidden =
+            sourceService.forbiddenRelationships?.includes(targetServiceId);
+          const isAllowed =
+            !sourceService.allowedRelationships ||
+            sourceService.allowedRelationships.includes(targetServiceId);
+          isValidTarget = !isForbidden && isAllowed;
+        }
+      }
+
+      const isDragOver = dragOverNodeId === node.id;
+      const connectionClass =
+        connectingSource && !isValidTarget
+          ? 'opacity-30 pointer-events-none'
+          : '';
+
       return {
         ...node,
+        className: cn(node.className, connectionClass),
         data: {
           ...node.data,
           deploymentStatus,
+          isDragOver,
+          isConnectingActive: !!connectingSource,
+          isValidTarget,
+          onToggleCollapse: () => handleToggleCollapse(node.id),
         },
       };
     });
-  }, [nodes, deployedGraphNodes]);
+
+    // Sort nodes to ensure parents always appear before children in the array
+    const nodeMapForSorting = new Map(mappedNodes.map((n) => [n.id, n]));
+    const getDepth = (nodeId: string): number => {
+      let depth = 0;
+      let current = nodeMapForSorting.get(nodeId);
+      while (current?.parentNode) {
+        depth++;
+        current = nodeMapForSorting.get(current.parentNode);
+      }
+      return depth;
+    };
+
+    const depths = new Map<string, number>();
+    for (const node of mappedNodes) {
+      depths.set(node.id, getDepth(node.id));
+    }
+
+    const layeredNodes = mappedNodes.map((node) => {
+      const depth = depths.get(node.id) || 0;
+      const service = registry.find(node.data.serviceId);
+      const isContainer = service?.isContainer || false;
+      return {
+        ...node,
+        zIndex: isContainer ? depth + 1 : 1000,
+      };
+    });
+
+    return layeredNodes.sort(
+      (a, b) => (depths.get(a.id) || 0) - (depths.get(b.id) || 0),
+    );
+  }, [
+    nodes,
+    deployedGraphNodes,
+    connectingSource,
+    dragOverNodeId,
+    handleToggleCollapse,
+  ]);
+
+  const enrichedEdges = React.useMemo(() => {
+    const nodeMap = new Map(nodes.map((node) => [node.id, node]));
+
+    return edges.map((edge) => {
+      const sourceNode = nodeMap.get(edge.source);
+      const targetNode = nodeMap.get(edge.target);
+
+      if (!sourceNode || !targetNode) return edge;
+
+      const isHidden = !!(sourceNode.hidden || targetNode.hidden);
+
+      const sourceSvc = sourceNode.data?.serviceId;
+      const targetSvc = targetNode.data?.serviceId;
+
+      let label = '';
+      let animated = false;
+      let stroke = '#94a3b8'; // Slate-400 default
+      let strokeDasharray = undefined;
+
+      if (targetSvc === 'lambda') {
+        const triggers = [
+          'api-gateway',
+          'sqs',
+          'sns',
+          'dynamodb',
+          's3',
+          'eventbridge',
+          'kinesis',
+        ];
+        if (triggers.includes(sourceSvc)) {
+          label = 'Triggers';
+          animated = true;
+          stroke = '#6366f1'; // Indigo-500
+        }
+      } else if (sourceSvc === 'lambda') {
+        if (targetSvc === 'iam-role') {
+          label = 'Executes As';
+          stroke = '#f59e0b'; // Amber-500
+        } else if (targetSvc === 'efs') {
+          label = 'Mounts';
+          animated = true;
+          stroke = '#3b82f6'; // Blue-500
+          strokeDasharray = '5,5';
+        } else if (targetSvc === 'lambda-layer') {
+          label = 'Uses';
+          stroke = '#3b82f6'; // Blue-500
+        } else if (targetSvc === 'ecr') {
+          label = 'Uses Image';
+          stroke = '#f59e0b'; // Amber-500
+        } else if (['vpc', 'subnet', 'security-group'].includes(targetSvc)) {
+          label = 'Hosted In';
+          stroke = '#10b981'; // Emerald-500
+        } else if (
+          ['sqs', 'sns', 'eventbridge', 'lambda'].includes(targetSvc)
+        ) {
+          label = 'Routes To';
+          animated = true;
+          stroke = '#8b5cf6'; // Purple-500
+        }
+      } else if (sourceSvc === 'subnet' && targetSvc === 'vpc') {
+        label = 'Subnet Of';
+        stroke = '#10b981';
+      } else if (sourceSvc === 'security-group' && targetSvc === 'vpc') {
+        label = 'Rules In';
+        stroke = '#10b981';
+      }
+
+      return {
+        ...edge,
+        label,
+        animated,
+        hidden: isHidden,
+        zIndex: 500,
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          width: 18,
+          height: 18,
+          color: stroke,
+        },
+        style: {
+          stroke,
+          strokeWidth: 2,
+          strokeDasharray,
+        },
+        labelStyle: {
+          fill: '#94a3b8',
+          fontSize: '7.5px',
+          fontWeight: 'bold',
+        },
+        labelBgStyle: {
+          fill: 'var(--color-bg-base)',
+          fillOpacity: 0.85,
+          rx: 4,
+          ry: 4,
+        },
+      };
+    });
+  }, [edges, nodes]);
 
   const [planSummary, setPlanSummary] = React.useState<PlanSummary>(() =>
     buildPlan(initialProject.nodes, initialProject.edges),
@@ -190,7 +539,8 @@ export function CanvasEditor({
         return {
           ...resource,
           deploymentStatus:
-            (enrichedNode?.data as any)?.deploymentStatus ?? 'not_deployed',
+            (enrichedNode?.data as EnrichedServiceNodeData | undefined)
+              ?.deploymentStatus ?? 'not_deployed',
         };
       }),
     };
@@ -206,6 +556,18 @@ export function CanvasEditor({
     projectName: initialProject.projectName,
     projectDescription: initialProject.projectDescription,
   });
+
+  const mouseRef = React.useRef({
+    clientX: window.innerWidth / 2,
+    clientY: window.innerHeight / 2,
+  });
+  React.useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
+      mouseRef.current = { clientX: event.clientX, clientY: event.clientY };
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
   /* Sync nodes and edges into Redux for query/deploy selections. */
   React.useEffect(() => {
@@ -320,11 +682,12 @@ export function CanvasEditor({
   /* Update helpers */
   const updateNodesWithValidation = React.useCallback(
     (updater: (current: DiagramNode[]) => DiagramNode[]) => {
-      setNodes((current) =>
-        updater(current).map((node) => withValidatedData(node)),
-      );
+      setNodes((current) => {
+        const next = updater(current);
+        return next.map((node) => withValidatedData(node, next, edges));
+      });
     },
-    [setNodes],
+    [setNodes, edges],
   );
 
   const updateSelectedNode = React.useCallback(
@@ -372,10 +735,112 @@ export function CanvasEditor({
     projectName,
   ]);
 
+  const onNodeDrag = React.useCallback<NodeDragHandler>((_event, node) => {
+    const draggedNode = node as DiagramNode;
+    const { bestParent } = findBestParentForDraggedNode(
+      draggedNode,
+      nodesRef.current,
+    );
+    const nextDragOverNodeId = bestParent?.id ?? null;
+
+    setDragOverNodeId((currentDragOverNodeId) =>
+      currentDragOverNodeId === nextDragOverNodeId
+        ? currentDragOverNodeId
+        : nextDragOverNodeId,
+    );
+  }, []);
+
+  const onNodeDragStop = React.useCallback<NodeDragHandler>(
+    (_event, node) => {
+      const draggedNode = node as DiagramNode;
+      const { bestParent, absoluteDraggedPosition, nodesWithDraggedNode } =
+        findBestParentForDraggedNode(draggedNode, nodesRef.current);
+
+      setDragOverNodeId(null);
+
+      if (bestParent) {
+        const parentPosition = getNodeAbsolutePosition(
+          bestParent,
+          nodesWithDraggedNode,
+        );
+        const relativeX = Math.max(
+          absoluteDraggedPosition.x - parentPosition.x,
+          CONTAINER_CHILD_PADDING,
+        );
+        const relativeY = Math.max(
+          absoluteDraggedPosition.y - parentPosition.y,
+          CONTAINER_HEADER_HEIGHT + CONTAINER_CHILD_PADDING,
+        );
+
+        setNodes((previousNodes) => {
+          const nextNodes = previousNodes.map((previousNode) => {
+            if (previousNode.id !== draggedNode.id) {
+              return previousNode;
+            }
+
+            return {
+              ...previousNode,
+              parentNode: bestParent.id,
+              position: { x: relativeX, y: relativeY },
+              data: {
+                ...previousNode.data,
+                config: {
+                  ...previousNode.data.config,
+                  parentId: bestParent.id,
+                },
+              },
+            };
+          });
+
+          return adjustParentSizes(nextNodes);
+        });
+        return;
+      }
+
+      if (!draggedNode.parentNode) return;
+
+      setNodes((previousNodes) =>
+        previousNodes.map((previousNode) => {
+          if (previousNode.id !== draggedNode.id) {
+            return previousNode;
+          }
+
+          return {
+            ...previousNode,
+            parentNode: undefined,
+            position: absoluteDraggedPosition,
+            data: {
+              ...previousNode.data,
+              config: {
+                ...previousNode.data.config,
+                parentId: undefined,
+              },
+            },
+          };
+        }),
+      );
+    },
+    [setNodes],
+  );
+
+  const onConnectStart = React.useCallback<OnConnectStart>((_event, params) => {
+    if (params.nodeId) {
+      setConnectingSource(params.nodeId);
+    }
+  }, []);
+
+  const onConnectEnd = React.useCallback<OnConnectEnd>(() => {
+    setConnectingSource(null);
+  }, []);
+
   /* Validate & Plan */
   const validateAndPlan = React.useCallback(() => {
-    const nextNodes = nodes.map((node) => withValidatedData(node));
-    const nextPlan = buildPlan(nextNodes, edges);
+    const currentNodes = nodesRef.current;
+    const currentEdges = edgesRef.current;
+    const nextNodes = currentNodes.map((node) =>
+      withValidatedData(node, currentNodes, currentEdges),
+    );
+    const nextPlan = buildPlan(nextNodes, currentEdges);
 
     setNodes(nextNodes);
     setPlanSummary(nextPlan);
@@ -424,7 +889,7 @@ export function CanvasEditor({
     });
 
     return { valid: true, plan: nextPlan, nodes: nextNodes };
-  }, [edges, nodes, setNodes, dispatch]);
+  }, [setNodes, dispatch]);
 
   /* Add Node (generic — works for any service). */
   const handleAddNode = React.useCallback(
@@ -625,12 +1090,93 @@ export function CanvasEditor({
     dispatch,
   ]);
 
+  const handleTriggerAutoLayout = React.useCallback(() => {
+    updateNodesWithValidation((current) => {
+      return autoLayoutDiagram(current, edgesRef.current);
+    });
+    toast({
+      title: 'Auto Layout Applied',
+      description: 'Arranged nodes into clean grids and containers.',
+    });
+  }, [updateNodesWithValidation]);
+
+  const handlePlan = React.useCallback(() => {
+    const isDeploying =
+      deploymentResultRef.current.status === DeploymentStatus.Pending ||
+      deploymentResultRef.current.status === DeploymentStatus.InProgress;
+
+    if (!isDeploying) {
+      validateAndPlan();
+    }
+    dispatch(setDeployDrawerOpen(true));
+  }, [validateAndPlan, dispatch]);
+
+  const handleApplyStarter = React.useCallback(
+    (starter: { nodes: DiagramNode[]; edges: DiagramEdge[] }) => {
+      updateNodesWithValidation(() => {
+        return autoLayoutDiagram(starter.nodes, starter.edges);
+      });
+      setEdges(starter.edges);
+      toast({
+        title: 'Starter Template Applied',
+        description:
+          'Arranged template resources into clean grids and boundaries.',
+      });
+    },
+    [updateNodesWithValidation, setEdges],
+  );
+
   /* Keyboard Shortcuts */
   React.useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (isInputElement(event.target)) return;
 
       const metaKey = event.metaKey || event.ctrlKey;
+
+      // Notion-style slash command overlay trigger at cursor
+      if (event.key === '/') {
+        event.preventDefault();
+        const clientX = mouseRef.current.clientX;
+        const clientY = mouseRef.current.clientY;
+        const flowPosition = reactFlowInstance?.screenToFlowPosition({
+          x: clientX,
+          y: clientY,
+        }) || { x: 0, y: 0 };
+        setQuickAdd({
+          x: clientX,
+          y: clientY,
+          flowPosition,
+        });
+        return;
+      }
+
+      // Auto Layout Trigger
+      const isL = event.key.toLowerCase() === 'l';
+      if ((event.altKey && isL) || (metaKey && event.shiftKey && isL)) {
+        event.preventDefault();
+        handleTriggerAutoLayout();
+        return;
+      }
+
+      // Select All Nodes
+      if (metaKey && event.key.toLowerCase() === 'a') {
+        event.preventDefault();
+        setNodes((prevNodes) =>
+          prevNodes.map((node) => ({ ...node, selected: true })),
+        );
+        return;
+      }
+
+      // Escape key to deselect / close menu
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setQuickAdd(null);
+        setNodes((prevNodes) =>
+          prevNodes.map((node) => ({ ...node, selected: false })),
+        );
+        return;
+      }
+
       if (metaKey && event.key.toLowerCase() === 's') {
         event.preventDefault();
         saveCurrentDiagram();
@@ -679,6 +1225,8 @@ export function CanvasEditor({
     saveCurrentDiagram,
     reactFlowInstance,
     nodes,
+    handleTriggerAutoLayout,
+    setNodes,
   ]);
 
   /* Context menu click-away */
@@ -704,10 +1252,42 @@ export function CanvasEditor({
         y: event.clientY,
       });
 
-      updateNodesWithValidation((current) => [
-        ...current.map((node) => ({ ...node, selected: false })),
-        createServiceNode(serviceId, position, current.length + 1),
-      ]);
+      updateNodesWithValidation((current) => {
+        const bestParent = findBestParentForPosition(
+          position,
+          serviceId,
+          current,
+        );
+        let newNode: any;
+
+        if (bestParent) {
+          const parentPos = getNodeAbsolutePosition(bestParent, current);
+          let relativeX = position.x - parentPos.x;
+          let relativeY = position.y - parentPos.y;
+
+          const PADDING = 24;
+          const HEADER_HEIGHT = 56;
+          if (relativeX < PADDING) relativeX = PADDING;
+          if (relativeY < HEADER_HEIGHT + PADDING)
+            relativeY = HEADER_HEIGHT + PADDING;
+
+          newNode = createServiceNode(
+            serviceId,
+            { x: relativeX, y: relativeY },
+            current.length + 1,
+          );
+          newNode.parentNode = bestParent.id;
+          newNode.data.config.parentId = bestParent.id;
+        } else {
+          newNode = createServiceNode(serviceId, position, current.length + 1);
+        }
+
+        const next = [
+          ...current.map((node) => ({ ...node, selected: false })),
+          { ...newNode, selected: true },
+        ];
+        return adjustParentSizes(next);
+      });
     },
     [reactFlowInstance, updateNodesWithValidation, isLocked],
   );
@@ -717,6 +1297,101 @@ export function CanvasEditor({
     event.dataTransfer.dropEffect = 'copy';
   }, []);
 
+  const handleConnect = React.useCallback<OnConnect>(
+    (connection) => {
+      const currentNodes = nodesRef.current;
+      const sourceNode = currentNodes.find(
+        (node) => node.id === connection.source,
+      );
+      const targetNode = currentNodes.find(
+        (node) => node.id === connection.target,
+      );
+
+      if (
+        sourceNode?.data.serviceId === 'lambda' &&
+        targetNode?.data.serviceId === 'lambda'
+      ) {
+        toast({
+          title: 'Invalid Relationship',
+          description:
+            'AWS Lambda functions cannot be directly connected at the infrastructure level. Consider: EventBridge, Step Functions, SNS, SQS instead.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (sourceNode) {
+        const sourceService = registry.find(sourceNode.data.serviceId);
+        if (sourceService) {
+          const targetServiceId = targetNode?.data.serviceId || '';
+          const isForbidden =
+            sourceService.forbiddenRelationships?.includes(targetServiceId);
+          const isAllowed =
+            !sourceService.allowedRelationships ||
+            sourceService.allowedRelationships.includes(targetServiceId);
+
+          if (isForbidden || !isAllowed) {
+            toast({
+              title: 'Invalid Relationship',
+              description: `Connections from ${sourceService.shortName} to ${targetNode?.data.label || 'target'} are not allowed at the infrastructure level.`,
+              variant: 'destructive',
+            });
+            return;
+          }
+        }
+      }
+
+      setEdges((current) =>
+        addEdge(
+          {
+            ...connection,
+            animated: false,
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+              width: 18,
+              height: 18,
+              color: '#3b82f6',
+            },
+            style: { stroke: '#3b82f6', strokeWidth: 2 },
+            type: 'smoothstep',
+          },
+          current,
+        ),
+      );
+    },
+    [setEdges],
+  );
+
+  const handleNodeContextMenu = React.useCallback<NodeMouseHandler>(
+    (event, node) => {
+      event.preventDefault();
+      if (isLocked) return;
+
+      dispatch(
+        setContextMenu({
+          nodeId: node.id,
+          x: event.clientX,
+          y: event.clientY,
+        }),
+      );
+    },
+    [dispatch, isLocked],
+  );
+
+  const handlePaneClick = React.useCallback(() => {
+    dispatch(setContextMenu(null));
+    setQuickAdd(null);
+  }, [dispatch]);
+
+  const handleReactFlowError = React.useCallback<OnError>((id, message) => {
+    if (id === '008') return;
+    console.warn(`[React Flow Warning] ${id}: ${message}`);
+  }, []);
+
+  const handleToggleSidebarCollapse = React.useCallback(() => {
+    setSidebarCollapsed((currentSidebarCollapsed) => !currentSidebarCollapsed);
+  }, [setSidebarCollapsed]);
+
   return (
     <div
       className="flex h-screen w-screen flex-col overflow-hidden"
@@ -725,16 +1400,8 @@ export function CanvasEditor({
       {/* Toolbar */}
       <EditorToolbar
         onBack={onNavigateHome}
-        onPlan={() => {
-          const isDeploying =
-            deploymentResult.status === DeploymentStatus.Pending ||
-            deploymentResult.status === DeploymentStatus.InProgress;
-
-          if (!isDeploying) {
-            validateAndPlan();
-          }
-          dispatch(setDeployDrawerOpen(true));
-        }}
+        onPlan={handlePlan}
+        onAutoLayout={handleTriggerAutoLayout}
         isSaving={updateProjectMutation.isPending}
         deploymentStatus={deploymentResult.status}
       />
@@ -744,7 +1411,7 @@ export function CanvasEditor({
         {/* Service Catalog */}
         <ServiceCatalog
           collapsed={sidebarCollapsed}
-          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+          onToggleCollapse={handleToggleSidebarCollapse}
           onAddNode={handleAddNode}
         />
 
@@ -767,46 +1434,20 @@ export function CanvasEditor({
             nodesConnectable={!isLocked}
             elementsSelectable={!isLocked}
             nodes={enrichedNodes}
-            edges={edges}
+            edges={enrichedEdges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
+            onError={handleReactFlowError}
             onInit={setReactFlowInstance}
-            onConnect={(connection: Connection) => {
-              setEdges((current) =>
-                addEdge(
-                  {
-                    ...connection,
-                    animated: false,
-                    markerEnd: {
-                      type: MarkerType.ArrowClosed,
-                      width: 18,
-                      height: 18,
-                      color: '#3b82f6',
-                    },
-                    style: { stroke: '#3b82f6', strokeWidth: 2 },
-                    type: 'smoothstep',
-                  },
-                  current,
-                ),
-              );
-            }}
-            onNodeContextMenu={(event, node) => {
-              event.preventDefault();
-              if (isLocked) return;
-              dispatch(
-                setContextMenu({
-                  nodeId: node.id,
-                  x: event.clientX,
-                  y: event.clientY,
-                }),
-              );
-            }}
-            onPaneClick={() => {
-              dispatch(setContextMenu(null));
-              setQuickAdd(null);
-            }}
+            onNodeDrag={onNodeDrag}
+            onNodeDragStop={onNodeDragStop}
+            onConnectStart={onConnectStart}
+            onConnectEnd={onConnectEnd}
+            onConnect={handleConnect}
+            onNodeContextMenu={handleNodeContextMenu}
+            onPaneClick={handlePaneClick}
             onDoubleClick={handlePaneDoubleClick}
-            proOptions={{ hideAttribution: true }}
+            proOptions={PRO_OPTIONS}
           >
             {snapToGrid && (
               <Background
@@ -823,16 +1464,146 @@ export function CanvasEditor({
             <Controls position="bottom-right" showInteractive={false} />
             <MiniMap
               className="!bottom-4 !left-4 !h-28 !w-44 overflow-hidden"
-              nodeColor={(node) => {
-                const diagNode: DiagramNode = node;
-                return countNodeErrors(diagNode) > 0
-                  ? 'var(--color-warning)'
-                  : 'var(--color-accent)';
-              }}
+              nodeColor={getMiniMapNodeColor}
               pannable
               zoomable
             />
           </ReactFlow>
+
+          {/* Empty Canvas Overlay */}
+          {(() => {
+            if (nodes.length !== 0) return null;
+
+            const lambdaSvc = registry.find('lambda');
+            const s3Svc = registry.find('s3');
+            const vpcSvc = registry.find('vpc');
+            const sfSvc = registry.find('step-function');
+
+            const LambdaIcon = lambdaSvc?.icon || Sparkles;
+            const S3Icon = s3Svc?.icon || Grid3x3;
+            const VpcIcon = vpcSvc?.icon || Lock;
+            const SfIcon = sfSvc?.icon || Rocket;
+
+            const lambdaColor = lambdaSvc?.accentColor || '#3b82f6';
+            const s3Color = s3Svc?.accentColor || '#f59e0b';
+            const vpcColor = vpcSvc?.accentColor || '#10b981';
+            const sfColor = sfSvc?.accentColor || '#8b5cf6';
+
+            return (
+              <div className="pointer-events-none absolute inset-0 z-10 flex select-none flex-col items-center justify-center bg-background/30 p-8 backdrop-blur-[2px]">
+                <div className="pointer-events-auto flex w-full max-w-5xl select-text flex-col items-center text-center">
+                  <div className="mb-8 text-center">
+                    <h1 className="bg-gradient-to-r from-primary to-accent bg-clip-text text-3xl font-extrabold tracking-tight text-foreground">
+                      Design Your Cloud Infrastructure
+                    </h1>
+                    <p className="mx-auto mt-2 max-w-lg text-sm text-muted-foreground">
+                      Choose a production-grade starter template below to begin
+                      designing your architecture.
+                    </p>
+                  </div>
+
+                  {/* Starters Grid */}
+                  <div className="mt-12 grid w-full max-w-5xl grid-cols-1 gap-4 text-left sm:grid-cols-2 lg:grid-cols-4">
+                    <div
+                      onClick={() =>
+                        handleApplyStarter(createServerlessApiTemplate())
+                      }
+                      className="group relative flex cursor-pointer flex-col items-start rounded-2xl border border-border bg-card/60 p-5 shadow-sm transition-all duration-300 hover:border-primary/50 hover:bg-accent/10"
+                    >
+                      <div
+                        className="mb-4 flex size-10 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110"
+                        style={{
+                          backgroundColor: `${lambdaColor}18`,
+                          color: lambdaColor,
+                        }}
+                      >
+                        <LambdaIcon size={20} />
+                      </div>
+                      <h3 className="text-sm font-bold text-foreground transition-colors group-hover:text-primary">
+                        Serverless REST API
+                      </h3>
+                      <p className="mt-2 text-xs leading-relaxed text-muted-foreground/80">
+                        API Gateway, Lambda, and DynamoDB for serverless
+                        workloads.
+                      </p>
+                    </div>
+
+                    <div
+                      onClick={() =>
+                        handleApplyStarter(createEventDrivenTemplate())
+                      }
+                      className="group relative flex cursor-pointer flex-col items-start rounded-2xl border border-border bg-card/60 p-5 shadow-sm transition-all duration-300 hover:border-primary/50 hover:bg-accent/10"
+                    >
+                      <div
+                        className="mb-4 flex size-10 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110"
+                        style={{
+                          backgroundColor: `${s3Color}18`,
+                          color: s3Color,
+                        }}
+                      >
+                        <S3Icon size={20} />
+                      </div>
+                      <h3 className="text-sm font-bold text-foreground transition-colors group-hover:text-primary">
+                        Event-Driven Processor
+                      </h3>
+                      <p className="mt-2 text-xs leading-relaxed text-muted-foreground/80">
+                        Asynchronous processing using S3 events, SNS topics, and
+                        SQS queues.
+                      </p>
+                    </div>
+
+                    <div
+                      onClick={() =>
+                        handleApplyStarter(createSecureVpcTemplate())
+                      }
+                      className="group relative flex cursor-pointer flex-col items-start rounded-2xl border border-border bg-card/60 p-5 shadow-sm transition-all duration-300 hover:border-primary/50 hover:bg-accent/10"
+                    >
+                      <div
+                        className="mb-4 flex size-10 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110"
+                        style={{
+                          backgroundColor: `${vpcColor}18`,
+                          color: vpcColor,
+                        }}
+                      >
+                        <VpcIcon size={20} />
+                      </div>
+                      <h3 className="text-sm font-bold text-foreground transition-colors group-hover:text-primary">
+                        Secure VPC Network
+                      </h3>
+                      <p className="mt-2 text-xs leading-relaxed text-muted-foreground/80">
+                        Standard multi-tier layout with Public and Private
+                        Subnets in a VPC.
+                      </p>
+                    </div>
+
+                    <div
+                      onClick={() =>
+                        handleApplyStarter(createMicroservicesTemplate())
+                      }
+                      className="group relative flex cursor-pointer flex-col items-start rounded-2xl border border-border bg-card/60 p-5 shadow-sm transition-all duration-300 hover:border-primary/50 hover:bg-accent/10"
+                    >
+                      <div
+                        className="mb-4 flex size-10 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110"
+                        style={{
+                          backgroundColor: `${sfColor}18`,
+                          color: sfColor,
+                        }}
+                      >
+                        <SfIcon size={20} />
+                      </div>
+                      <h3 className="text-sm font-bold text-foreground transition-colors group-hover:text-primary">
+                        Microservices Pipeline
+                      </h3>
+                      <p className="mt-2 text-xs leading-relaxed text-muted-foreground/80">
+                        API Proxy routing to private Lambda workers orchestrated
+                        via Step Functions.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Context Menu overlay */}
           {contextMenu && (
@@ -871,6 +1642,10 @@ export function CanvasEditor({
         {selectedNode && (
           <NodeInspector
             selectedNode={selectedNode}
+            nodes={nodes}
+            edges={edges}
+            setNodes={setNodes}
+            setEdges={setEdges}
             onUpdateConfig={updateSelectedNode}
           />
         )}
@@ -890,6 +1665,8 @@ export function CanvasEditor({
           void handleDeploy();
         }}
         onPlan={validateAndPlan}
+        nodes={nodes}
+        edges={edges}
       />
     </div>
   );

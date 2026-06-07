@@ -27,7 +27,7 @@ class BaseServiceHandler(ABC):
         """Return the Django Rest Framework Serializer class for this service's config."""
 
     @abstractmethod
-    def validate(self, node: dict) -> list[str]:
+    def validate(self, node: dict, nodes: list = None, edges: list = None) -> list[str]:
         """
         Validate the configuration of a node.
         Returns a list of error strings, or an empty list if valid.
@@ -40,14 +40,9 @@ class BaseServiceHandler(ABC):
         """
 
     @abstractmethod
-    def deploy(self, node: dict, settings: dict, logs: list) -> None:
-        """
-        Deploy the resource described by the node.
-        Appends log dictionaries to the logs list.
-        """
-
-    @abstractmethod
-    def to_tofu_resource(self, node: dict, settings: dict) -> dict:
+    def to_tofu_resource(
+        self, node: dict, settings: dict, nodes: list = None, edges: list = None
+    ) -> dict:
         """
         Generate the OpenTofu resource configuration for this node.
 

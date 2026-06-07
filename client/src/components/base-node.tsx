@@ -14,6 +14,8 @@ export type BaseServiceNodeProps = {
   statsBar?: React.ReactNode;
   children?: React.ReactNode;
   deploymentStatus?: 'not_deployed' | 'deployed' | 'dirty';
+  isConnectingActive?: boolean;
+  isValidTarget?: boolean;
 };
 
 export function BaseServiceNode({
@@ -28,6 +30,8 @@ export function BaseServiceNode({
   statsBar,
   children,
   deploymentStatus = 'not_deployed',
+  isConnectingActive = false,
+  isValidTarget = true,
 }: BaseServiceNodeProps) {
   return (
     <div
@@ -43,10 +47,24 @@ export function BaseServiceNode({
         !selected && !hasErrors
           ? 'border-[var(--color-border)] hover:border-[var(--color-accent)]'
           : '',
+        isConnectingActive && !isValidTarget
+          ? 'pointer-events-none opacity-30'
+          : '',
       )}
       style={{
         minWidth: 160,
         minHeight: 56,
+        backgroundColor:
+          accentColor && accentColor.startsWith('#')
+            ? `${accentColor}0d`
+            : undefined, // 5% opacity tint
+        borderColor: selected
+          ? accentColor
+          : accentColor && accentColor.startsWith('#')
+            ? `${accentColor}33` // 20% opacity border
+            : undefined,
+        borderLeftColor: accentColor,
+        borderLeftWidth: 3,
       }}
     >
       {/* Node Resizer. */}

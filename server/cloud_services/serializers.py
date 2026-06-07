@@ -4,6 +4,12 @@ from rest_framework import serializers
 class DiagramNodeSerializer(serializers.Serializer):
     id = serializers.CharField()
     type = serializers.CharField(required=False, allow_blank=True, default="")
+    parentNode = serializers.CharField(
+        required=False, allow_null=True, allow_blank=True, default=None
+    )
+    parent_node = serializers.CharField(
+        required=False, allow_null=True, allow_blank=True, default=None
+    )
     data = serializers.DictField()
 
 

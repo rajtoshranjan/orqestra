@@ -1,9 +1,7 @@
 import React from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-
-import { ChevronDown } from 'lucide-react';
-
+import { ChevronDown, Sparkles } from 'lucide-react';
 import type { ServiceInspectorProps } from '../types';
 import type { LambdaConfig, LambdaRuntime } from './types';
 import { RUNTIME_OPTIONS } from './types';
@@ -33,8 +31,6 @@ function isLambdaRuntime(value: string): value is LambdaRuntime {
   return RUNTIME_OPTIONS.some((opt) => opt.value === value);
 }
 
-/* Lambda Inspector. */
-
 export function LambdaInspector({
   config,
   onUpdate,
@@ -47,7 +43,7 @@ export function LambdaInspector({
     reset,
     formState: { errors },
   } = useForm<LambdaConfig>({
-    resolver: zodResolver(lambdaConfigSchema),
+    resolver: zodResolver(lambdaConfigSchema) as any,
     defaultValues: config,
     mode: 'all',
   });
@@ -57,14 +53,11 @@ export function LambdaInspector({
     name: 'environmentVariables',
   });
 
-  // Track active config identity so we reset default values when user selects a different Lambda node.
   const activeFunctionName = config.functionName;
   React.useEffect(() => {
     reset(config);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeFunctionName, reset]);
 
-  // Watch form fields to trigger updates back to parent ReactFlow state on change.
   const watchedValues = watch();
   const lastUpdatedRef = React.useRef<string>('');
 
@@ -100,9 +93,8 @@ export function LambdaInspector({
 
   return (
     <div className="animate-fade-in space-y-6">
-      {/* Configuration Section. */}
-      <InspectorSection title="Configuration">
-        {/* Function Name. */}
+      {/* General Configuration */}
+      <InspectorSection title="General Configuration">
         <InspectorField
           label="Function Name"
           error={errors.functionName?.message}
@@ -114,58 +106,173 @@ export function LambdaInspector({
           />
         </InspectorField>
 
-        {/* Runtime. */}
-        <InspectorField label="Runtime" error={errors.runtime?.message}>
-          <input type="hidden" {...register('runtime')} />
+        <InspectorField
+          label="Description"
+          error={errors.description?.message}
+          optional
+        >
+          <Input
+            type="text"
+            className="border-border/80 bg-background/50 text-foreground"
+            {...register('description')}
+          />
+        </InspectorField>
+
+        <InspectorField
+          label="Package Type"
+          error={errors.packageType?.message}
+        >
+          <input type="hidden" {...register('packageType')} />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
                 className="flex h-8 w-full justify-between rounded-md border border-border/80 bg-background/50 px-2.5 py-1 text-xs font-normal text-foreground shadow-sm transition-colors hover:bg-accent/50"
               >
-                <span>
-                  {RUNTIME_OPTIONS.find(
-                    (opt) => opt.value === watchedValues.runtime,
-                  )?.label ||
-                    watchedValues.runtime ||
-                    'Select runtime'}
-                </span>
+                <span>{watchedValues.packageType}</span>
                 <ChevronDown className="size-3.5 opacity-60" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="max-h-[300px] w-[200px] overflow-y-auto border-border bg-card">
+            <DropdownMenuContent className="w-[200px] border-border bg-card">
               <DropdownMenuRadioGroup
-                value={watchedValues.runtime}
+                value={watchedValues.packageType}
                 onValueChange={(val) => {
-                  if (isLambdaRuntime(val)) {
-                    handleRuntimeChange(val);
-                  }
+                  setValue('packageType', val as 'Zip' | 'Image', {
+                    shouldValidate: true,
+                  });
                 }}
               >
-                {RUNTIME_OPTIONS.map((opt) => (
-                  <DropdownMenuRadioItem
-                    key={opt.value}
-                    value={opt.value}
-                    className="cursor-pointer text-xs text-foreground"
-                  >
-                    {opt.label}
-                  </DropdownMenuRadioItem>
-                ))}
+                <DropdownMenuRadioItem
+                  value="Zip"
+                  className="cursor-pointer text-xs"
+                >
+                  ZIP Archive
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem
+                  value="Image"
+                  className="cursor-pointer text-xs"
+                >
+                  Container Image
+                </DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
             </DropdownMenuContent>
           </DropdownMenu>
         </InspectorField>
 
-        {/* Handler. */}
-        <InspectorField label="Handler" error={errors.handler?.message}>
-          <Input
-            type="text"
-            className="border-border/80 bg-background/50 text-foreground"
-            {...register('handler')}
-          />
+        <InspectorField
+          label="CPU Architecture"
+          error={errors.architecture?.message}
+        >
+          <input type="hidden" {...register('architecture')} />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="flex h-8 w-full justify-between rounded-md border border-border/80 bg-background/50 px-2.5 py-1 text-xs font-normal text-foreground shadow-sm transition-colors hover:bg-accent/50"
+              >
+                <span>{watchedValues.architecture}</span>
+                <ChevronDown className="size-3.5 opacity-60" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-[200px] border-border bg-card">
+              <DropdownMenuRadioGroup
+                value={watchedValues.architecture}
+                onValueChange={(val) => {
+                  setValue('architecture', val as 'x86_64' | 'arm64', {
+                    shouldValidate: true,
+                  });
+                }}
+              >
+                <DropdownMenuRadioItem
+                  value="x86_64"
+                  className="cursor-pointer text-xs"
+                >
+                  x86_64 (Intel/AMD)
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem
+                  value="arm64"
+                  className="cursor-pointer text-xs"
+                >
+                  arm64 (AWS Graviton2/3)
+                </DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </InspectorField>
+      </InspectorSection>
 
-        {/* Memory Size. */}
+      {/* Package-specific settings */}
+      {watchedValues.packageType === 'Zip' ? (
+        <>
+          <InspectorSection title="Runtime Code Configuration">
+            <InspectorField label="Runtime" error={errors.runtime?.message}>
+              <input type="hidden" {...register('runtime')} />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="flex h-8 w-full justify-between rounded-md border border-border/80 bg-background/50 px-2.5 py-1 text-xs font-normal text-foreground shadow-sm transition-colors hover:bg-accent/50"
+                  >
+                    <span>
+                      {RUNTIME_OPTIONS.find(
+                        (opt) => opt.value === watchedValues.runtime,
+                      )?.label ||
+                        watchedValues.runtime ||
+                        'Select runtime'}
+                    </span>
+                    <ChevronDown className="size-3.5 opacity-60" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="max-h-[300px] w-[200px] overflow-y-auto border-border bg-card">
+                  <DropdownMenuRadioGroup
+                    value={watchedValues.runtime}
+                    onValueChange={(val) => {
+                      if (isLambdaRuntime(val)) {
+                        handleRuntimeChange(val);
+                      }
+                    }}
+                  >
+                    {RUNTIME_OPTIONS.map((opt) => (
+                      <DropdownMenuRadioItem
+                        key={opt.value}
+                        value={opt.value}
+                        className="cursor-pointer text-xs text-foreground"
+                      >
+                        {opt.label}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </InspectorField>
+
+            <InspectorField label="Handler" error={errors.handler?.message}>
+              <Input
+                type="text"
+                className="border-border/80 bg-background/50 text-foreground"
+                {...register('handler')}
+              />
+            </InspectorField>
+          </InspectorSection>
+
+          <CodeEditorField
+            label="Function Code"
+            error={errors.code?.message}
+            value={watchedValues.code || ''}
+            registerProps={register('code')}
+          />
+        </>
+      ) : (
+        <div className="my-4 rounded-md border border-dashed border-border bg-muted/20 p-3 text-center">
+          <p className="text-xs text-muted-foreground">
+            Container image configuration is derived automatically from the
+            connected ECR Repository on the canvas.
+          </p>
+        </div>
+      )}
+
+      {/* Execution Limits & Performance */}
+      <InspectorSection title="Memory, Timeout & Ephemeral Storage">
         <InspectorField label="Memory (MB)" error={errors.memorySize?.message}>
           <Input
             type="number"
@@ -176,7 +283,6 @@ export function LambdaInspector({
           />
         </InspectorField>
 
-        {/* Timeout. */}
         <InspectorField
           label="Timeout (seconds)"
           error={errors.timeout?.message}
@@ -190,29 +296,156 @@ export function LambdaInspector({
           />
         </InspectorField>
 
-        {/* Description. */}
         <InspectorField
-          label="Description"
-          error={errors.description?.message}
-          optional
+          label="Ephemeral Storage (MB)"
+          error={errors.ephemeralStorage?.message}
         >
           <Input
-            type="text"
+            type="number"
             className="border-border/80 bg-background/50 text-foreground"
-            {...register('description')}
+            min={512}
+            max={10240}
+            {...register('ephemeralStorage', { valueAsNumber: true })}
           />
         </InspectorField>
       </InspectorSection>
 
-      {/* Function Code Section. */}
-      <CodeEditorField
-        label="Function Code"
-        error={errors.code?.message}
-        value={watchedValues.code}
-        registerProps={register('code')}
-      />
+      {/* Concurrency & SnapStart */}
+      <InspectorSection title="Concurrency & Performance Optimizations">
+        <InspectorField
+          label="Reserved Concurrency"
+          error={errors.reservedConcurrency?.message}
+          optional
+        >
+          <Input
+            type="number"
+            placeholder="No limit"
+            className="border-border/80 bg-background/50 text-foreground"
+            {...register('reservedConcurrency', { valueAsNumber: true })}
+          />
+        </InspectorField>
 
-      {/* Environment Variables Section. */}
+        <InspectorField
+          label="Provisioned Concurrency"
+          error={errors.provisionedConcurrency?.message}
+          optional
+        >
+          <Input
+            type="number"
+            placeholder="Off"
+            className="border-border/80 bg-background/50 text-foreground"
+            {...register('provisionedConcurrency', { valueAsNumber: true })}
+          />
+        </InspectorField>
+
+        <InspectorField
+          label="Lambda SnapStart"
+          error={errors.snapStart?.message}
+        >
+          <input type="hidden" {...register('snapStart')} />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="flex h-8 w-full justify-between rounded-md border border-border/80 bg-background/50 px-2.5 py-1 text-xs font-normal text-foreground shadow-sm transition-colors hover:bg-accent/50"
+              >
+                <span className="flex items-center gap-1">
+                  {watchedValues.snapStart === 'PublishedVersions' && (
+                    <Sparkles className="size-3 fill-amber-500/20 text-amber-500" />
+                  )}
+                  {watchedValues.snapStart === 'PublishedVersions'
+                    ? 'PublishedVersions (Accelerated Cold Starts)'
+                    : 'None'}
+                </span>
+                <ChevronDown className="size-3.5 opacity-60" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-[250px] border-border bg-card">
+              <DropdownMenuRadioGroup
+                value={watchedValues.snapStart}
+                onValueChange={(val) => {
+                  setValue('snapStart', val as 'None' | 'PublishedVersions', {
+                    shouldValidate: true,
+                  });
+                }}
+              >
+                <DropdownMenuRadioItem
+                  value="None"
+                  className="cursor-pointer text-xs"
+                >
+                  None
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem
+                  value="PublishedVersions"
+                  className="cursor-pointer text-xs"
+                >
+                  PublishedVersions (Requires Java runtime)
+                </DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </InspectorField>
+      </InspectorSection>
+
+      {/* Function URLs */}
+      <InspectorSection title="Function URLs (HTTPS Endpoint)">
+        <div className="flex flex-col gap-2">
+          <label className="flex cursor-pointer select-none items-center gap-2 text-xs text-foreground">
+            <input
+              type="checkbox"
+              className="rounded border-border bg-background/50 text-primary focus:ring-accent"
+              {...register('enableFunctionUrl')}
+            />
+            <span>Enable HTTPS Function URL</span>
+          </label>
+        </div>
+
+        {watchedValues.enableFunctionUrl && (
+          <InspectorField
+            label="Authentication Type"
+            error={errors.functionUrlAuthType?.message}
+            className="mt-3"
+          >
+            <input type="hidden" {...register('functionUrlAuthType')} />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="flex h-8 w-full justify-between rounded-md border border-border/80 bg-background/50 px-2.5 py-1 text-xs font-normal text-foreground shadow-sm transition-colors hover:bg-accent/50"
+                >
+                  <span>{watchedValues.functionUrlAuthType}</span>
+                  <ChevronDown className="size-3.5 opacity-60" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-[200px] border-border bg-card">
+                <DropdownMenuRadioGroup
+                  value={watchedValues.functionUrlAuthType}
+                  onValueChange={(val) =>
+                    setValue('functionUrlAuthType', val as 'NONE' | 'AWS_IAM', {
+                      shouldValidate: true,
+                    })
+                  }
+                >
+                  <DropdownMenuRadioItem
+                    value="NONE"
+                    className="cursor-pointer text-xs text-red-500"
+                  >
+                    NONE (Public unauthenticated)
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem
+                    value="AWS_IAM"
+                    className="cursor-pointer text-xs"
+                  >
+                    AWS_IAM (Signature V4 required)
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </InspectorField>
+        )}
+      </InspectorSection>
+
+      {/* Environment Variables */}
       <KeyValueEditor<LambdaConfig>
         title="Environment Variables"
         fields={fields}
@@ -223,6 +456,99 @@ export function LambdaInspector({
         error={getEnvVarErrorMessage()}
         makeEmptyValue={makeEnvironmentVariable}
       />
+
+      {/* Monitoring & Tracing */}
+      <InspectorSection title="Monitoring & Observability">
+        <InspectorField
+          label="CloudWatch Logs Retention (days)"
+          error={errors.logRetention?.message}
+        >
+          <input type="hidden" {...register('logRetention')} />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="flex h-8 w-full justify-between rounded-md border border-border/80 bg-background/50 px-2.5 py-1 text-xs font-normal text-foreground shadow-sm transition-colors hover:bg-accent/50"
+              >
+                <span>{watchedValues.logRetention} days</span>
+                <ChevronDown className="size-3.5 opacity-60" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-[200px] border-border bg-card">
+              <DropdownMenuRadioGroup
+                value={String(watchedValues.logRetention)}
+                onValueChange={(val) =>
+                  setValue('logRetention', Number(val), {
+                    shouldValidate: true,
+                  })
+                }
+              >
+                {[1, 3, 5, 7, 14, 30, 60, 90, 180, 365].map((d) => (
+                  <DropdownMenuRadioItem
+                    key={d}
+                    value={String(d)}
+                    className="cursor-pointer text-xs"
+                  >
+                    {d} days
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </InspectorField>
+
+        <InspectorField
+          label="X-Ray Tracing Mode"
+          error={errors.tracingMode?.message}
+        >
+          <input type="hidden" {...register('tracingMode')} />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="flex h-8 w-full justify-between rounded-md border border-border/80 bg-background/50 px-2.5 py-1 text-xs font-normal text-foreground shadow-sm transition-colors hover:bg-accent/50"
+              >
+                <span>{watchedValues.tracingMode}</span>
+                <ChevronDown className="size-3.5 opacity-60" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-[200px] border-border bg-card">
+              <DropdownMenuRadioGroup
+                value={watchedValues.tracingMode}
+                onValueChange={(val) =>
+                  setValue('tracingMode', val as 'Active' | 'PassThrough', {
+                    shouldValidate: true,
+                  })
+                }
+              >
+                <DropdownMenuRadioItem
+                  value="PassThrough"
+                  className="cursor-pointer text-xs"
+                >
+                  PassThrough (Trace requests only if caller is traced)
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem
+                  value="Active"
+                  className="cursor-pointer text-xs"
+                >
+                  Active (Automatically trace all requests)
+                </DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </InspectorField>
+
+        <div className="flex flex-col gap-2 pt-2">
+          <label className="flex cursor-pointer select-none items-center gap-2 text-xs text-foreground">
+            <input
+              type="checkbox"
+              className="rounded border-border bg-background/50 text-primary focus:ring-accent"
+              {...register('lambdaInsights')}
+            />
+            <span>Enable CloudWatch Lambda Insights</span>
+          </label>
+        </div>
+      </InspectorSection>
     </div>
   );
 }

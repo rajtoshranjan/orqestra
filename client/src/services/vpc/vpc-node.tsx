@@ -1,0 +1,39 @@
+import { memo } from 'react';
+import type { NodeProps } from 'reactflow';
+
+import type { ServiceValidationErrors } from '../types';
+import type { VPCConfig } from './types';
+
+import { VpcIcon } from '@/components/aws-icons';
+import { BaseContainerNode } from '@/components';
+
+type VPCNodeDataShape = {
+  serviceId: string;
+  label: string;
+  config: VPCConfig;
+  validationErrors: ServiceValidationErrors;
+  deploymentStatus?: 'not_deployed' | 'deployed' | 'dirty';
+  isDragOver?: boolean;
+  onToggleCollapse?: () => void;
+};
+
+function VPCNodeComponent({ id, data, selected }: NodeProps<VPCNodeDataShape>) {
+  const { config, isDragOver, onToggleCollapse } = data;
+
+  return (
+    <BaseContainerNode
+      id={id}
+      selected={selected}
+      accentColor="#A166FF"
+      icon={VpcIcon}
+      serviceLabel="AWS VPC"
+      title={config.vpcName || 'Untitled'}
+      isCollapsed={config.isCollapsed}
+      onToggleCollapse={onToggleCollapse}
+      borderStyle="solid"
+      isDragOver={isDragOver}
+    />
+  );
+}
+
+export const VPCNode = memo(VPCNodeComponent);
