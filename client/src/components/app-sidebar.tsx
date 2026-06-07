@@ -3,7 +3,6 @@ import { useLocation } from 'react-router-dom';
 import { useLocalStorage } from 'usehooks-ts';
 import {
   Building2,
-  ChevronDown,
   Hexagon,
   LayoutDashboard,
   PanelLeftClose,
@@ -211,17 +210,15 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
         </div>
 
         {isAuthenticated && organisations?.length ? (
-          <div className="border-b border-border px-1.5 py-2">
-            <div className="flex min-w-0 items-center gap-1">
+          <div className="border-b border-border p-3">
+            <div className="flex min-w-0 items-center justify-between gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
                     className={cn(
-                      'flex h-9 min-w-0 items-center rounded-md border border-border bg-background/60 text-left text-[12px] font-medium text-foreground transition-colors hover:bg-accent/50',
-                      isCollapsed
-                        ? 'w-full justify-center px-0'
-                        : 'flex-1 justify-center px-0 md:justify-between md:px-2.5',
+                      'flex min-w-0 items-center gap-1.5 rounded-md px-0 py-1 text-left transition-colors hover:bg-accent/30',
+                      isCollapsed ? 'justify-center' : 'md:justify-start',
                     )}
                     aria-label={
                       activeOrganisation
@@ -235,17 +232,16 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                       </span>
                     ) : (
                       <>
-                        <span className="hidden min-w-0 flex-1 items-center gap-2 md:flex">
-                          <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-                            <Building2 className="size-3.5" />
+                        <span className="hidden min-w-0 items-center gap-1.5 md:flex">
+                          <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                            <Building2 className="size-3" />
                           </span>
                           <span className="min-w-0">
-                            <span className="block truncate text-[12px] font-semibold text-foreground">
-                              {activeOrganisation?.name ?? 'Select Org'}
+                            <span className="block truncate text-xs font-medium text-foreground">
+                              {activeOrganisation?.name ?? 'Organisation'}
                             </span>
                           </span>
                         </span>
-                        <ChevronDown className="hidden size-3 shrink-0 text-muted-foreground md:block" />
                       </>
                     )}
                   </button>
@@ -283,22 +279,20 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
               </DropdownMenu>
 
               {canEditActiveOrganisation && !isCollapsed ? (
-                <Button
+                <button
                   type="button"
-                  variant="ghost"
-                  size="icon"
                   onClick={handleEditOrganisationClick}
                   aria-label="Edit organisation"
-                  className="hidden size-9 shrink-0 rounded-md border border-border bg-background/60 text-muted-foreground hover:bg-accent/50 hover:text-foreground md:inline-flex"
+                  className="hidden rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent/30 hover:text-foreground md:block"
                 >
-                  <PencilLine className="size-3.5" />
-                </Button>
+                  <PencilLine className="size-4" />
+                </button>
               ) : null}
             </div>
           </div>
         ) : null}
 
-        <nav className="flex-1 space-y-1 px-1.5 py-2" aria-label="Primary">
+        <nav className="flex-1 space-y-0.5 px-2 py-3" aria-label="Primary">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = location.pathname === item.path;
@@ -310,13 +304,13 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                 onClick={() => onNavigate(item.path)}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'group relative flex h-8 items-center rounded-md text-[12px] font-medium transition-colors',
+                  'group relative flex h-8 items-center rounded-md text-xs font-medium transition-colors',
                   'mx-auto w-8 justify-center',
                   !isCollapsed &&
                     'md:mx-0 md:w-full md:justify-start md:gap-2 md:px-2',
                   active
-                    ? 'bg-primary/10 font-semibold text-primary'
-                    : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground',
+                    ? 'bg-accent/20 font-semibold text-primary'
+                    : 'text-muted-foreground hover:bg-accent/20 hover:text-foreground',
                 )}
               >
                 {active && (
