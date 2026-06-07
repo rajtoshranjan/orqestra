@@ -4,3 +4,5 @@ export * from './page-layout';
 export * from './base-node';
 export * from './base-container-node';
 export * from './base-inspector';
+export * from './app-sidebar';
+export * from './app-header';

@@ -35,6 +35,12 @@ export const kmsService: ServiceDefinition<KMSConfig> = {
     'sqs',
     'sns',
     'ec2',
+    'cloudtrail',
+    'ssm',
+    'opensearch',
+    'sagemaker',
+    'documentdb',
+    'neptune',
   ],
 
   createDefaultConfig: createDefaultKMSConfig,

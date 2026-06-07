@@ -28,7 +28,13 @@ export const routeTableService: ServiceDefinition<RouteTableConfig> = {
     provides: ['routing'],
   },
   allowedParents: ['vpc', 'subnet', 'region'],
-  allowedRelationships: ['subnet', 'internet-gateway', 'nat-gateway', 'vpc'],
+  allowedRelationships: [
+    'subnet',
+    'internet-gateway',
+    'nat-gateway',
+    'vpc',
+    'vpc-endpoint',
+  ],
 
   createDefaultConfig: createDefaultRouteTableConfig,
   validate: validateRouteTableConfig,

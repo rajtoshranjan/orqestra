@@ -48,6 +48,12 @@ export const lambdaService: ServiceDefinition<LambdaConfig> = {
     'ecr',
     'cloudwatch',
     'lambda-layer',
+    'appsync',
+    'ssm',
+    'ses',
+    'msk',
+    'opensearch',
+    'bedrock',
   ],
   forbiddenRelationships: [
     'lambda',

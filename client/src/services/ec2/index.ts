@@ -46,6 +46,12 @@ export const ec2Service: ServiceDefinition<EC2Config> = {
     'secrets-manager',
     'efs',
     'ebs',
+    'documentdb',
+    'neptune',
+    'opensearch',
+    'vpc-endpoint',
+    'nlb',
+    'ssm',
   ],
 
   createDefaultConfig: createDefaultEC2Config,
@@ -62,8 +68,7 @@ export const ec2Service: ServiceDefinition<EC2Config> = {
         'EC2 instance should have a Security Group connected or as an ancestor.',
       check: ({ node, nodes, edges }) => {
         const hasSecurityGroupEdge = edges.some((edge) => {
-          const otherId =
-            edge.source === node.id ? edge.target : edge.source;
+          const otherId = edge.source === node.id ? edge.target : edge.source;
           return (
             nodes.find((n) => n.id === otherId)?.data.serviceId ===
             'security-group'

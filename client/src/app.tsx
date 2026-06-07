@@ -2,15 +2,22 @@ import './assets/styles.css';
 import '@/services'; // Register all AWS service plugins at startup
 import { useEffect, useCallback } from 'react';
 import { Routes, Route, Navigate, Outlet, useParams } from 'react-router-dom';
-import { Projects, Editor, Settings, LoginPage, SignUpPage, AuthLayout } from './pages';
-import { AppSidebar } from './components/app-sidebar';
+import {
+  Projects,
+  Editor,
+  Settings,
+  LoginPage,
+  SignUpPage,
+  AuthLayout,
+} from './pages';
+import { AppSidebar, AppHeader } from './components';
 import { Toaster } from './components/ui/toaster';
 import { createInitialDiagram } from './utils';
+import { AuthGuard, GuestGuard } from './components/guards';
 import { useCreateProject } from '@/api';
 import { useAppSelector } from '@/store';
 import { CustomRouter } from '@/lib/custom-router';
 import { history } from '@/lib/utils';
-import { AuthGuard, GuestGuard } from './components/guards';
 
 /* App Layout */
 
@@ -22,9 +29,12 @@ function AppLayout() {
   return (
     <div className="flex min-h-screen bg-[var(--color-bg-base)] text-foreground">
       <AppSidebar onNavigate={handleShellNavigate} />
-      <main className="min-w-0 flex-1 overflow-y-auto bg-background">
-        <Outlet />
-      </main>
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col">
+        <AppHeader />
+        <main className="min-w-0 flex-1 overflow-y-auto bg-background">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }

@@ -35,6 +35,9 @@ export const eksClusterService: ServiceDefinition<EksClusterConfig> = {
     'ecr',
     'alb',
     'cloudwatch',
+    'nlb',
+    'opensearch',
+    'msk',
   ],
 
   createDefaultConfig: createDefaultEksClusterConfig,

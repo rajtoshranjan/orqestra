@@ -345,3 +345,125 @@ export const amazonMqConfigSchema = z.object({
     'CLUSTER_MULTI_AZ',
   ]),
 });
+
+export const cloudfrontConfigSchema = z.object({
+  distributionName: z.string().min(1, 'Distribution name is required.'),
+  priceClass: z.enum(['PriceClass_100', 'PriceClass_200', 'PriceClass_All']),
+  viewerProtocolPolicy: z.enum([
+    'allow-all',
+    'redirect-to-https',
+    'https-only',
+  ]),
+});
+
+export const wafConfigSchema = z.object({
+  webAclName: z.string().min(1, 'Web ACL name is required.'),
+  scope: z.enum(['REGIONAL', 'CLOUDFRONT']),
+  defaultAction: z.enum(['ALLOW', 'BLOCK']),
+});
+
+export const acmConfigSchema = z.object({
+  certificateName: z.string().min(1, 'Certificate name is required.'),
+  domainName: z.string().min(1, 'Domain name is required.'),
+  validationMethod: z.enum(['DNS', 'EMAIL']),
+});
+
+export const mskConfigSchema = z.object({
+  clusterName: z.string().min(1, 'Cluster name is required.'),
+  kafkaVersion: z.string().min(1, 'Kafka version is required.'),
+  brokerInstanceType: z.string().min(1, 'Broker instance type is required.'),
+  brokerCount: z.number().min(1, 'Broker count must be at least 1.'),
+});
+
+export const appsyncConfigSchema = z.object({
+  apiName: z.string().min(1, 'API name is required.'),
+  authenticationType: z.enum([
+    'API_KEY',
+    'AWS_IAM',
+    'AMAZON_COGNITO_USER_POOLS',
+    'OPENID_CONNECT',
+    'AWS_LAMBDA',
+  ]),
+  apiType: z.enum(['GRAPHQL', 'MERGED']),
+});
+
+export const athenaConfigSchema = z.object({
+  workGroupName: z.string().min(1, 'Workgroup name is required.'),
+  outputLocation: z.string().min(1, 'Output location is required.'),
+  engineVersion: z.enum(['AUTO', 'Athena engine version 3']),
+});
+
+export const glueConfigSchema = z.object({
+  databaseName: z.string().min(1, 'Database name is required.'),
+  crawlerName: z.string().min(1, 'Crawler name is required.'),
+  dataSourceType: z.enum(['S3', 'JDBC', 'DynamoDB', 'Kafka']),
+});
+
+export const opensearchConfigSchema = z.object({
+  domainName: z.string().min(1, 'Domain name is required.'),
+  engineVersion: z.string().min(1, 'Engine version is required.'),
+  instanceType: z.string().min(1, 'Instance type is required.'),
+});
+
+export const sagemakerConfigSchema = z.object({
+  notebookName: z.string().min(1, 'Notebook name is required.'),
+  instanceType: z.string().min(1, 'Instance type is required.'),
+  volumeSizeGb: z.number().min(5, 'Volume size must be at least 5 GiB.'),
+});
+
+export const bedrockConfigSchema = z.object({
+  agentName: z.string().min(1, 'Agent name is required.'),
+  foundationModel: z.string().min(1, 'Foundation model is required.'),
+  guardrailMode: z.enum(['NONE', 'ATTACHED']),
+});
+
+export const documentdbConfigSchema = z.object({
+  clusterIdentifier: z.string().min(1, 'Cluster identifier is required.'),
+  engineVersion: z.string().min(1, 'Engine version is required.'),
+  instanceClass: z.string().min(1, 'Instance class is required.'),
+});
+
+export const neptuneConfigSchema = z.object({
+  clusterIdentifier: z.string().min(1, 'Cluster identifier is required.'),
+  engineVersion: z.string().min(1, 'Engine version is required.'),
+  instanceClass: z.string().min(1, 'Instance class is required.'),
+});
+
+export const cloudtrailConfigSchema = z.object({
+  trailName: z.string().min(1, 'Trail name is required.'),
+  destinationBucketName: z.string().min(1, 'Destination bucket is required.'),
+  managementEvents: z.enum(['ReadOnly', 'WriteOnly', 'All']),
+});
+
+export const ssmConfigSchema = z.object({
+  parameterName: z.string().min(1, 'Parameter name is required.'),
+  parameterType: z.enum(['String', 'StringList', 'SecureString']),
+  tier: z.enum(['Standard', 'Advanced', 'Intelligent-Tiering']),
+});
+
+export const guarddutyConfigSchema = z.object({
+  detectorName: z.string().min(1, 'Detector name is required.'),
+  findingPublishingFrequency: z.enum([
+    'FIFTEEN_MINUTES',
+    'ONE_HOUR',
+    'SIX_HOURS',
+  ]),
+});
+
+export const nlbConfigSchema = z.object({
+  loadBalancerName: z.string().min(1, 'Load balancer name is required.'),
+  scheme: z.enum(['internet-facing', 'internal']),
+  ipAddressType: z.enum(['ipv4', 'dualstack']),
+});
+
+export const vpcEndpointConfigSchema = z.object({
+  endpointName: z.string().min(1, 'Endpoint name is required.'),
+  endpointType: z.enum(['Interface', 'Gateway', 'GatewayLoadBalancer']),
+  serviceName: z.string().min(1, 'Service name is required.'),
+});
+
+export const sesConfigSchema = z.object({
+  identityName: z.string().min(1, 'Identity name is required.'),
+  identityType: z.enum(['EmailAddress', 'Domain']),
+  mailFromDomain: z.string().min(1, 'MAIL FROM domain is required.'),
+});

@@ -29,7 +29,16 @@ export const secretsManagerService: ServiceDefinition<SecretsManagerConfig> = {
     provides: ['secret-store'],
   },
   allowedParents: ['account', 'region', 'environment'],
-  allowedRelationships: ['lambda', 'ec2', 'rds', 'kms', 'iam-role'],
+  allowedRelationships: [
+    'lambda',
+    'ec2',
+    'rds',
+    'kms',
+    'iam-role',
+    'documentdb',
+    'neptune',
+    'opensearch',
+  ],
 
   createDefaultConfig: createDefaultSecretsManagerConfig,
   validate: validateSecretsManagerConfig,

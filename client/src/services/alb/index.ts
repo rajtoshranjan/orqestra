@@ -26,7 +26,15 @@ export const albService: ServiceDefinition<AlbConfig> = {
     provides: ['load-balancer'],
   },
   allowedParents: ['vpc', 'subnet', 'region'],
-  allowedRelationships: ['ec2', 'lambda', 'security-group', 'cloudwatch'],
+  allowedRelationships: [
+    'ec2',
+    'lambda',
+    'security-group',
+    'cloudwatch',
+    'cloudfront',
+    'waf',
+    'acm',
+  ],
 
   createDefaultConfig: createDefaultAlbConfig,
   validate: validateAlbConfig,

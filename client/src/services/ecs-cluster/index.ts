@@ -28,7 +28,13 @@ export const ecsClusterService: ServiceDefinition<EcsClusterConfig> = {
     provides: ['container-cluster'],
     optional: ['execution-role', 'firewall-config', 'monitoring-service'],
   },
-  allowedParents: ['region', 'vpc', 'subnet', 'environment', 'availability-zone'],
+  allowedParents: [
+    'region',
+    'vpc',
+    'subnet',
+    'environment',
+    'availability-zone',
+  ],
   allowedRelationships: [
     'ecr',
     'iam-role',
@@ -38,6 +44,10 @@ export const ecsClusterService: ServiceDefinition<EcsClusterConfig> = {
     'secrets-manager',
     'efs',
     'kms',
+    'nlb',
+    'ssm',
+    'opensearch',
+    'msk',
   ],
 
   createDefaultConfig: createDefaultEcsClusterConfig,

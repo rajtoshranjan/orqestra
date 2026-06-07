@@ -25,7 +25,15 @@ export const route53Service: ServiceDefinition<Route53Config> = {
     provides: ['dns-service'],
   },
   allowedParents: ['account', 'region'],
-  allowedRelationships: ['alb', 'api-gateway', 'ec2', 'cloudfront'],
+  allowedRelationships: [
+    'alb',
+    'api-gateway',
+    'ec2',
+    'cloudfront',
+    'nlb',
+    'acm',
+    'ses',
+  ],
 
   createDefaultConfig: createDefaultRoute53Config,
   validate: validateRoute53Config,
@@ -35,7 +43,8 @@ export const route53Service: ServiceDefinition<Route53Config> = {
   InspectorComponent: Route53Inspector,
 
   aiHints: {
-    summary: 'Scalable DNS web service that routes users to applications globally.',
+    summary:
+      'Scalable DNS web service that routes users to applications globally.',
     role: 'Translates domain names to IP addresses and routes traffic to AWS resources.',
     useCases: [
       'Domain hosting',
