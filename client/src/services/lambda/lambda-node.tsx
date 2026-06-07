@@ -1,8 +1,10 @@
 import { memo } from 'react';
 import type { NodeProps } from 'reactflow';
-import { FunctionSquare } from 'lucide-react';
+
 import type { ServiceValidationErrors } from '../types';
 import type { LambdaConfig } from './types';
+
+import { LambdaIcon } from '@/components/aws-icons';
 import { BaseServiceNode } from '@/components';
 
 type LambdaNodeDataShape = {
@@ -26,17 +28,19 @@ function LambdaNodeComponent({
       selected={selected}
       hasErrors={hasErrors}
       errorCount={errorCount}
-      accentColor="#3b82f6"
-      icon={FunctionSquare}
-      serviceLabel="AWS Lambda"
+      accentColor="#FF9900"
+      icon={LambdaIcon}
+      serviceLabel={`AWS Lambda (${config.packageType || 'Zip'})`}
       title={config.functionName || 'Untitled'}
-      tag={config.runtime}
+      tag={config.runtime || 'Container'}
       deploymentStatus={deploymentStatus}
       statsBar={
         <>
           <span>{config.memorySize}MB</span>
           <span className="opacity-30">•</span>
           <span>{config.timeout}s</span>
+          <span className="opacity-30">•</span>
+          <span>{config.architecture}</span>
         </>
       }
     />

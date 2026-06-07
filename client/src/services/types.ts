@@ -10,7 +10,8 @@ export type ServiceCategory =
   | 'messaging'
   | 'security'
   | 'monitoring'
-  | 'integration';
+  | 'integration'
+  | 'boundaries';
 
 export const SERVICE_CATEGORY_LABELS: Record<ServiceCategory, string> = {
   compute: 'Compute',
@@ -21,6 +22,7 @@ export const SERVICE_CATEGORY_LABELS: Record<ServiceCategory, string> = {
   security: 'Security',
   monitoring: 'Monitoring',
   integration: 'Integration',
+  boundaries: 'Deployment Boundaries',
 };
 
 /* Generic Validation. */
@@ -71,11 +73,26 @@ export type ServiceDefinition<TConfig = Record<string, unknown>> = {
   description: string;
   icon: React.ComponentType<{ size?: number | string; className?: string }>;
   accentColor: string;
+  capabilities?: {
+    provides?: string[];
+    requires?: string[];
+    optional?: string[];
+  };
+  allowedParents?: string[];
+  requiredParents?: string[];
+  forbiddenParents?: string[];
+  allowedRelationships?: string[];
+  forbiddenRelationships?: string[];
+  isContainer?: boolean;
 
   /* Config lifecycle. */
 
   createDefaultConfig: (index: number) => TConfig;
-  validate: (config: TConfig) => ServiceValidationErrors;
+  validate: (
+    config: TConfig,
+    nodes?: any[],
+    edges?: any[],
+  ) => ServiceValidationErrors;
   getDisplayName: (config: TConfig) => string;
 
   /* React components. */

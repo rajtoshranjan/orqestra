@@ -4,16 +4,12 @@ import type {
   LambdaEnvironmentVariable,
 } from './types';
 
-/* ID Helper */
-
 function makeEnvId(): string {
   return (
     globalThis.crypto?.randomUUID?.() ??
     `${Date.now()}-${Math.random().toString(16).slice(2)}`
   );
 }
-
-/* Code Templates */
 
 export const DEFAULT_NODE_CODE = `exports.handler = async (event) => {
   console.log("Incoming event", JSON.stringify(event));
@@ -41,19 +37,19 @@ def lambda_handler(event, context):
         }),
     }`;
 
-/* Runtime Defaults */
-
 export function getDefaultHandlerForRuntime(runtime: LambdaRuntime): string {
-  return runtime === 'python3.12'
-    ? 'lambda_function.lambda_handler'
-    : 'index.handler';
+  if (runtime === 'python3.12') {
+    return 'lambda_function.lambda_handler';
+  }
+  if (runtime.startsWith('nodejs')) {
+    return 'index.handler';
+  }
+  return 'bootstrap';
 }
 
 export function getDefaultCodeForRuntime(runtime: LambdaRuntime): string {
   return runtime === 'python3.12' ? DEFAULT_PYTHON_CODE : DEFAULT_NODE_CODE;
 }
-
-/* Factory */
 
 export function makeEnvironmentVariable(): LambdaEnvironmentVariable {
   return { id: makeEnvId(), key: '', value: '' };
@@ -69,10 +65,22 @@ export function createDefaultLambdaConfig(index: number): LambdaConfig {
     memorySize: 256,
     timeout: 15,
     description: 'Created from the visual editor',
+    packageType: 'Zip',
+    architecture: 'x86_64',
+    snapStart: 'None',
+    ephemeralStorage: 512,
+    enableFunctionUrl: false,
+    functionUrlAuthType: 'NONE',
+    logRetention: 14,
+    tracingMode: 'PassThrough',
+    lambdaInsights: false,
+    reservedConcurrency: null,
+    provisionedConcurrency: null,
+    imageUri: '',
+    imageTag: 'latest',
+    imageDigest: '',
   };
 }
-
-/* Display Name */
 
 export function getLambdaDisplayName(config: LambdaConfig): string {
   return config.functionName.trim() || 'Lambda Function';

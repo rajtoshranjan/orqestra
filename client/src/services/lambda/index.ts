@@ -1,10 +1,10 @@
-import { FunctionSquare } from 'lucide-react';
 import type { ServiceDefinition, ServicePlanResource } from '../types';
 import type { LambdaConfig } from './types';
 import { createDefaultLambdaConfig, getLambdaDisplayName } from './defaults';
 import { validateLambdaConfig } from './validate';
 import { LambdaNode } from './lambda-node';
 import { LambdaInspector } from './lambda-inspector';
+import { LambdaIcon } from '@/components/aws-icons';
 
 export const lambdaService: ServiceDefinition<LambdaConfig> = {
   /* Identity. */
@@ -15,8 +15,42 @@ export const lambdaService: ServiceDefinition<LambdaConfig> = {
   category: 'compute',
   description:
     'Serverless compute — run code with no servers to manage. Configure runtime, memory, timeout, handler, and environment variables.',
-  icon: FunctionSquare,
-  accentColor: '#3b82f6',
+  icon: LambdaIcon,
+  accentColor: '#FF9900',
+  capabilities: {
+    provides: ['compute'],
+    requires: ['execution-role'],
+    optional: [
+      'compute-artifact',
+      'network-attachment',
+      'file-system',
+      'event-source',
+      'lambda-layer',
+    ],
+  },
+  allowedParents: ['subnet', 'app-group', 'vpc'],
+  forbiddenParents: ['s3', 'iam-role', 'security-group', 'ecr'],
+  allowedRelationships: [
+    'eventbridge',
+    'api-gateway',
+    'sqs',
+    'sns',
+    'iam-role',
+    'dynamodb',
+    'efs',
+    'ecr',
+    'cloudwatch',
+    'lambda-layer',
+  ],
+  forbiddenRelationships: [
+    'lambda',
+    'vpc',
+    'subnet',
+    'security-group',
+    'route-table',
+    'nat-gateway',
+    'internet-gateway',
+  ],
 
   /* Config. */
   createDefaultConfig: createDefaultLambdaConfig,
