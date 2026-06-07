@@ -19,6 +19,7 @@ import { ServiceCatalog } from './service-catalog';
 import { NodeInspector } from './node-inspector';
 import { DeployDrawer } from './deploy-drawer';
 import { ContextMenu } from './context-menu';
+import { QuickAddMenu } from './quick-add-menu';
 import type {
   DiagramNode,
   DiagramEdge,
@@ -26,12 +27,14 @@ import type {
   DeploymentSettings,
   PlanSummary,
   PersistedDiagram,
+  DeploymentResult,
 } from '@/types';
 import { DeploymentStatus } from '@/types';
 import {
   createServiceNode,
   withValidatedData,
   buildPlan,
+  enrichPlanWithDeploymentDiff,
   serializeDiagram,
   createLog,
   hasValidationErrors,
@@ -42,11 +45,15 @@ import {
   makeId,
   GRID,
   NODE_DRAG_TYPE,
-  API_BASE_URL,
 } from '@/utils';
 import { registry } from '@/services';
 import { toast } from '@/hooks/use-toast';
-import { useUpdateProject, camelToSnakeRecursive } from '@/api';
+import {
+  useUpdateProject,
+  useProjectDeploymentState,
+  useCreateDeployment,
+} from '@/api';
+import { useActiveDeploymentResult } from '@/hooks/use-active-deployment-result';
 import { useAppDispatch, useAppSelector } from '@/store';
 
 import {
@@ -57,7 +64,7 @@ import {
 } from '@/store/editor-slice';
 import {
   setDeploymentSettings,
-  setDeploymentResult,
+  setActiveDeploymentId,
 } from '@/store/deployment-slice';
 import { setDeployDrawerOpen, setContextMenu } from '@/store/ui-slice';
 
@@ -77,18 +84,42 @@ export function CanvasEditor({
     projectId: currentProjectId,
     projectName,
     projectDescription,
-    lastSavedAt,
     snapToGrid,
     isLocked,
     clipboard,
   } = useAppSelector((state) => state.editor);
 
-  const { settings: deploymentSettings, result: deploymentResult } =
-    useAppSelector((state) => state.deployment);
+  const { settings: deploymentSettings, activeDeploymentId } = useAppSelector(
+    (state) => state.deployment,
+  );
 
   const { deployDrawerOpen, contextMenu, theme } = useAppSelector(
     (state) => state.ui,
   );
+
+  const createDeploymentMutation = useCreateDeployment();
+  const { data: projectDeploymentState } =
+    useProjectDeploymentState(currentProjectId);
+
+  const [localValidationResult, setLocalValidationResult] =
+    React.useState<DeploymentResult | null>(null);
+
+  const [quickAdd, setQuickAdd] = React.useState<{
+    x: number;
+    y: number;
+    flowPosition: { x: number; y: number };
+  } | null>(null);
+
+  const { deploymentResult: queryDeploymentResult } =
+    useActiveDeploymentResult(currentProjectId);
+
+  const deploymentResult = React.useMemo(() => {
+    if (activeDeploymentId) {
+      return queryDeploymentResult;
+    }
+    return localValidationResult || queryDeploymentResult;
+  }, [activeDeploymentId, queryDeploymentResult, localValidationResult]);
+
   const [sidebarCollapsed, setSidebarCollapsed] = useLocalStorage(
     'sidebarCollapsed',
     false,
@@ -101,9 +132,69 @@ export function CanvasEditor({
   const [nodes, setNodes, onNodesChange] = useNodesState(initialProject.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialProject.edges);
 
+  // Use projectDeploymentState for indicators — only updated after successful deploys.
+  const deployedGraphNodes = projectDeploymentState?.lastDeployment
+    ?.graphSnapshot?.nodes as DiagramNode[] | undefined;
+
+  const enrichedNodes = React.useMemo(() => {
+    const deployedNodeMap = new Map(
+      (deployedGraphNodes ?? []).map((node) => [node.id, node]),
+    );
+
+    return nodes.map((node) => {
+      const lastDeployedNode = deployedNodeMap.get(node.id);
+
+      let deploymentStatus: 'not_deployed' | 'deployed' | 'dirty' =
+        'not_deployed';
+      if (lastDeployedNode) {
+        const currentConfigStr = JSON.stringify(node.data?.config || {});
+        const deployedConfigStr = JSON.stringify(
+          lastDeployedNode.data?.config || {},
+        );
+        if (currentConfigStr === deployedConfigStr) {
+          deploymentStatus = 'deployed';
+        } else {
+          deploymentStatus = 'dirty';
+        }
+      }
+
+      return {
+        ...node,
+        data: {
+          ...node.data,
+          deploymentStatus,
+        },
+      };
+    });
+  }, [nodes, deployedGraphNodes]);
+
   const [planSummary, setPlanSummary] = React.useState<PlanSummary>(() =>
     buildPlan(initialProject.nodes, initialProject.edges),
   );
+
+  const enrichedPlanSummary = React.useMemo(() => {
+    const diffPlan = enrichPlanWithDeploymentDiff(
+      planSummary,
+      deployedGraphNodes ?? null,
+      enrichedNodes,
+    );
+
+    const enrichedNodesMap = new Map(
+      enrichedNodes.map((node) => [node.id, node]),
+    );
+
+    return {
+      ...diffPlan,
+      resources: diffPlan.resources.map((resource) => {
+        const enrichedNode = enrichedNodesMap.get(resource.id);
+        return {
+          ...resource,
+          deploymentStatus:
+            (enrichedNode?.data as any)?.deploymentStatus ?? 'not_deployed',
+        };
+      }),
+    };
+  }, [planSummary, enrichedNodes, deployedGraphNodes]);
   const [reactFlowInstance, setReactFlowInstance] =
     React.useState<ReactFlowInstance<ServiceNodeData> | null>(null);
 
@@ -289,52 +380,48 @@ export function CanvasEditor({
     setNodes(nextNodes);
     setPlanSummary(nextPlan);
 
+    dispatch(setActiveDeploymentId(null));
+
     if (nextPlan.resourceCount === 0) {
-      dispatch(
-        setDeploymentResult({
-          status: DeploymentStatus.Failed,
-          lastRunAt: new Date().toISOString(),
-          logs: [
-            createLog(
-              'error',
-              'Add at least one resource node before planning or deploying.',
-            ),
-          ],
-        }),
-      );
+      setLocalValidationResult({
+        status: DeploymentStatus.Failed,
+        lastRunAt: new Date().toISOString(),
+        logs: [
+          createLog(
+            'error',
+            'Add at least one resource node before planning or deploying.',
+          ),
+        ],
+      });
       return { valid: false, plan: nextPlan, nodes: nextNodes };
     }
 
     if (
       nextNodes.some((node) => hasValidationErrors(node.data.validationErrors))
     ) {
-      dispatch(
-        setDeploymentResult({
-          status: DeploymentStatus.Failed,
-          lastRunAt: new Date().toISOString(),
-          logs: [
-            createLog(
-              'error',
-              'Some resources still have invalid configuration fields. Fix the highlighted errors and try again.',
-            ),
-          ],
-        }),
-      );
-      return { valid: false, plan: nextPlan, nodes: nextNodes };
-    }
-
-    dispatch(
-      setDeploymentResult({
-        status: DeploymentStatus.Pending,
+      setLocalValidationResult({
+        status: DeploymentStatus.Failed,
         lastRunAt: new Date().toISOString(),
         logs: [
           createLog(
-            'info',
-            `Plan ready: ${nextPlan.resourceCount} cloud resource${nextPlan.resourceCount === 1 ? '' : 's'} prepared for deployment.`,
+            'error',
+            'Some resources still have invalid configuration fields. Fix the highlighted errors and try again.',
           ),
         ],
-      }),
-    );
+      });
+      return { valid: false, plan: nextPlan, nodes: nextNodes };
+    }
+
+    setLocalValidationResult({
+      status: DeploymentStatus.Pending,
+      lastRunAt: new Date().toISOString(),
+      logs: [
+        createLog(
+          'info',
+          `Plan ready: ${nextPlan.resourceCount} cloud resource${nextPlan.resourceCount === 1 ? '' : 's'} prepared for deployment.`,
+        ),
+      ],
+    });
 
     return { valid: true, plan: nextPlan, nodes: nextNodes };
   }, [edges, nodes, setNodes, dispatch]);
@@ -353,6 +440,49 @@ export function CanvasEditor({
       ]);
     },
     [updateNodesWithValidation, isLocked],
+  );
+
+  const handlePaneDoubleClick = React.useCallback(
+    (event: React.MouseEvent) => {
+      if (isLocked) return;
+
+      const target = event.target as HTMLElement;
+      const isInteractiveElement =
+        target.closest('.react-flow__node') ||
+        target.closest('aside') ||
+        target.closest('header') ||
+        target.closest('button') ||
+        target.closest('input');
+
+      if (isInteractiveElement) return;
+
+      event.preventDefault();
+      if (!reactFlowInstance) return;
+
+      const flowPosition = reactFlowInstance.screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      setQuickAdd({
+        x: event.clientX,
+        y: event.clientY,
+        flowPosition,
+      });
+    },
+    [reactFlowInstance, isLocked],
+  );
+
+  const handleQuickAddNode = React.useCallback(
+    (serviceId: string) => {
+      if (isLocked || !quickAdd) return;
+      updateNodesWithValidation((current) => [
+        ...current.map((node) => ({ ...node, selected: false })),
+        createServiceNode(serviceId, quickAdd.flowPosition, current.length + 1),
+      ]);
+      setQuickAdd(null);
+    },
+    [updateNodesWithValidation, quickAdd, isLocked],
   );
 
   /* Clipboard Operations */
@@ -433,7 +563,7 @@ export function CanvasEditor({
 
   /* Deploy */
   const handleDeploy = React.useCallback(async () => {
-    const { valid, plan, nodes: validatedNodes } = validateAndPlan();
+    const { valid, nodes: validatedNodes } = validateAndPlan();
 
     if (!valid) {
       toast({
@@ -444,79 +574,39 @@ export function CanvasEditor({
       return;
     }
 
-    dispatch(
-      setDeploymentResult({
-        status: DeploymentStatus.InProgress,
-        lastRunAt: new Date().toISOString(),
-        logs: [
-          createLog(
-            'info',
-            `Starting deployment for ${plan.resourceCount} cloud resource${plan.resourceCount === 1 ? '' : 's'}.`,
-          ),
-        ],
-      }),
+    // Save diagram first so backend has latest config
+    await persistDiagram(
+      currentProjectId,
+      projectName,
+      projectDescription,
+      validatedNodes,
+      edges,
+      deploymentSettings,
+      true,
     );
 
     try {
-      const response = await fetch(`${API_BASE_URL}/deploy`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(
-          camelToSnakeRecursive({
-            diagram: serializeDiagram({
-              projectId: currentProjectId,
-              projectName,
-              projectDescription,
-              nodes: validatedNodes,
-              edges,
-              deploymentSettings,
-              lastSavedAt,
-            }),
-          }),
-        ),
-      });
-
-      const payload: {
-        error?: string;
-        logs?: Array<{ level: 'info' | 'success' | 'error'; message: string }>;
-      } = await response.json();
-
-      if (!response.ok) throw new Error(payload.error ?? 'Deployment failed.');
-
-      const logs = payload.logs?.map((entry) =>
-        createLog(entry.level, entry.message),
-      ) ?? [createLog('success', 'Deployment completed.')];
-
-      dispatch(
-        setDeploymentResult({
-          status: DeploymentStatus.Success,
-          lastRunAt: new Date().toISOString(),
-          logs,
-        }),
-      );
+      const deployment =
+        await createDeploymentMutation.mutateAsync(currentProjectId);
+      setLocalValidationResult(null);
+      dispatch(setActiveDeploymentId(deployment.id));
       toast({
-        title: 'Deployment finished',
+        title: 'Deployment started',
         description:
-          'The deployment service finished processing the current plan.',
+          'The deployment process has been initiated asynchronously.',
       });
     } catch (error) {
       const message =
         error instanceof Error
           ? error.message
-          : 'The local deployment service could not be reached.';
+          : 'The deployment service could not be reached.';
 
-      dispatch(
-        setDeploymentResult({
-          status: DeploymentStatus.Failed,
-          lastRunAt: new Date().toISOString(),
-          logs: [
-            createLog(
-              'error',
-              `${message} Start the server and make sure AWS credentials plus the execution role ARN are configured.`,
-            ),
-          ],
-        }),
-      );
+      setLocalValidationResult({
+        status: DeploymentStatus.Failed,
+        lastRunAt: new Date().toISOString(),
+        logs: [createLog('error', message)],
+      });
+
       toast({
         title: 'Deployment failed',
         description: message,
@@ -525,12 +615,13 @@ export function CanvasEditor({
     }
   }, [
     currentProjectId,
-    deploymentSettings,
-    edges,
-    lastSavedAt,
-    projectDescription,
     projectName,
+    projectDescription,
+    edges,
+    deploymentSettings,
     validateAndPlan,
+    persistDiagram,
+    createDeploymentMutation,
     dispatch,
   ]);
 
@@ -555,6 +646,24 @@ export function CanvasEditor({
         handlePasteSelection();
         return;
       }
+      if (!metaKey && event.key === '1') {
+        event.preventDefault();
+        reactFlowInstance?.fitView({ duration: 400 });
+        return;
+      }
+      if (!metaKey && event.key === '2') {
+        event.preventDefault();
+        const selected = nodes.filter((n) => n.selected);
+        if (selected.length > 0) {
+          reactFlowInstance?.fitView({ nodes: selected, duration: 400 });
+        } else {
+          toast({
+            title: 'No selection',
+            description: 'Select at least one node to zoom to selection.',
+          });
+        }
+        return;
+      }
       if (event.key === 'Delete' || event.key === 'Backspace') {
         event.preventDefault();
         deleteSelection();
@@ -568,6 +677,8 @@ export function CanvasEditor({
     handleCopySelection,
     handlePasteSelection,
     saveCurrentDiagram,
+    reactFlowInstance,
+    nodes,
   ]);
 
   /* Context menu click-away */
@@ -615,10 +726,17 @@ export function CanvasEditor({
       <EditorToolbar
         onBack={onNavigateHome}
         onPlan={() => {
-          validateAndPlan();
+          const isDeploying =
+            deploymentResult.status === DeploymentStatus.Pending ||
+            deploymentResult.status === DeploymentStatus.InProgress;
+
+          if (!isDeploying) {
+            validateAndPlan();
+          }
           dispatch(setDeployDrawerOpen(true));
         }}
         isSaving={updateProjectMutation.isPending}
+        deploymentStatus={deploymentResult.status}
       />
 
       {/* Main Editor Area */}
@@ -641,13 +759,14 @@ export function CanvasEditor({
             deleteKeyCode={null}
             fitView
             minZoom={0.3}
+            zoomOnDoubleClick={false}
             nodeTypes={nodeTypes}
             snapGrid={GRID}
             snapToGrid={snapToGrid}
             nodesDraggable={!isLocked}
             nodesConnectable={!isLocked}
             elementsSelectable={!isLocked}
-            nodes={nodes}
+            nodes={enrichedNodes}
             edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
@@ -682,7 +801,11 @@ export function CanvasEditor({
                 }),
               );
             }}
-            onPaneClick={() => dispatch(setContextMenu(null))}
+            onPaneClick={() => {
+              dispatch(setContextMenu(null));
+              setQuickAdd(null);
+            }}
+            onDoubleClick={handlePaneDoubleClick}
             proOptions={{ hideAttribution: true }}
           >
             {snapToGrid && (
@@ -732,6 +855,16 @@ export function CanvasEditor({
               }}
             />
           )}
+
+          {/* Quick Add Menu overlay */}
+          {quickAdd && (
+            <QuickAddMenu
+              x={quickAdd.x}
+              y={quickAdd.y}
+              onAddNode={handleQuickAddNode}
+              onClose={() => setQuickAdd(null)}
+            />
+          )}
         </div>
 
         {/* Node Inspector */}
@@ -752,7 +885,7 @@ export function CanvasEditor({
           dispatch(setDeploymentSettings(settings))
         }
         deploymentResult={deploymentResult}
-        planSummary={planSummary}
+        planSummary={enrichedPlanSummary}
         onDeploy={() => {
           void handleDeploy();
         }}

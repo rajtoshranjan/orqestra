@@ -5,8 +5,11 @@ import type {
   PlanSummary,
   DeploymentResult,
   DeploymentLogLevel,
+  ServicePlanResource,
+  PlanResourceAction,
 } from '@/types';
 import { formatTimestamp } from '@/utils';
+import { cn } from '@/lib/utils';
 import {
   Button,
   Input,
@@ -18,12 +21,19 @@ import {
   SheetTitle,
 } from '@/components/ui';
 
+export type EnrichedPlanResource = ServicePlanResource & {
+  deploymentStatus?: 'not_deployed' | 'deployed' | 'dirty';
+  action?: PlanResourceAction;
+};
+
 export type DeployDrawerProps = {
   open: boolean;
   onClose: () => void;
   deploymentSettings: DeploymentSettings;
   onSettingsChange: (settings: DeploymentSettings) => void;
-  planSummary: PlanSummary;
+  planSummary: PlanSummary & {
+    resources: EnrichedPlanResource[];
+  };
   deploymentResult: DeploymentResult;
   onPlan: () => void;
   onDeploy: () => void;
@@ -64,6 +74,28 @@ const LOG_DOT_COLOR: Record<DeploymentLogLevel, string> = {
   error: 'bg-[var(--color-error)]',
 };
 
+const ACTION_BADGE_STYLES: Record<
+  PlanResourceAction,
+  { label: string; className: string }
+> = {
+  create: {
+    label: 'Create',
+    className: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+  },
+  update: {
+    label: 'Update',
+    className: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+  },
+  destroy: {
+    label: 'Destroy',
+    className: 'bg-red-500/15 text-red-400 border-red-500/30',
+  },
+  no_change: {
+    label: 'No Change',
+    className: 'bg-slate-500/15 text-slate-400 border-slate-500/30',
+  },
+};
+
 function SectionHeader({ children }: { children: React.ReactNode }) {
   return (
     <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -85,6 +117,10 @@ export function DeployDrawer({
   const status = deploymentResult.status;
   const isRunning = status === 'in-progress';
   const statusStyle = STATUS_STYLES[status];
+
+  const hasChanges = planSummary.resources.some(
+    (resource) => resource.action && resource.action !== 'no_change',
+  );
 
   function patchSettings(patch: Partial<DeploymentSettings>) {
     onSettingsChange({ ...deploymentSettings, ...patch });
@@ -159,35 +195,84 @@ export function DeployDrawer({
             </div>
 
             <div className="space-y-2">
-              {planSummary.resources.map((resource) => (
-                <Card
-                  key={resource.id}
-                  className="bg-card-elevated rounded-md border border-border/60 bg-background/35 p-2.5 shadow-none transition-all duration-200 hover:border-primary/30"
-                >
-                  <div className="mb-1 flex items-center justify-between">
-                    <span className="truncate text-xs font-medium text-foreground">
-                      {resource.name}
-                    </span>
-                    <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
-                      <Link className="size-2.5" />
-                      {resource.connectionCount}
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2.5 text-[10px] text-muted-foreground">
-                    {resource.details.map((detail) => (
-                      <span
-                        key={detail.label}
-                        className="flex items-center gap-1"
-                      >
-                        <span className="text-muted-foreground/60">
-                          {detail.label}:
+              {planSummary.resources.map((resource: EnrichedPlanResource) => {
+                const actionStyle = resource.action
+                  ? ACTION_BADGE_STYLES[resource.action]
+                  : null;
+                const isDestroy = resource.action === 'destroy';
+
+                return (
+                  <Card
+                    key={resource.id}
+                    className={cn(
+                      'bg-card-elevated rounded-md border border-border/60 bg-background/35 p-2.5 shadow-none transition-all duration-200 hover:border-primary/30',
+                      isDestroy &&
+                        'border-red-500/40 bg-red-500/5 opacity-80 hover:border-red-500/50',
+                    )}
+                  >
+                    <div className="mb-1 flex items-center justify-between">
+                      <div className="flex min-w-0 items-center gap-1.5">
+                        <span
+                          className={cn(
+                            'size-1.5 shrink-0 rounded-full',
+                            isDestroy && 'pulse-red bg-red-500',
+                            !isDestroy &&
+                              resource.deploymentStatus === 'deployed' &&
+                              'pulse-green bg-emerald-500',
+                            !isDestroy &&
+                              resource.deploymentStatus === 'dirty' &&
+                              'pulse-amber bg-amber-500',
+                            !isDestroy &&
+                              resource.deploymentStatus === 'not_deployed' &&
+                              'pulse-gray bg-slate-500',
+                          )}
+                        />
+                        <span
+                          className={cn(
+                            'truncate text-xs font-medium text-foreground',
+                            isDestroy && 'text-muted-foreground line-through',
+                          )}
+                        >
+                          {resource.name}
                         </span>
-                        <span className="text-foreground">{detail.value}</span>
-                      </span>
-                    ))}
-                  </div>
-                </Card>
-              ))}
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        {actionStyle && (
+                          <span
+                            className={cn(
+                              'rounded-full border px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wide',
+                              actionStyle.className,
+                            )}
+                          >
+                            {actionStyle.label}
+                          </span>
+                        )}
+                        {!isDestroy && (
+                          <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                            <Link className="size-2.5" />
+                            {resource.connectionCount}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2.5 text-[10px] text-muted-foreground">
+                      {resource.details.map((detail) => (
+                        <span
+                          key={detail.label}
+                          className="flex items-center gap-1"
+                        >
+                          <span className="text-muted-foreground/60">
+                            {detail.label}:
+                          </span>
+                          <span className="text-foreground">
+                            {detail.value}
+                          </span>
+                        </span>
+                      ))}
+                    </div>
+                  </Card>
+                );
+              })}
 
               {planSummary.resources.length === 0 && (
                 <p className="py-4 text-center text-xs text-muted-foreground">
@@ -202,7 +287,7 @@ export function DeployDrawer({
             <SectionHeader>Deploy</SectionHeader>
             <Button
               onClick={onDeploy}
-              disabled={isRunning}
+              disabled={isRunning || !hasChanges}
               className="flex w-full items-center justify-center gap-2 bg-gradient-to-r from-primary to-[#6366f1] text-xs font-semibold text-white shadow-md hover:brightness-105 disabled:opacity-50"
               size="default"
             >
@@ -213,6 +298,11 @@ export function DeployDrawer({
               )}
               {isRunning ? 'Deploying…' : 'Deploy to AWS'}
             </Button>
+            {!hasChanges && !isRunning && (
+              <p className="mt-1.5 text-center text-[10px] text-muted-foreground">
+                No changes detected in the architecture plan.
+              </p>
+            )}
           </section>
 
           {/* Deployment Logs Section */}

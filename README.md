@@ -1,64 +1,81 @@
-# Orqestra
+# 🎼 Orqestra
 
-Draw, validate, and deploy cloud architectures to AWS directly from your browser. Orqestra is a visual Infrastructure-as-Code platform that enables users to design and deploy cloud architectures using a visual node-based editor and AI. Think of Orqestra as "Cursor for DevOps".
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
+[![DevOps](https://img.shields.io/badge/DevOps-Cloud_Engineering-6366f1.svg)]()
+[![AWS](https://img.shields.io/badge/Provider-AWS-orange.svg)]()
 
----
+> **Draw, validate, and deploy cloud architectures directly from your browser.**
 
-## Core Principles & Architecture
-
-### The Canvas Graph is the Source of Truth
-The infrastructure graph created by the user is the canonical source of truth. All validation, deployment plans, resource dependencies, and infrastructure generation derive directly from the graph. We do not introduce infrastructure state that can diverge from the graph representation.
-
-### Plugin-Based Cloud Architecture
-Cloud resources are treated as plugins, ensuring the core orchestration layer remains completely provider-agnostic. New cloud resources are implemented through the provider registration system rather than modifications to core orchestration code.
-
-### Monorepo Structure
-- **Frontend (`client/`)**: Premium Vite + React SPA.
-- **Backend (`server/`)**: Lean Django server.
+Orqestra is an open-source visual Infrastructure-as-Code (IaC) platform that enables developers to design, validate, and provision cloud architectures visually using a node-based canvas editor and AI assistance. Think of it as **"Cursor for DevOps."**
 
 ---
 
-## Technical Standards
+## ✨ Key Features
 
-### Frontend (React & TypeScript)
-- **Component Organization**: We favor composition and organize components by module ownership rather than placing feature-specific components in a global folder.
-- **Strict File Naming**: All filenames must use `kebab-case` (e.g., `deployment-panel.tsx`).
-- **UI & Styling**: Exclusively utilizes Shadcn UI components over native HTML tags to maintain our premium Design System.
-- **State Management**: React Query is the source of truth for server state. Redux Toolkit is strictly for client-side canvas and UI state (e.g., `editorSlice`, `deploymentSlice`).
-- **API Boundaries**: Frontend handles payload transformation. We strictly enforce `camelCase` in the frontend and `snake_case` in the backend, bridging the gap with dedicated API mappers.
-
-### Backend (Django & DRF)
-- **Decoupled Provider Registry**: Plug-and-play provider registration architecture. Services (like AWS Lambda) are registered cleanly under provider-specific plugins.
-- **Thin Views & Fat Models/Managers**: Views remain thin and focus on permissions, queryset scoping, and serializer orchestration. Query logic resides in Managers/QuerySets.
-- **Security & Permissions**: Every user-facing endpoint enforces authentication, authorization, and resource ownership validation. We never expose unscoped data.
-- **Validation**: Centralized in serializers.
-- **Docker First**: All backend operations, checks, and migrations must be run through Docker.
+* 🎨 **Interactive Canvas Editor**: Design complex cloud architectures visually. Link components, configure parameters, and inspect relationships using a reactive graph-based workspace powered by ReactFlow.
+* ⚡ **Developer Productivity & Shortcuts**:
+  * Double-click on any empty canvas area to open the floating **Quick-Add Menu** to instantly search and place services at your cursor.
+  * Use speed hotkeys (`1` for Zoom to Fit, `2` for Zoom to Selection) to navigate large architecture graphs quickly.
+* 🛡️ **Continuous Visual Validation**: Get real-time validation badges and error counts directly on resource cards before deploying, reducing config errors.
+* 🔍 **Visual Dry-Run Diffs**: Trigger planning to display visual diff action tags (`CREATE` / `UPDATE`) directly on the nodes, mapping out Terraform/CloudFormation actions before they happen.
+* 🔌 **Plugin-Based Cloud Architecture**: Treating cloud resources as provider-agnostic plugins ([registry.ts](file:///Users/rajtosh/Documents/projects/draw-to-deploy/client/src/services/registry.ts)). Adding support for new resources requires zero changes to the core orchestration layer.
+* 🐳 **Containerized Developer Parity**: Full Docker Compose environment matching production environments and eliminating "it works on my machine" issues.
 
 ---
 
-## Getting Started
+## 🏗️ Architecture Overview
+
+Orqestra is built as a monorepo splitting client and server responsibilities:
+
+```mermaid
+graph TD
+    User([Platform Architect / Developer]) --> Canvas[React Canvas Editor: client/]
+    Canvas --> Registry[Service Provider Registry]
+    Canvas --> Store[Redux Store: Editor & Deploy State]
+    Canvas -- REST API / camelCase --> Mappers[API Translation boundary]
+    Mappers -- snake_case Payload --> Views[DRF Viewsets: server/]
+    Views --> Managers[Django Model Managers / QuerySets]
+    Managers --> DB[(PostgreSQL Database)]
+    Managers --> Deployer[Deployer Service]
+    Deployer --> Cloud([AWS Cloud Provider])
+```
+
+* **Frontend (`client/`)**: Single-page application built on Vite + React + TypeScript + TailwindCSS + Shadcn UI.
+* **Backend (`server/`)**: API server built on Django, Django REST Framework, and PostgreSQL.
+
+---
+
+## 🛠️ Getting Started
+
+### Prerequisites
+* [Docker](https://www.docker.com/products/docker-desktop/) and Docker Compose.
+* *Alternative (Manual)*: Node.js v18+, Python 3.12+, PostgreSQL, AWS CLI.
+
+---
 
 ### Quick Start with Docker (Recommended)
-Orqestra is fully containerized for seamless development and operational parity.
+
+Orqestra is containerized for simple local boots.
 
 1. **Configure Environment Variables**:
    Copy `.env.template` to `.env` in the root directory:
    ```bash
    cp .env.template .env
    ```
-   *Note: Default environment settings, secrets, and database settings are safely isolated inside `.env`.*
+   *(Configure AWS regions, local secrets, or custom roles in this file as needed)*.
 
-2. **Boot the Entire App Stack**:
+2. **Boot the Application Stack**:
    ```bash
    docker compose up --build
    ```
 
-3. **Access the Application**:
-   Open **`http://localhost:8080`** in your browser.
+3. **Open the App**:
+   Navigate your browser to **[http://localhost:8080](http://localhost:8080)**.
 
 ---
 
-### Manual Setup (Development)
+### Manual Setup (Local Development)
 
 #### 1. Frontend Client
 ```bash
@@ -66,10 +83,10 @@ cd client
 npm install
 npm run dev
 ```
-*Frontend dev server boots locally on port `8080` (or the next available port).*
+*The Vite developer server starts locally on port `8080`*.
 
 #### 2. Backend Django Server
-Ensure you have Python 3.12+, `zip` utility, and the AWS CLI installed on your machine.
+Ensure PostgreSQL is running and you have Python 3.12+ installed:
 ```bash
 cd server
 python -m venv .venv
@@ -78,33 +95,49 @@ pip install -r requirements.txt
 python manage.py migrate
 python manage.py runserver 0.0.0.0:3001
 ```
-*Backend API server starts locally on port `3001`.*
+*The backend Django server starts locally on port `3001`*.
 
 ---
 
-## Verification & Testing
+## 🧪 Verification & Testing
 
-Always execute backend validation and tests inside Docker containers to guarantee operational environment parity:
+To maintain consistency and code quality, run checks before opening a pull request.
 
-### Run Backend System Checks:
-```bash
-docker compose run --rm server python manage.py check
-```
+### Backend System Validation (Docker)
+Always execute database checks and backend tests inside Docker containers to ensure environment parity:
 
-### Run Server Unit Tests:
-```bash
-docker compose run --rm server python manage.py test
-```
+* **Django Integrity Checks**:
+  ```bash
+  docker compose run --rm server python manage.py check
+  ```
+* **Run Server Unit Tests**:
+  ```bash
+  docker compose run --rm server python manage.py test
+  ```
 
-### Verify Client TypeScript Build:
-```bash
-npm run build --prefix client
-```
+### Frontend Linters & Build
+Run verification builds in the client project:
+
+* **Format and Lint Code**:
+  ```bash
+  npm run lint --prefix client
+  ```
+* **Verify Production Build**:
+  ```bash
+  npm run build --prefix client
+  ```
+* **Run Frontend Unit Tests**:
+  ```bash
+  npm run test --prefix client
+  ```
 
 ---
 
-## Deployment Prerequisites & Local Credentials
+## 🛡️ Cloud Credentials & Permissions
+* **AWS Credentials**: The Docker Compose setup mounts your host's local `${HOME}/.aws` folder into the server container (`/root/.aws`) so the deployer API can utilize your local AWS config files.
+* **IAM Execution Roles**: AWS actions are performed under execution roles. Supply an IAM Role ARN in the visual Node Inspector sidebar or configure `AWS_LAMBDA_EXECUTION_ROLE_ARN` in your local `.env`.
 
-- **AWS Credentials**: The Docker Compose setup mounts your host's local `${HOME}/.aws` folder into the server container (`/root/.aws`) so the AWS CLI can utilize your local AWS credentials seamlessly.
-- **Execution Role**: To create new AWS resources, supply an IAM execution role ARN directly in the UI inspector or export `AWS_LAMBDA_EXECUTION_ROLE_ARN` inside your `.env` file before booting the stack.
-- **Internal Routing**: Frontend relative endpoints route directly using the absolute backend url (configured via `VITE_API_URL` defaulting to `http://localhost:3001`), keeping the route structures clean and lightweight.
+---
+
+## 📜 License
+Orqestra is open-source software licensed under the [MIT License](LICENSE).

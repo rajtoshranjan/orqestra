@@ -10,6 +10,8 @@ import type {
   DiagramEdge,
   PersistedDiagram,
   PlanSummary,
+  PlanResourceAction,
+  ServicePlanResource,
   DeploymentLogEntry,
   SavedProjectRecord,
 } from '@/types';
@@ -45,6 +47,97 @@ export function buildPlan(
   });
 
   return { resourceCount: resources.length, resources };
+}
+
+/**
+ * Enrich a plan summary with deployment diff actions by comparing current
+ * canvas nodes against the last successfully deployed graph snapshot.
+ *
+ * Each resource gets an `action` field:
+ * - `create`    — node exists on canvas but was not deployed.
+ * - `update`    — node exists on canvas and was deployed, but config changed.
+ * - `no_change` — node exists on canvas and matches the deployed config.
+ * - `destroy`   — node was deployed but no longer exists on canvas.
+ */
+export function enrichPlanWithDeploymentDiff(
+  planSummary: PlanSummary,
+  deployedNodes: DiagramNode[] | null | undefined,
+  currentNodes: DiagramNode[],
+): PlanSummary & {
+  resources: (ServicePlanResource & { action: PlanResourceAction })[];
+} {
+  if (!deployedNodes || deployedNodes.length === 0) {
+    return {
+      ...planSummary,
+      resources: planSummary.resources.map((resource) => ({
+        ...resource,
+        action: 'create' as const,
+      })),
+    };
+  }
+
+  const deployedNodeMap = new Map(deployedNodes.map((node) => [node.id, node]));
+  const currentNodeMap = new Map(currentNodes.map((node) => [node.id, node]));
+  const currentNodeIds = new Set(currentNodes.map((node) => node.id));
+
+  type EnrichedResource = ServicePlanResource & { action: PlanResourceAction };
+
+  const enrichedResources: EnrichedResource[] = planSummary.resources.map(
+    (resource) => {
+      const currentNode = currentNodeMap.get(resource.id);
+
+      if (!currentNode) {
+        return { ...resource, action: 'create' as const };
+      }
+
+      // Check if status is already pre-computed on node data, else compute it.
+      let deploymentStatus = (currentNode.data as any)?.deploymentStatus;
+      if (!deploymentStatus) {
+        const deployedNode = deployedNodeMap.get(resource.id);
+        if (deployedNode) {
+          const currentConfig = JSON.stringify(currentNode.data?.config ?? {});
+          const deployedConfig = JSON.stringify(
+            deployedNode.data?.config ?? {},
+          );
+          deploymentStatus =
+            currentConfig === deployedConfig ? 'deployed' : 'dirty';
+        } else {
+          deploymentStatus = 'not_deployed';
+        }
+      }
+
+      if (deploymentStatus === 'deployed') {
+        return { ...resource, action: 'no_change' as const };
+      } else if (deploymentStatus === 'dirty') {
+        return { ...resource, action: 'update' as const };
+      }
+
+      return { ...resource, action: 'create' as const };
+    },
+  );
+
+  // Append destroy entries for deployed nodes no longer on the canvas.
+  for (const [nodeId, deployedNode] of deployedNodeMap) {
+    if (currentNodeIds.has(nodeId)) continue;
+
+    const service = registry.find(deployedNode.data?.serviceId ?? '');
+    const destroyResource: ServicePlanResource & {
+      action: PlanResourceAction;
+    } = {
+      id: nodeId,
+      cloudFormationType: service?.cloudFormationType ?? 'Unknown',
+      name: deployedNode.data?.label ?? 'Deleted Resource',
+      connectionCount: 0,
+      details: [{ label: 'Action', value: 'Will be destroyed' }],
+      action: 'destroy',
+    };
+    enrichedResources.push(destroyResource);
+  }
+
+  return {
+    resourceCount: enrichedResources.length,
+    resources: enrichedResources,
+  };
 }
 
 export function normalizePersistedDiagram(

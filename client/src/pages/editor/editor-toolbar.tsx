@@ -28,21 +28,20 @@ export type EditorToolbarProps = {
   onBack: () => void;
   onPlan: () => void;
   isSaving?: boolean;
+  deploymentStatus: DeploymentStatus;
 };
 
 export function EditorToolbar({
   onBack,
   onPlan,
   isSaving = false,
+  deploymentStatus,
 }: EditorToolbarProps) {
   const dispatch = useAppDispatch();
   const [settingsOpen, setSettingsOpen] = React.useState(false);
 
   const { projectName, lastSavedAt, snapToGrid, isLocked, nodes } =
     useAppSelector((state) => state.editor);
-  const deploymentStatus = useAppSelector(
-    (state) => state.deployment.result.status,
-  );
 
   const isDeploying =
     deploymentStatus === DeploymentStatus.Pending ||
@@ -180,9 +179,8 @@ export function EditorToolbar({
           {/* Plan & Deploy */}
           <Button
             onClick={onPlan}
-            disabled={isDeploying}
             size="sm"
-            className="flex items-center gap-1.5 font-semibold text-white shadow-sm disabled:opacity-60"
+            className="flex items-center gap-1.5 font-semibold text-white shadow-sm"
           >
             {isDeploying ? (
               <Loader2 size={13} className="animate-spin" />

@@ -1,9 +1,16 @@
 from django.urls import path
 
-from .views import DeployView, HealthCheckView, PlanView
+from .views import CloudServicesViewSet
 
 urlpatterns = [
-    path("health", HealthCheckView.as_view(), name="health"),
-    path("plan", PlanView.as_view(), name="plan"),
-    path("deploy", DeployView.as_view(), name="deploy"),
+    path(
+        "health",
+        CloudServicesViewSet.as_view({"get": "health"}),
+        name="health",
+    ),
+    path(
+        "plan",
+        CloudServicesViewSet.as_view({"post": "plan"}),
+        name="plan",
+    ),
 ]

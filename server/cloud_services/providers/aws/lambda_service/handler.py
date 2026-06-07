@@ -87,6 +87,39 @@ class LambdaHandler(BaseServiceHandler):
 
         deploy_lambda(node, settings, logs)
 
+    def to_tofu_resource(self, node: dict, settings: dict) -> dict:
+        """Generate OpenTofu aws_lambda_function resource from a node."""
+        config = node["data"]["config"]
+        logical_name = self.sanitize_resource_name(node["id"])
+        env_vars = normalize_environment_variables(
+            config.get("environment_variables", [])
+        )
+
+        resource_config = {
+            "function_name": config["function_name"],
+            "runtime": config["runtime"],
+            "handler": config["handler"],
+            "memory_size": config.get("memory_size", 128),
+            "timeout": config.get("timeout", 3),
+            "role": settings.get("execution_role_arn", ""),
+            "filename": f"bundles/{logical_name}.zip",
+        }
+
+        if env_vars:
+            resource_config["environment"] = [{"variables": env_vars}]
+
+        description = config.get("description", "").strip()
+        if description:
+            resource_config["description"] = description
+
+        return {
+            "resource": {
+                "aws_lambda_function": {
+                    logical_name: resource_config,
+                }
+            }
+        }
+
     def _fallback_node_name(self, node):
         """Return the best available name for a node."""
         data = node.get("data", {})

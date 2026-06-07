@@ -13,6 +13,7 @@ export type BaseServiceNodeProps = {
   tag?: string;
   statsBar?: React.ReactNode;
   children?: React.ReactNode;
+  deploymentStatus?: 'not_deployed' | 'deployed' | 'dirty';
 };
 
 export function BaseServiceNode({
@@ -26,6 +27,7 @@ export function BaseServiceNode({
   tag,
   statsBar,
   children,
+  deploymentStatus = 'not_deployed',
 }: BaseServiceNodeProps) {
   return (
     <div
@@ -119,14 +121,21 @@ export function BaseServiceNode({
       <div className="absolute right-1.5 top-1.5 flex shrink-0 select-none items-center gap-1">
         <span
           className={cn(
-            'size-1 rounded-full',
-            hasErrors
-              ? 'pulse-amber bg-amber-500'
-              : 'pulse-green bg-emerald-500',
+            'size-1.5 rounded-full',
+            hasErrors && 'pulse-red bg-red-500',
+            !hasErrors &&
+              deploymentStatus === 'deployed' &&
+              'pulse-green bg-emerald-500',
+            !hasErrors &&
+              deploymentStatus === 'dirty' &&
+              'pulse-amber bg-amber-500',
+            !hasErrors &&
+              deploymentStatus === 'not_deployed' &&
+              'pulse-gray bg-slate-500',
           )}
         />
         {hasErrors && (
-          <span className="text-[6.5px] font-bold uppercase tracking-wide text-amber-500">
+          <span className="text-[6.5px] font-bold uppercase tracking-wide text-red-500">
             {errorCount}
           </span>
         )}

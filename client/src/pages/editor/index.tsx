@@ -4,7 +4,10 @@ import { CanvasEditor } from './editor-canvas';
 import { useProject } from '@/api';
 import { useAppDispatch } from '@/store';
 import { setProject } from '@/store/editor-slice';
-import { setDeploymentSettings } from '@/store/deployment-slice';
+import {
+  setDeploymentSettings,
+  setActiveDeploymentId,
+} from '@/store/deployment-slice';
 
 type EditorProps = {
   projectId: string;
@@ -19,6 +22,7 @@ export function Editor({ projectId, onNavigateHome }: EditorProps) {
     if (project) {
       dispatch(setProject(project));
       dispatch(setDeploymentSettings(project.deploymentSettings));
+      dispatch(setActiveDeploymentId(null));
     }
   }, [project, dispatch]);
 
