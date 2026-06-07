@@ -1,14 +1,6 @@
-# 🎼 Orqestra
+# Orqestra
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
-[![DevOps](https://img.shields.io/badge/DevOps-Cloud_Engineering-6366f1.svg)]()
-[![AWS](https://img.shields.io/badge/Provider-AWS-orange.svg)]()
-
-> **Draw, validate, and deploy cloud architectures directly from your browser.**
-
-Orqestra is an open-source visual Infrastructure-as-Code (IaC) platform that enables developers to design, validate, and provision cloud architectures visually using a node-based canvas editor and AI assistance. Think of it as **"Cursor for DevOps."**
-
+Orqestra is the AI-native platform for DevOps and cloud engineering. Think Cursor for DevOps: design infrastructure visually, describe your requirements in natural language, and let AI agents generate, validate, and deploy production-ready cloud architectures across AWS, Azure, and GCP.
 ---
 
 ## ✨ Key Features
