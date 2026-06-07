@@ -219,3 +219,129 @@ export const sharedServicesConfigSchema = z.object({
 export const accountConfigSchema = z.object({
   accountId: z.string().regex(/^\d{12}$/, 'Must be a 12-digit AWS account ID.'),
 });
+
+export const ebsConfigSchema = z.object({
+  volumeName: z.string().min(1, 'Volume name is required.'),
+  volumeType: z.enum(['gp3', 'gp2', 'io1', 'io2', 'st1', 'sc1']),
+  sizeGb: z.number().min(1, 'Size must be at least 1 GiB.'),
+  encrypted: z.boolean(),
+});
+
+export const fsxConfigSchema = z.object({
+  fileSystemName: z.string().min(1, 'File system name is required.'),
+  fileSystemType: z.enum(['WINDOWS', 'LUSTRE', 'NETAPP_ONTAP', 'OPENZFS']),
+  storageCapacityGb: z
+    .number()
+    .min(1, 'Storage capacity must be at least 1 GiB.'),
+});
+
+export const auroraConfigSchema = z.object({
+  clusterIdentifier: z.string().min(1, 'Cluster identifier is required.'),
+  engine: z.enum(['aurora-mysql', 'aurora-postgresql']),
+  engineVersion: z.string(),
+  serverless: z.boolean(),
+});
+
+export const elasticacheConfigSchema = z.object({
+  clusterName: z.string().min(1, 'Cluster name is required.'),
+  engine: z.enum(['redis', 'memcached']),
+  cacheNodeType: z.string().min(1, 'Cache node type is required.'),
+  numCacheNodes: z.number().min(1, 'Must have at least 1 cache node.'),
+});
+
+export const redshiftConfigSchema = z.object({
+  clusterIdentifier: z.string().min(1, 'Cluster identifier is required.'),
+  nodeType: z.string().min(1, 'Node type is required.'),
+  numberOfNodes: z.number().min(1, 'Must have at least 1 node.'),
+  databaseName: z.string().min(1, 'Database name is required.'),
+});
+
+export const xrayConfigSchema = z.object({
+  groupName: z.string().min(1, 'Group name is required.'),
+  samplingRate: z
+    .number()
+    .min(1, 'Sampling rate must be at least 1%.')
+    .max(100, 'Sampling rate cannot exceed 100%.'),
+});
+
+export const transitGatewayConfigSchema = z.object({
+  transitGatewayName: z.string().min(1, 'Transit Gateway Name is required.'),
+  amazonSideAsn: z
+    .number()
+    .refine(
+      (val) =>
+        (val >= 64512 && val <= 65534) ||
+        (val >= 4200000000 && val <= 4294967294),
+      'ASN must be in range 64512–65534 or 4200000000–4294967294.',
+    ),
+});
+
+export const networkAclConfigSchema = z.object({
+  aclName: z.string().min(1, 'ACL Name is required.'),
+  defaultAction: z.enum(['allow', 'deny']),
+});
+
+export const route53ConfigSchema = z.object({
+  hostedZoneName: z.string().min(1, 'Hosted Zone Name is required.'),
+  zoneType: z.enum(['public', 'private']),
+});
+
+export const ecsClusterConfigSchema = z.object({
+  clusterName: z.string().min(1, 'Cluster Name is required.'),
+  launchType: z.enum(['FARGATE', 'EC2', 'EXTERNAL']),
+});
+
+export const eksClusterConfigSchema = z.object({
+  clusterName: z.string().min(1, 'Cluster Name is required.'),
+  kubernetesVersion: z.string().min(1, 'Kubernetes Version is required.'),
+});
+
+export const batchConfigSchema = z.object({
+  computeEnvironmentName: z
+    .string()
+    .min(1, 'Compute Environment Name is required.'),
+  computeType: z.enum(['EC2', 'FARGATE', 'SPOT']),
+});
+
+export const codepipelineConfigSchema = z.object({
+  pipelineName: z.string().min(1, 'Pipeline name is required.'),
+  pipelineType: z.enum(['V1', 'V2']),
+});
+
+export const codebuildConfigSchema = z.object({
+  projectName: z.string().min(1, 'Project name is required.'),
+  buildImage: z.string().min(1, 'Build image is required.'),
+  computeType: z.enum([
+    'BUILD_GENERAL1_SMALL',
+    'BUILD_GENERAL1_MEDIUM',
+    'BUILD_GENERAL1_LARGE',
+  ]),
+});
+
+export const codedeployConfigSchema = z.object({
+  applicationName: z.string().min(1, 'Application name is required.'),
+  computePlatform: z.enum(['Server', 'Lambda', 'ECS']),
+});
+
+export const appRunnerConfigSchema = z.object({
+  serviceName: z.string().min(1, 'Service name is required.'),
+  cpu: z.enum(['0.25 vCPU', '0.5 vCPU', '1 vCPU', '2 vCPU']),
+  memory: z.enum(['0.5 GB', '1 GB', '2 GB', '3 GB', '4 GB']),
+});
+
+export const elasticBeanstalkConfigSchema = z.object({
+  applicationName: z.string().min(1, 'Application name is required.'),
+  platform: z.string().min(1, 'Platform is required.'),
+  environmentTier: z.enum(['WebServer', 'Worker']),
+});
+
+export const amazonMqConfigSchema = z.object({
+  brokerName: z.string().min(1, 'Broker name is required.'),
+  engineType: z.enum(['ACTIVEMQ', 'RABBITMQ']),
+  hostInstanceType: z.string().min(1, 'Host instance type is required.'),
+  deploymentMode: z.enum([
+    'SINGLE_INSTANCE',
+    'ACTIVE_STANDBY_MULTI_AZ',
+    'CLUSTER_MULTI_AZ',
+  ]),
+});

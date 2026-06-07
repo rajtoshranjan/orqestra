@@ -1,0 +1,163 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { Link, useNavigate } from 'react-router-dom';
+import { z } from 'zod';
+import {
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  Input,
+} from '@/components/ui';
+import { useSignup } from '@/api/auth';
+
+const signupSchema = z
+  .object({
+    name: z
+      .string()
+      .min(2, 'Name must be at least 2 characters')
+      .max(100, 'Name must be less than 100 characters'),
+    email: z.string().email('Invalid email address'),
+    password: z
+      .string()
+      .min(8, 'Password must be at least 8 characters')
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+        'Password must contain uppercase, lowercase and numbers',
+      ),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  });
+
+type SignupFormData = z.infer<typeof signupSchema>;
+
+export function SignUpPage() {
+  const navigate = useNavigate();
+  const [serverError, setServerError] = useState<string | null>(null);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<SignupFormData>({
+    resolver: zodResolver(signupSchema),
+  });
+
+  const { mutate: signup, isPending } = useSignup();
+
+  const onSubmit = (data: SignupFormData) => {
+    setServerError(null);
+    signup(data, {
+      onSuccess: () => {
+        navigate('/login');
+      },
+      onError: (error: any) => {
+        const detail =
+          error?.response?.data?.meta?.message ||
+          error?.meta?.message ||
+          'Failed to sign up. Email may already be in use.';
+        setServerError(detail);
+      },
+    });
+  };
+
+  return (
+    <Card className="border-border bg-[var(--color-bg-surface)] shadow-lg">
+      <CardHeader className="text-center">
+        <CardTitle className="text-xl font-bold tracking-tight text-foreground">
+          Sign Up
+        </CardTitle>
+        <CardDescription className="text-muted-foreground text-xs">
+          Create a new account to get started
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
+          <div className="grid gap-1.5">
+            <label htmlFor="name" className="text-xs font-semibold text-foreground">
+              Name
+            </label>
+            <Input
+              {...register('name')}
+              id="name"
+              type="text"
+              placeholder="John Doe"
+              className="border-input text-foreground focus-visible:ring-primary"
+            />
+            {errors.name?.message && (
+              <p className="text-[10px] text-destructive">{errors.name.message}</p>
+            )}
+          </div>
+          <div className="grid gap-1.5">
+            <label htmlFor="email" className="text-xs font-semibold text-foreground">
+              Email Address
+            </label>
+            <Input
+              {...register('email')}
+              id="email"
+              type="email"
+              placeholder="name@example.com"
+              className="border-input text-foreground focus-visible:ring-primary"
+            />
+            {errors.email?.message && (
+              <p className="text-[10px] text-destructive">{errors.email.message}</p>
+            )}
+          </div>
+          <div className="grid gap-1.5">
+            <label htmlFor="password" className="text-xs font-semibold text-foreground">
+              Password
+            </label>
+            <Input
+              {...register('password')}
+              id="password"
+              type="password"
+              placeholder="••••••••"
+              className="border-input text-foreground focus-visible:ring-primary"
+            />
+            {errors.password?.message && (
+              <p className="text-[10px] text-destructive">{errors.password.message}</p>
+            )}
+          </div>
+          <div className="grid gap-1.5">
+            <label htmlFor="confirmPassword" className="text-xs font-semibold text-foreground">
+              Confirm Password
+            </label>
+            <Input
+              {...register('confirmPassword')}
+              id="confirmPassword"
+              type="password"
+              placeholder="••••••••"
+              className="border-input text-foreground focus-visible:ring-primary"
+            />
+            {errors.confirmPassword?.message && (
+              <p className="text-[10px] text-destructive">{errors.confirmPassword.message}</p>
+            )}
+          </div>
+          {serverError && (
+            <div className="rounded-md bg-destructive/10 p-2 text-center text-xs text-destructive">
+              {serverError}
+            </div>
+          )}
+          <Button type="submit" className="w-full text-xs font-semibold mt-2" disabled={isPending}>
+            {isPending ? 'Signing up...' : 'Sign Up'}
+          </Button>
+        </form>
+      </CardContent>
+      <CardFooter className="justify-center border-t border-border/50 pt-4">
+        <p className="text-xs text-muted-foreground">
+          Already have an account?{' '}
+          <Link to="/login" className="text-primary hover:underline font-medium">
+            Log in
+          </Link>
+        </p>
+      </CardFooter>
+    </Card>
+  );
+}

@@ -768,6 +768,2822 @@ export const SubnetIcon = ({
   </svg>
 );
 
+// AWS NAT Gateway
+export const NatGatewayIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-nat">
+        <stop stopColor="#1A6DAE" offset="0%" />
+        <stop stopColor="#29B0D9" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-nat)" />
+    <circle
+      cx="40"
+      cy="40"
+      r="18"
+      stroke="#FFFFFF"
+      strokeWidth="3"
+      fill="none"
+    />
+    <path
+      d="M28 40H52M46 33L53 40L46 47"
+      stroke="#FFFFFF"
+      strokeWidth="3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M40 22V18M40 62V58"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+// AWS Internet Gateway
+export const InternetGatewayIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-igw">
+        <stop stopColor="#1A6DAE" offset="0%" />
+        <stop stopColor="#29B0D9" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-igw)" />
+    <circle
+      cx="40"
+      cy="40"
+      r="20"
+      stroke="#FFFFFF"
+      strokeWidth="3"
+      fill="none"
+    />
+    <ellipse
+      cx="40"
+      cy="40"
+      rx="10"
+      ry="20"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      fill="none"
+    />
+    <line
+      x1="20"
+      y1="40"
+      x2="60"
+      y2="40"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+    <line
+      x1="22"
+      y1="30"
+      x2="58"
+      y2="30"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
+    <line
+      x1="22"
+      y1="50"
+      x2="58"
+      y2="50"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+// AWS Route Table
+export const RouteTableIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-rt">
+        <stop stopColor="#1A6DAE" offset="0%" />
+        <stop stopColor="#29B0D9" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-rt)" />
+    <rect
+      x="14"
+      y="22"
+      width="52"
+      height="36"
+      rx="3"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <line x1="14" y1="33" x2="66" y2="33" stroke="#FFFFFF" strokeWidth="2" />
+    <line
+      x1="14"
+      y1="43"
+      x2="66"
+      y2="43"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+      strokeOpacity="0.7"
+    />
+    <line
+      x1="14"
+      y1="52"
+      x2="66"
+      y2="52"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+      strokeOpacity="0.7"
+    />
+    <line x1="37" y1="22" x2="37" y2="58" stroke="#FFFFFF" strokeWidth="2" />
+    <text
+      x="22"
+      y="30"
+      fill="#FFFFFF"
+      fontSize="8"
+      fontWeight="bold"
+      fontFamily="monospace"
+    >
+      DST
+    </text>
+    <text
+      x="46"
+      y="30"
+      fill="#FFFFFF"
+      fontSize="8"
+      fontWeight="bold"
+      fontFamily="monospace"
+    >
+      GW
+    </text>
+  </svg>
+);
+
+// AWS EC2
+export const Ec2Icon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-ec2">
+        <stop stopColor="#C8511B" offset="0%" />
+        <stop stopColor="#FF9900" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-ec2)" />
+    <rect
+      x="18"
+      y="20"
+      width="44"
+      height="40"
+      rx="4"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <rect
+      x="26"
+      y="28"
+      width="10"
+      height="10"
+      rx="1"
+      fill="#FFFFFF"
+      fillOpacity="0.9"
+    />
+    <rect
+      x="44"
+      y="28"
+      width="10"
+      height="10"
+      rx="1"
+      fill="#FFFFFF"
+      fillOpacity="0.9"
+    />
+    <rect
+      x="26"
+      y="43"
+      width="10"
+      height="10"
+      rx="1"
+      fill="#FFFFFF"
+      fillOpacity="0.9"
+    />
+    <rect
+      x="44"
+      y="43"
+      width="10"
+      height="10"
+      rx="1"
+      fill="#FFFFFF"
+      fillOpacity="0.9"
+    />
+    <line
+      x1="18"
+      y1="64"
+      x2="30"
+      y2="64"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="50"
+      y1="64"
+      x2="62"
+      y2="64"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+// AWS Application Load Balancer
+export const AlbIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-alb">
+        <stop stopColor="#1A6DAE" offset="0%" />
+        <stop stopColor="#29B0D9" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-alb)" />
+    <circle
+      cx="40"
+      cy="24"
+      r="8"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <path
+      d="M40 32L22 56M40 32L40 56M40 32L58 56"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+    <circle cx="22" cy="58" r="5" fill="#FFFFFF" fillOpacity="0.85" />
+    <circle cx="40" cy="58" r="5" fill="#FFFFFF" fillOpacity="0.85" />
+    <circle cx="58" cy="58" r="5" fill="#FFFFFF" fillOpacity="0.85" />
+  </svg>
+);
+
+// AWS CloudWatch
+export const CloudWatchIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-cw">
+        <stop stopColor="#C7131F" offset="0%" />
+        <stop stopColor="#FF4F8B" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-cw)" />
+    <circle
+      cx="40"
+      cy="40"
+      r="22"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <circle cx="40" cy="40" r="3" fill="#FFFFFF" />
+    <line
+      x1="40"
+      y1="21"
+      x2="40"
+      y2="28"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="40"
+      y1="52"
+      x2="40"
+      y2="59"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="21"
+      y1="40"
+      x2="28"
+      y2="40"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="52"
+      y1="40"
+      x2="59"
+      y2="40"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <path
+      d="M40 40L52 28"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+    <path
+      d="M24 52L36 40"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeOpacity="0.7"
+    />
+  </svg>
+);
+
+// AWS RDS
+export const RdsIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-rds">
+        <stop stopColor="#1A6DAE" offset="0%" />
+        <stop stopColor="#29B0D9" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-rds)" />
+    <ellipse
+      cx="40"
+      cy="26"
+      rx="22"
+      ry="8"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <path
+      d="M18 26V54C18 58.4 28.1 62 40 62C51.9 62 62 58.4 62 54V26"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <ellipse
+      cx="40"
+      cy="40"
+      rx="22"
+      ry="8"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+      fill="none"
+      strokeOpacity="0.6"
+    />
+  </svg>
+);
+
+// AWS KMS
+export const KmsIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-kms">
+        <stop stopColor="#DD344C" offset="0%" />
+        <stop stopColor="#FF7B7B" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-kms)" />
+    <circle
+      cx="33"
+      cy="34"
+      r="12"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <path
+      d="M41 42L56 57"
+      stroke="#FFFFFF"
+      strokeWidth="3"
+      strokeLinecap="round"
+    />
+    <rect x="50" y="52" width="8" height="5" rx="1" fill="#FFFFFF" />
+    <rect x="54" y="49" width="4" height="4" rx="1" fill="#FFFFFF" />
+  </svg>
+);
+
+// AWS Secrets Manager
+export const SecretsManagerIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-sm">
+        <stop stopColor="#DD344C" offset="0%" />
+        <stop stopColor="#FF7B7B" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-sm)" />
+    <rect
+      x="20"
+      y="36"
+      width="40"
+      height="28"
+      rx="4"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <path
+      d="M28 36V28C28 21.4 33.4 16 40 16C46.6 16 52 21.4 52 28V36"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+      strokeLinecap="round"
+    />
+    <circle cx="40" cy="50" r="5" fill="#FFFFFF" fillOpacity="0.9" />
+    <line
+      x1="40"
+      y1="55"
+      x2="40"
+      y2="60"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+// AWS Cognito
+export const CognitoIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-cognito">
+        <stop stopColor="#4B0080" offset="0%" />
+        <stop stopColor="#BF5AF2" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-cognito)" />
+    <circle
+      cx="40"
+      cy="28"
+      r="11"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <path
+      d="M18 64C18 52.95 28.07 44 40 44C51.93 44 62 52.95 62 64"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+// AWS Transit Gateway
+export const TransitGatewayIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-tgw">
+        <stop stopColor="#1A6DAE" offset="0%" />
+        <stop stopColor="#29B0D9" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-tgw)" />
+    <circle cx="40" cy="40" r="10" fill="#FFFFFF" fillOpacity="0.95" />
+    <line
+      x1="40"
+      y1="14"
+      x2="40"
+      y2="30"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+    <line
+      x1="40"
+      y1="50"
+      x2="40"
+      y2="66"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+    <line
+      x1="14"
+      y1="40"
+      x2="30"
+      y2="40"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+    <line
+      x1="50"
+      y1="40"
+      x2="66"
+      y2="40"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+    <line
+      x1="20"
+      y1="20"
+      x2="32"
+      y2="32"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="48"
+      y1="48"
+      x2="60"
+      y2="60"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="60"
+      y1="20"
+      x2="48"
+      y2="32"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="32"
+      y1="48"
+      x2="20"
+      y2="60"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+// AWS Network ACL
+export const NetworkAclIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-nacl">
+        <stop stopColor="#1A6DAE" offset="0%" />
+        <stop stopColor="#29B0D9" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-nacl)" />
+    <rect
+      x="14"
+      y="18"
+      width="52"
+      height="44"
+      rx="3"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <line x1="14" y1="30" x2="66" y2="30" stroke="#FFFFFF" strokeWidth="2" />
+    <line
+      x1="14"
+      y1="43"
+      x2="66"
+      y2="43"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+      strokeOpacity="0.6"
+    />
+    <line
+      x1="14"
+      y1="55"
+      x2="66"
+      y2="55"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+      strokeOpacity="0.6"
+    />
+    <circle cx="23" cy="24" r="3" fill="#FFFFFF" fillOpacity="0.9" />
+    <line
+      x1="30"
+      y1="24"
+      x2="60"
+      y2="24"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeOpacity="0.7"
+    />
+    <path
+      d="M22 37L26 40L22 43"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M58 37L54 40L58 43"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M22 49L26 52L22 55"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M58 49L54 52L58 55"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+// AWS Route 53
+export const Route53Icon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-r53">
+        <stop stopColor="#1A6DAE" offset="0%" />
+        <stop stopColor="#29B0D9" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-r53)" />
+    <circle
+      cx="40"
+      cy="40"
+      r="22"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <ellipse
+      cx="40"
+      cy="40"
+      rx="11"
+      ry="22"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+      fill="none"
+      strokeOpacity="0.7"
+    />
+    <line
+      x1="18"
+      y1="40"
+      x2="62"
+      y2="40"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="20"
+      y1="28"
+      x2="60"
+      y2="28"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeOpacity="0.6"
+    />
+    <line
+      x1="20"
+      y1="52"
+      x2="60"
+      y2="52"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeOpacity="0.6"
+    />
+  </svg>
+);
+
+// Amazon ECS
+export const EcsIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-ecs">
+        <stop stopColor="#C8511B" offset="0%" />
+        <stop stopColor="#FF9900" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-ecs)" />
+    <rect
+      x="14"
+      y="14"
+      width="22"
+      height="22"
+      rx="3"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <rect
+      x="44"
+      y="14"
+      width="22"
+      height="22"
+      rx="3"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <rect
+      x="14"
+      y="44"
+      width="22"
+      height="22"
+      rx="3"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <rect
+      x="44"
+      y="44"
+      width="22"
+      height="22"
+      rx="3"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <circle cx="25" cy="25" r="4" fill="#FFFFFF" fillOpacity="0.8" />
+    <circle cx="55" cy="25" r="4" fill="#FFFFFF" fillOpacity="0.8" />
+    <circle cx="25" cy="55" r="4" fill="#FFFFFF" fillOpacity="0.8" />
+    <circle cx="55" cy="55" r="4" fill="#FFFFFF" fillOpacity="0.8" />
+  </svg>
+);
+
+// Amazon EKS
+export const EksIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-eks">
+        <stop stopColor="#C8511B" offset="0%" />
+        <stop stopColor="#FF9900" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-eks)" />
+    <polygon
+      points="40,13 64,26 64,54 40,67 16,54 16,26"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <circle cx="40" cy="40" r="8" fill="#FFFFFF" fillOpacity="0.9" />
+    <line
+      x1="40"
+      y1="32"
+      x2="40"
+      y2="22"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="40"
+      y1="48"
+      x2="40"
+      y2="58"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="33"
+      y1="36"
+      x2="24"
+      y2="31"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="47"
+      y1="44"
+      x2="56"
+      y2="49"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="33"
+      y1="44"
+      x2="24"
+      y2="49"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="47"
+      y1="36"
+      x2="56"
+      y2="31"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+// AWS Batch
+export const BatchIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-batch">
+        <stop stopColor="#C8511B" offset="0%" />
+        <stop stopColor="#FF9900" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-batch)" />
+    <rect
+      x="14"
+      y="20"
+      width="52"
+      height="11"
+      rx="2.5"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      fill="none"
+    />
+    <rect
+      x="14"
+      y="35"
+      width="52"
+      height="11"
+      rx="2.5"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      fill="none"
+    />
+    <rect
+      x="14"
+      y="50"
+      width="52"
+      height="11"
+      rx="2.5"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      fill="none"
+    />
+    <rect
+      x="18"
+      y="23"
+      width="20"
+      height="5"
+      rx="1.5"
+      fill="#FFFFFF"
+      fillOpacity="0.9"
+    />
+    <rect
+      x="18"
+      y="38"
+      width="32"
+      height="5"
+      rx="1.5"
+      fill="#FFFFFF"
+      fillOpacity="0.9"
+    />
+    <rect
+      x="18"
+      y="53"
+      width="14"
+      height="5"
+      rx="1.5"
+      fill="#FFFFFF"
+      fillOpacity="0.9"
+    />
+  </svg>
+);
+
+// Amazon EBS
+export const EbsIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-ebs">
+        <stop stopColor="#3F8624" offset="0%" />
+        <stop stopColor="#7CC43D" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-ebs)" />
+    <ellipse
+      cx="40"
+      cy="27"
+      rx="22"
+      ry="9"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <path d="M18 27V53" stroke="#FFFFFF" strokeWidth="2.5" fill="none" />
+    <path d="M62 27V53" stroke="#FFFFFF" strokeWidth="2.5" fill="none" />
+    <ellipse
+      cx="40"
+      cy="53"
+      rx="22"
+      ry="9"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <ellipse
+      cx="40"
+      cy="27"
+      rx="22"
+      ry="9"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="#FFFFFF"
+      fillOpacity="0.15"
+    />
+  </svg>
+);
+
+// Amazon FSx
+export const FsxIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-fsx">
+        <stop stopColor="#3F8624" offset="0%" />
+        <stop stopColor="#7CC43D" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-fsx)" />
+    <path
+      d="M40 14L62 27V53L40 66L18 53V27L40 14Z"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <path
+      d="M40 14V66"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+      strokeOpacity="0.5"
+    />
+    <path
+      d="M18 27L62 53"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+      strokeOpacity="0.5"
+    />
+    <path
+      d="M62 27L18 53"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+      strokeOpacity="0.5"
+    />
+  </svg>
+);
+
+// Amazon Aurora
+export const AuroraIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-aurora">
+        <stop stopColor="#1A6DAE" offset="0%" />
+        <stop stopColor="#A166FF" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-aurora)" />
+    <ellipse
+      cx="40"
+      cy="26"
+      rx="22"
+      ry="8"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <path
+      d="M18 26V54C18 58.4 28.1 62 40 62C51.9 62 62 58.4 62 54V26"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <path
+      d="M28 40L36 47L52 32"
+      stroke="#FFFFFF"
+      strokeWidth="3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+// Amazon ElastiCache
+export const ElastiCacheIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-ec">
+        <stop stopColor="#C7131F" offset="0%" />
+        <stop stopColor="#FF9900" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-ec)" />
+    <path
+      d="M40 18L56 27V45L40 54L24 45V27L40 18Z"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <path
+      d="M24 27L40 36L56 27"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeOpacity="0.7"
+    />
+    <line
+      x1="40"
+      y1="36"
+      x2="40"
+      y2="54"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeOpacity="0.7"
+    />
+    <path
+      d="M32 62H48"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+    <path
+      d="M36 58V62M44 58V62"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+// Amazon Redshift
+export const RedshiftIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-rs">
+        <stop stopColor="#1A6DAE" offset="0%" />
+        <stop stopColor="#29B0D9" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-rs)" />
+    <path
+      d="M40 14L62 40L40 66L18 40L40 14Z"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <path
+      d="M18 40H62"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+      strokeOpacity="0.5"
+    />
+    <path
+      d="M40 14V66"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+      strokeOpacity="0.5"
+    />
+    <circle cx="40" cy="40" r="8" fill="#FFFFFF" fillOpacity="0.9" />
+  </svg>
+);
+
+// AWS X-Ray
+export const XRayIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-xray">
+        <stop stopColor="#C7131F" offset="0%" />
+        <stop stopColor="#FF4F8B" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-xray)" />
+    <line
+      x1="14"
+      y1="40"
+      x2="66"
+      y2="40"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+    <path
+      d="M14 28L28 28L34 40L42 20L50 52L56 40L66 40"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill="none"
+    />
+    <circle cx="40" cy="40" r="4" fill="#FFFFFF" />
+  </svg>
+);
+
+// Amazon CloudFront
+export const CloudFrontIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-cf">
+        <stop stopColor="#8C4FFF" offset="0%" />
+        <stop stopColor="#C084FC" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-cf)" />
+    <circle
+      cx="40"
+      cy="40"
+      r="20"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <path
+      d="M40 14C40 14 30 26 30 40C30 54 40 66 40 66"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      fill="none"
+    />
+    <path
+      d="M40 14C40 14 50 26 50 40C50 54 40 66 40 66"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      fill="none"
+    />
+    <line x1="20" y1="40" x2="60" y2="40" stroke="#FFFFFF" strokeWidth="2" />
+    <line
+      x1="22"
+      y1="29"
+      x2="58"
+      y2="29"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+      strokeOpacity="0.7"
+    />
+    <line
+      x1="22"
+      y1="51"
+      x2="58"
+      y2="51"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+      strokeOpacity="0.7"
+    />
+  </svg>
+);
+
+// AWS WAF
+export const WafIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-waf">
+        <stop stopColor="#DD344C" offset="0%" />
+        <stop stopColor="#FF7B7B" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-waf)" />
+    <path
+      d="M40 13L18 23V42C18 54 28 63 40 67C52 63 62 54 62 42V23L40 13Z"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <path
+      d="M30 40L37 47L52 32"
+      stroke="#FFFFFF"
+      strokeWidth="3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+// AWS ACM
+export const AcmIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-acm">
+        <stop stopColor="#DD344C" offset="0%" />
+        <stop stopColor="#FF7B7B" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-acm)" />
+    <circle
+      cx="40"
+      cy="32"
+      r="14"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <path
+      d="M32 44L28 62L40 56L52 62L48 44"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill="none"
+    />
+    <circle cx="40" cy="32" r="5" fill="#FFFFFF" fillOpacity="0.85" />
+  </svg>
+);
+
+// Amazon SES
+export const SesIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-ses">
+        <stop stopColor="#C8511B" offset="0%" />
+        <stop stopColor="#FF9900" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-ses)" />
+    <rect
+      x="14"
+      y="24"
+      width="52"
+      height="36"
+      rx="4"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <path
+      d="M14 28L40 46L66 28"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+// Amazon OpenSearch
+export const OpenSearchIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-os">
+        <stop stopColor="#1A6DAE" offset="0%" />
+        <stop stopColor="#29B0D9" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-os)" />
+    <circle
+      cx="36"
+      cy="36"
+      r="16"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <line
+      x1="47"
+      y1="47"
+      x2="62"
+      y2="62"
+      stroke="#FFFFFF"
+      strokeWidth="3"
+      strokeLinecap="round"
+    />
+    <line
+      x1="30"
+      y1="36"
+      x2="42"
+      y2="36"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="36"
+      y1="30"
+      x2="36"
+      y2="42"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+// Amazon MSK (Managed Kafka)
+export const MskIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-msk">
+        <stop stopColor="#C8511B" offset="0%" />
+        <stop stopColor="#FF9900" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-msk)" />
+    <rect
+      x="14"
+      y="18"
+      width="16"
+      height="14"
+      rx="2"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      fill="none"
+    />
+    <rect
+      x="32"
+      y="18"
+      width="16"
+      height="14"
+      rx="2"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      fill="none"
+    />
+    <rect
+      x="50"
+      y="18"
+      width="16"
+      height="14"
+      rx="2"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      fill="none"
+    />
+    <rect
+      x="14"
+      y="48"
+      width="16"
+      height="14"
+      rx="2"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      fill="none"
+    />
+    <rect
+      x="32"
+      y="48"
+      width="16"
+      height="14"
+      rx="2"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      fill="none"
+    />
+    <rect
+      x="50"
+      y="48"
+      width="16"
+      height="14"
+      rx="2"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      fill="none"
+    />
+    <line
+      x1="22"
+      y1="32"
+      x2="22"
+      y2="48"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+      strokeOpacity="0.7"
+    />
+    <line
+      x1="40"
+      y1="32"
+      x2="40"
+      y2="48"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+      strokeOpacity="0.7"
+    />
+    <line
+      x1="58"
+      y1="32"
+      x2="58"
+      y2="48"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+      strokeOpacity="0.7"
+    />
+  </svg>
+);
+
+// Amazon DocumentDB
+export const DocumentDbIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-docdb">
+        <stop stopColor="#1A6DAE" offset="0%" />
+        <stop stopColor="#29B0D9" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-docdb)" />
+    <ellipse
+      cx="40"
+      cy="24"
+      rx="20"
+      ry="7"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <path
+      d="M20 24V56C20 59.9 29.1 63 40 63C50.9 63 60 59.9 60 56V24"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <ellipse
+      cx="40"
+      cy="39"
+      rx="20"
+      ry="7"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+      fill="none"
+      strokeOpacity="0.6"
+    />
+    <path
+      d="M28 50H52"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeOpacity="0.7"
+    />
+  </svg>
+);
+
+// AWS AppSync
+export const AppSyncIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-as">
+        <stop stopColor="#8C4FFF" offset="0%" />
+        <stop stopColor="#C084FC" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-as)" />
+    <polygon
+      points="40,14 62,27 62,53 40,66 18,53 18,27"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <text
+      x="34"
+      y="45"
+      fill="#FFFFFF"
+      fontSize="14"
+      fontWeight="bold"
+      fontFamily="monospace"
+    >
+      {}
+    </text>
+  </svg>
+);
+
+// Amazon Neptune
+export const NeptuneIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-nept">
+        <stop stopColor="#1A6DAE" offset="0%" />
+        <stop stopColor="#A166FF" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-nept)" />
+    <circle
+      cx="25"
+      cy="25"
+      r="7"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      fill="none"
+    />
+    <circle
+      cx="55"
+      cy="25"
+      r="7"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      fill="none"
+    />
+    <circle
+      cx="40"
+      cy="50"
+      r="7"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      fill="none"
+    />
+    <circle
+      cx="25"
+      cy="57"
+      r="5"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      fill="none"
+    />
+    <line
+      x1="32"
+      y1="25"
+      x2="48"
+      y2="25"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="28"
+      y1="31"
+      x2="37"
+      y2="43"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="52"
+      y1="31"
+      x2="43"
+      y2="43"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="25"
+      y1="32"
+      x2="25"
+      y2="52"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeOpacity="0.7"
+    />
+  </svg>
+);
+
+// AWS CloudTrail
+export const CloudTrailIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-ct">
+        <stop stopColor="#C8511B" offset="0%" />
+        <stop stopColor="#FF9900" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-ct)" />
+    <rect
+      x="18"
+      y="16"
+      width="44"
+      height="48"
+      rx="4"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <line
+      x1="26"
+      y1="27"
+      x2="54"
+      y2="27"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="26"
+      y1="36"
+      x2="54"
+      y2="36"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="26"
+      y1="45"
+      x2="46"
+      y2="45"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="26"
+      y1="54"
+      x2="38"
+      y2="54"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+// AWS SSM / Parameter Store
+export const SsmIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-ssm">
+        <stop stopColor="#C8511B" offset="0%" />
+        <stop stopColor="#FF9900" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-ssm)" />
+    <rect
+      x="16"
+      y="20"
+      width="48"
+      height="40"
+      rx="4"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <text
+      x="22"
+      y="36"
+      fill="#FFFFFF"
+      fontSize="9"
+      fontFamily="monospace"
+      fontWeight="bold"
+    >
+      $ param
+    </text>
+    <line
+      x1="22"
+      y1="42"
+      x2="58"
+      y2="42"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+      strokeOpacity="0.5"
+    />
+    <text
+      x="22"
+      y="54"
+      fill="#FFFFFF"
+      fontSize="8"
+      fontFamily="monospace"
+      fillOpacity="0.8"
+    >
+      value: ****
+    </text>
+  </svg>
+);
+
+// Amazon GuardDuty
+export const GuardDutyIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-gd">
+        <stop stopColor="#DD344C" offset="0%" />
+        <stop stopColor="#FF7B7B" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-gd)" />
+    <path
+      d="M40 12L18 22V42C18 54.5 28 64 40 68C52 64 62 54.5 62 42V22L40 12Z"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <path
+      d="M40 30V44"
+      stroke="#FFFFFF"
+      strokeWidth="3"
+      strokeLinecap="round"
+    />
+    <circle cx="40" cy="51" r="2.5" fill="#FFFFFF" />
+  </svg>
+);
+
+// AWS App Runner
+export const AppRunnerIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-ar">
+        <stop stopColor="#C8511B" offset="0%" />
+        <stop stopColor="#FF9900" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-ar)" />
+    <rect
+      x="16"
+      y="22"
+      width="48"
+      height="36"
+      rx="5"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <path d="M34 33L48 40L34 47V33Z" fill="#FFFFFF" fillOpacity="0.9" />
+  </svg>
+);
+
+// AWS CodePipeline
+export const CodePipelineIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-cp">
+        <stop stopColor="#4B0080" offset="0%" />
+        <stop stopColor="#BF5AF2" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-cp)" />
+    <circle
+      cx="18"
+      cy="40"
+      r="7"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <circle
+      cx="40"
+      cy="40"
+      r="7"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <circle
+      cx="62"
+      cy="40"
+      r="7"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <line
+      x1="25"
+      y1="40"
+      x2="33"
+      y2="40"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+    <line
+      x1="47"
+      y1="40"
+      x2="55"
+      y2="40"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+    <path
+      d="M31 37L33 40L31 43"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M53 37L55 40L53 43"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+// AWS CodeBuild
+export const CodeBuildIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-cb">
+        <stop stopColor="#4B0080" offset="0%" />
+        <stop stopColor="#BF5AF2" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-cb)" />
+    <rect
+      x="16"
+      y="16"
+      width="48"
+      height="48"
+      rx="5"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <path
+      d="M28 32L22 40L28 48"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M52 32L58 40L52 48"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <line
+      x1="36"
+      y1="26"
+      x2="44"
+      y2="54"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeOpacity="0.8"
+    />
+  </svg>
+);
+
+// AWS CodeDeploy
+export const CodeDeployIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-cd">
+        <stop stopColor="#4B0080" offset="0%" />
+        <stop stopColor="#BF5AF2" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-cd)" />
+    <circle
+      cx="40"
+      cy="32"
+      r="14"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <path
+      d="M32 55L40 64L48 55"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <line
+      x1="40"
+      y1="46"
+      x2="40"
+      y2="64"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+    <path
+      d="M33 30L40 37L47 30"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+// AWS SageMaker
+export const SageMakerIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-sm2">
+        <stop stopColor="#4B0080" offset="0%" />
+        <stop stopColor="#BF5AF2" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-sm2)" />
+    <circle cx="25" cy="25" r="7" fill="#FFFFFF" fillOpacity="0.85" />
+    <circle cx="55" cy="25" r="7" fill="#FFFFFF" fillOpacity="0.85" />
+    <circle cx="25" cy="55" r="7" fill="#FFFFFF" fillOpacity="0.85" />
+    <circle cx="55" cy="55" r="7" fill="#FFFFFF" fillOpacity="0.85" />
+    <circle
+      cx="40"
+      cy="40"
+      r="8"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <line
+      x1="32"
+      y1="40"
+      x2="25"
+      y2="32"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="48"
+      y1="40"
+      x2="55"
+      y2="32"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="32"
+      y1="40"
+      x2="25"
+      y2="48"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <line
+      x1="48"
+      y1="40"
+      x2="55"
+      y2="48"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+// Amazon Bedrock
+export const BedrockIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-br">
+        <stop stopColor="#4B0080" offset="0%" />
+        <stop stopColor="#BF5AF2" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-br)" />
+    <path
+      d="M40 14L62 27V53L40 66L18 53V27L40 14Z"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <circle
+      cx="40"
+      cy="40"
+      r="10"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      fill="none"
+    />
+    <path
+      d="M34 36L40 43L46 36"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+// AWS Glue
+export const GlueIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-glue">
+        <stop stopColor="#1A6DAE" offset="0%" />
+        <stop stopColor="#29B0D9" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-glue)" />
+    <circle
+      cx="22"
+      cy="40"
+      r="8"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <circle
+      cx="58"
+      cy="40"
+      r="8"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <path
+      d="M30 35C35 28 45 28 50 35"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      fill="none"
+    />
+    <path
+      d="M30 45C35 52 45 52 50 45"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      fill="none"
+    />
+    <line
+      x1="30"
+      y1="40"
+      x2="50"
+      y2="40"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+      strokeOpacity="0.6"
+    />
+  </svg>
+);
+
+// Amazon Athena
+export const AthenaIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-ath">
+        <stop stopColor="#1A6DAE" offset="0%" />
+        <stop stopColor="#29B0D9" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-ath)" />
+    <path
+      d="M40 14L66 28V52L40 66L14 52V28L40 14Z"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <line
+      x1="14"
+      y1="28"
+      x2="66"
+      y2="28"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+      strokeOpacity="0.6"
+    />
+    <line
+      x1="14"
+      y1="52"
+      x2="66"
+      y2="52"
+      stroke="#FFFFFF"
+      strokeWidth="1.5"
+      strokeOpacity="0.6"
+    />
+    <text
+      x="30"
+      y="44"
+      fill="#FFFFFF"
+      fontSize="10"
+      fontWeight="bold"
+      fontFamily="monospace"
+    >
+      SQL
+    </text>
+  </svg>
+);
+
+// AWS VPC Endpoint
+export const VpcEndpointIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-vpce">
+        <stop stopColor="#1A6DAE" offset="0%" />
+        <stop stopColor="#29B0D9" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-vpce)" />
+    <circle
+      cx="24"
+      cy="40"
+      r="10"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <circle
+      cx="56"
+      cy="40"
+      r="10"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <line
+      x1="34"
+      y1="40"
+      x2="46"
+      y2="40"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+    <path
+      d="M42 36L46 40L42 44"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <circle cx="24" cy="40" r="4" fill="#FFFFFF" fillOpacity="0.8" />
+  </svg>
+);
+
+// AWS NLB (Network Load Balancer)
+export const NlbIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-nlb">
+        <stop stopColor="#1A6DAE" offset="0%" />
+        <stop stopColor="#29B0D9" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-nlb)" />
+    <circle
+      cx="40"
+      cy="24"
+      r="8"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <path
+      d="M40 32L22 56M40 32L40 56M40 32L58 56"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+    <rect
+      x="17"
+      y="54"
+      width="10"
+      height="7"
+      rx="2"
+      fill="#FFFFFF"
+      fillOpacity="0.85"
+    />
+    <rect
+      x="35"
+      y="54"
+      width="10"
+      height="7"
+      rx="2"
+      fill="#FFFFFF"
+      fillOpacity="0.85"
+    />
+    <rect
+      x="53"
+      y="54"
+      width="10"
+      height="7"
+      rx="2"
+      fill="#FFFFFF"
+      fillOpacity="0.85"
+    />
+  </svg>
+);
+
+// AWS Elastic Beanstalk
+export const ElasticBeanstalkIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-eb">
+        <stop stopColor="#C8511B" offset="0%" />
+        <stop stopColor="#FF9900" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-eb)" />
+    <ellipse
+      cx="40"
+      cy="40"
+      rx="24"
+      ry="14"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <ellipse
+      cx="40"
+      cy="30"
+      rx="24"
+      ry="14"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <line x1="16" y1="30" x2="16" y2="40" stroke="#FFFFFF" strokeWidth="2.5" />
+    <line x1="64" y1="30" x2="64" y2="40" stroke="#FFFFFF" strokeWidth="2.5" />
+  </svg>
+);
+
+// Amazon MQ
+export const AmazonMqIcon = ({
+  size = 24,
+  className,
+  ...props
+}: React.SVGProps<SVGSVGElement> & { size?: number | string }) => (
+  <svg
+    width={size}
+    height={size}
+    className={className}
+    viewBox="0 0 80 80"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <defs>
+      <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="grad-mq">
+        <stop stopColor="#C8511B" offset="0%" />
+        <stop stopColor="#FF9900" offset="100%" />
+      </linearGradient>
+    </defs>
+    <rect width="80" height="80" fill="url(#grad-mq)" />
+    <rect
+      x="14"
+      y="24"
+      width="52"
+      height="32"
+      rx="4"
+      stroke="#FFFFFF"
+      strokeWidth="2.5"
+      fill="none"
+    />
+    <circle
+      cx="28"
+      cy="40"
+      r="5"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      fill="none"
+    />
+    <circle
+      cx="52"
+      cy="40"
+      r="5"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      fill="none"
+    />
+    <line
+      x1="33"
+      y1="40"
+      x2="47"
+      y2="40"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <path
+      d="M45 37L47 40L45 43"
+      stroke="#FFFFFF"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
 // AWS Lambda Layer (High-fidelity AWS representation matching Lambda/Compute style)
 export const LambdaLayerIcon = ({
   size = 24,

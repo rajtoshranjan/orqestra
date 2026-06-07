@@ -1,4 +1,4 @@
-import type { NodeProps } from 'reactflow';
+import type { NodeProps, Node, Edge } from 'reactflow';
 
 /* Service Categories. */
 
@@ -62,6 +62,81 @@ export type ServiceInspectorProps<TConfig = Record<string, unknown>> = {
   onUpdate: (updater: (prev: TConfig) => TConfig) => void;
 };
 
+/* Validation Rule — declarative graph-level rule declared on a ServiceDefinition. */
+
+export type ValidationContext = {
+  node: Node<any>;
+  nodes: Node<any>[];
+  edges: Edge<any>[];
+};
+
+/**
+ * A declarative validation rule attached to a service definition.
+ * check() returns true when the rule is VIOLATED (an error exists).
+ */
+export type ValidationRule = {
+  id: string;
+  message: string;
+  severity?: 'error' | 'warning';
+  check: (context: ValidationContext) => boolean;
+};
+
+/* Cost Profile — plugged into the cost estimation engine. */
+
+export type CostProfile = {
+  /** Relative cost tier for quick UI display. */
+  tier: 'free' | 'low' | 'medium' | 'high' | 'variable';
+  /** Fixed monthly base cost in USD (optional). */
+  baseMonthlyCost?: number;
+  /**
+   * Return the estimated monthly cost in USD for a given config.
+   * Called by the cost estimator engine for each matching node.
+   */
+  estimate?: (config: Record<string, unknown>) => number;
+};
+
+/* Security Scan Rule — plugged into the security scanner engine. */
+
+/**
+ * A declarative security rule attached to a service definition.
+ * check() returns true when the security issue IS present.
+ */
+export type SecurityScanRule = {
+  id: string;
+  severity: 'high' | 'medium' | 'info';
+  title: string;
+  /** Called with the node label/id to produce the full description. */
+  description: (nodeName: string) => string;
+  check: (
+    config: Record<string, unknown>,
+    node: Node<any>,
+    edges: Edge<any>[],
+    nodes: Node<any>[],
+  ) => boolean;
+};
+
+/* AI Hints — fed into the graph context serializer for AI agents. */
+
+export type AIHints = {
+  /** One-sentence summary of this resource for AI context. */
+  summary: string;
+  /** The infrastructure role this resource plays. */
+  role: string;
+  /** Common use cases in well-designed architectures. */
+  useCases: string[];
+  /** Config attribute names most relevant for AI reasoning. */
+  keyAttributes: string[];
+};
+
+/* Deployment Hints — metadata for the deployment pipeline. */
+
+export type DeploymentHints = {
+  /** Whether this resource generates real cloud infrastructure. False = logical only. */
+  isDeployable: boolean;
+  /** True for grouping/boundary nodes that produce no IaC resources. */
+  isLogicalOnly?: boolean;
+};
+
 /* Service Definition (the core plugin interface). */
 
 export type ServiceDefinition<TConfig = Record<string, unknown>> = {
@@ -114,4 +189,21 @@ export type ServiceDefinition<TConfig = Record<string, unknown>> = {
     config: TConfig,
     connectionCount: number,
   ) => ServicePlanResource;
+
+  /* Framework extension hooks (all optional — existing services work without them). */
+
+  /** Declarative graph-level validation rules (run by the validation engine). */
+  validationRules?: ValidationRule[];
+
+  /** Cost estimation profile (used by the cost estimator engine). */
+  costProfile?: CostProfile;
+
+  /** Declarative security scan rules (used by the security scanner engine). */
+  securityRules?: SecurityScanRule[];
+
+  /** AI context hints (used by the graph context serializer). */
+  aiHints?: AIHints;
+
+  /** Deployment metadata hints. */
+  deploymentHints?: DeploymentHints;
 };

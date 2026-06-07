@@ -1,4 +1,10 @@
-import type { ServiceDefinition, ServicePlanResource } from '../types';
+import type {
+  ServiceDefinition,
+  ServicePlanResource,
+  ValidationRule,
+  SecurityScanRule,
+  AIHints,
+} from '../types';
 import type { SecurityGroupConfig } from './types';
 import {
   createDefaultSecurityGroupConfig,
@@ -22,6 +28,54 @@ export const securityGroupService: ServiceDefinition<SecurityGroupConfig> = {
   capabilities: {
     provides: ['firewall-config'],
   },
+
+  validationRules: [
+    {
+      id: 'security-group-requires-vpc',
+      message: 'Security Group must be placed inside or connected to a VPC.',
+      check: ({ node, nodes, edges }) => {
+        let current = nodes.find((n) => n.id === node.parentNode);
+        while (current) {
+          if (current.data.serviceId === 'vpc') return false;
+          current = nodes.find((n) => n.id === current!.parentNode);
+        }
+        const hasVpcEdge = edges.some((edge) => {
+          const otherId = edge.source === node.id ? edge.target : edge.source;
+          return nodes.find((n) => n.id === otherId)?.data.serviceId === 'vpc';
+        });
+        return !hasVpcEdge;
+      },
+    },
+  ] satisfies ValidationRule[],
+
+  securityRules: [
+    {
+      id: 'sg-wildcard-ingress',
+      severity: 'medium',
+      title: 'Open Ingress Firewall Rules',
+      description: (name) =>
+        `Security group "${name}" allows incoming traffic from any IP (0.0.0.0/0). Ensure this is intentional for production.`,
+      check: (config) => {
+        const ingress =
+          (config.ingressRules as Array<{ cidrBlock?: string }>) ?? [];
+        return ingress.some((rule) => rule.cidrBlock === '0.0.0.0/0');
+      },
+    },
+  ] satisfies SecurityScanRule[],
+
+  aiHints: {
+    summary:
+      'Virtual firewall that controls inbound and outbound traffic for AWS resources.',
+    role: 'Enforces network-level access policies within a VPC.',
+    useCases: [
+      'Restricting inbound traffic to specific ports',
+      'Allowing only VPC-internal communication',
+      'Creating zero-trust network perimeters',
+    ],
+    keyAttributes: ['groupName', 'ingressRules', 'egressRules'],
+  } satisfies AIHints,
+
+  deploymentHints: { isDeployable: true },
 
   createDefaultConfig: createDefaultSecurityGroupConfig,
   validate: validateSecurityGroupConfig,

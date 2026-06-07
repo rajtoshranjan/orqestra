@@ -136,8 +136,13 @@ SIMPLE_JWT = {
 
 
 # CORS
+from corsheaders.defaults import default_headers
+
 CORS_ALLOWED_ORIGINS = unwrap_list(EnvVariable.ALLOWED_CORS_DOMAINS.value)
 CORS_ALLOW_ALL_ORIGINS = DEBUG
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "x-active-org-id",
+]
 
 
 # Logging

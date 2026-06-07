@@ -220,21 +220,10 @@ export function adjustParentSizes(nodes: any[]): any[] {
     return depth;
   };
 
-  const CONTAINER_SERVICE_IDS = new Set([
-    'vpc',
-    'subnet',
-    'region',
-    'availability-zone',
-    'environment',
-    'app-group',
-    'trust-boundary',
-    'shared-services',
-    'account',
-  ]);
-
-  // Find all containers and sort by depth descending (deepest first)
+  // Find all containers and sort by depth descending (deepest first).
+  // Uses service.isContainer from the registry — no hardcoded service ID sets.
   const containers = Array.from(nodeMap.values())
-    .filter((n) => CONTAINER_SERVICE_IDS.has(n.data?.serviceId || ''))
+    .filter((n) => registry.find(n.data?.serviceId || '')?.isContainer ?? false)
     .map((n) => ({ id: n.id, depth: getDepth(n.id) }))
     .sort((a, b) => b.depth - a.depth);
 
@@ -279,19 +268,7 @@ export function findBestParentForPosition(
   const childService = registry.find(childServiceId);
   if (!childService) return null;
 
-  const CONTAINER_SERVICE_IDS = new Set([
-    'vpc',
-    'subnet',
-    'region',
-    'availability-zone',
-    'environment',
-    'app-group',
-    'trust-boundary',
-    'shared-services',
-    'account',
-  ]);
-
-  const isContainer = CONTAINER_SERVICE_IDS.has(childServiceId);
+  const isContainer = registry.find(childServiceId)?.isContainer ?? false;
   const childW = isContainer ? 240 : 200;
   const childH = isContainer ? 140 : 100;
 

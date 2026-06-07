@@ -1,4 +1,9 @@
-import type { ServiceDefinition, ServicePlanResource } from '../types';
+import type {
+  ServiceDefinition,
+  ServicePlanResource,
+  ValidationRule,
+  AIHints,
+} from '../types';
 import type { SubnetConfig } from './types';
 import { createDefaultSubnetConfig, getSubnetDisplayName } from './defaults';
 import { validateSubnetConfig } from './validate';
@@ -20,6 +25,34 @@ export const subnetService: ServiceDefinition<SubnetConfig> = {
   },
   allowedParents: ['vpc', 'region', 'environment'],
   isContainer: true,
+
+  validationRules: [
+    {
+      id: 'subnet-requires-vpc-parent',
+      message: 'Subnet must be placed inside a VPC container.',
+      check: ({ node, nodes }) => {
+        let current = nodes.find((n) => n.id === node.parentNode);
+        while (current) {
+          if (current.data.serviceId === 'vpc') return false;
+          current = nodes.find((n) => n.id === current!.parentNode);
+        }
+        return true;
+      },
+    },
+  ] satisfies ValidationRule[],
+
+  aiHints: {
+    summary: 'A range of IP addresses within a VPC that segments the network.',
+    role: 'Provides network isolation — public subnets have internet access, private subnets do not.',
+    useCases: [
+      'Hosting compute resources with controlled network access',
+      'Separating public-facing from private infrastructure',
+      'Multi-AZ high availability architectures',
+    ],
+    keyAttributes: ['cidrBlock', 'availabilityZone', 'subnetType'],
+  } satisfies AIHints,
+
+  deploymentHints: { isDeployable: true },
 
   createDefaultConfig: createDefaultSubnetConfig,
   validate: validateSubnetConfig,

@@ -1,4 +1,5 @@
 import type { Node, Edge } from 'reactflow';
+import type { RelationshipKind } from '@/relationships';
 import type { ServiceValidationErrors } from '@/services/types';
 
 /* Re-export service types for convenience */
@@ -50,7 +51,18 @@ export type ServiceNodeData = {
 };
 
 export type DiagramNode = Node<ServiceNodeData>;
-export type DiagramEdge = Edge;
+
+/**
+ * Optional metadata on edges.
+ * `relationshipKind` carries the semantic meaning of the connection.
+ * Edges without this field are treated as untyped connections.
+ */
+export type DiagramEdgeData = {
+  relationshipKind?: RelationshipKind;
+  label?: string;
+};
+
+export type DiagramEdge = Edge<DiagramEdgeData>;
 
 /* Plan */
 

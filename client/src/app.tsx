@@ -2,7 +2,7 @@ import './assets/styles.css';
 import '@/services'; // Register all AWS service plugins at startup
 import { useEffect, useCallback } from 'react';
 import { Routes, Route, Navigate, Outlet, useParams } from 'react-router-dom';
-import { Projects, Editor, Settings } from './pages';
+import { Projects, Editor, Settings, LoginPage, SignUpPage, AuthLayout } from './pages';
 import { AppSidebar } from './components/app-sidebar';
 import { Toaster } from './components/ui/toaster';
 import { createInitialDiagram } from './utils';
@@ -10,6 +10,7 @@ import { useCreateProject } from '@/api';
 import { useAppSelector } from '@/store';
 import { CustomRouter } from '@/lib/custom-router';
 import { history } from '@/lib/utils';
+import { AuthGuard, GuestGuard } from './components/guards';
 
 /* App Layout */
 
@@ -86,22 +87,35 @@ function App() {
     <>
       <CustomRouter history={history}>
         <Routes>
-          <Route element={<AppLayout />}>
-            <Route
-              path="/"
-              element={
-                <Projects
-                  onOpenProject={handleOpenProject}
-                  onNewProject={handleNewProject}
-                />
-              }
-            />
-            <Route path="/settings" element={<Settings />} />
+          {/* Guest Routes */}
+          <Route element={<GuestGuard />}>
+            <Route element={<AuthLayout />}>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignUpPage />} />
+            </Route>
           </Route>
-          <Route
-            path="/editor/:projectId"
-            element={<EditorWrapper onNavigateHome={handleNavigateHome} />}
-          />
+
+          {/* Authenticated Routes */}
+          <Route element={<AuthGuard />}>
+            <Route element={<AppLayout />}>
+              <Route
+                path="/"
+                element={
+                  <Projects
+                    onOpenProject={handleOpenProject}
+                    onNewProject={handleNewProject}
+                  />
+                }
+              />
+              <Route path="/settings" element={<Settings />} />
+            </Route>
+            <Route
+              path="/editor/:projectId"
+              element={<EditorWrapper onNavigateHome={handleNavigateHome} />}
+            />
+          </Route>
+
+          {/* Catch-all */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </CustomRouter>
