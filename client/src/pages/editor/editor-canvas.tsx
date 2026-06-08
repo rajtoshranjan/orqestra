@@ -20,7 +20,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useLocalStorage } from 'usehooks-ts';
-import { Sparkles, Grid3x3, Lock, Rocket } from 'lucide-react';
+import { Sparkles, Grid3x3, Lock, Unlock, Grid, Rocket } from 'lucide-react';
 import { EditorToolbar } from './editor-toolbar';
 import { ServiceCatalog } from './service-catalog';
 import { NodeInspector } from './node-inspector';
@@ -1284,6 +1284,11 @@ export function CanvasEditor({
             description: !isLocked
               ? 'Resource configurations and positions are frozen.'
               : 'You can now configure and move resources.',
+            icon: !isLocked ? (
+              <Lock className="size-4 text-violet-500" />
+            ) : (
+              <Unlock className="size-4 text-emerald-500" />
+            ),
           });
         },
       },
@@ -1299,6 +1304,7 @@ export function CanvasEditor({
             description: !snapToGrid
               ? 'Elements will now align to the grid.'
               : 'Free dragging enabled.',
+            icon: <Grid className="size-4 text-blue-500" />,
           });
         },
       },

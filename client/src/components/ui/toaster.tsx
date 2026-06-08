@@ -1,3 +1,17 @@
+import {
+  CheckCircle2,
+  AlertTriangle,
+  AlertCircle,
+  Info,
+  Lock,
+  Unlock,
+  Grid,
+  Cloud,
+  Rocket,
+  Sparkles,
+  Trash2,
+  Copy,
+} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   Toast,
@@ -8,19 +22,95 @@ import {
   ToastViewport,
 } from '@/components/ui/toast';
 
+// Selects an appropriate icon based on the toast title, description, and variant.
+function getToastIcon(title?: string, description?: string, variant?: string) {
+  if (variant === 'destructive') {
+    return <AlertCircle className="size-4 shrink-0 text-red-500" />;
+  }
+
+  const text = `${title || ''} ${description || ''}`.toLowerCase();
+
+  if (text.includes('locked')) {
+    return <Lock className="size-4 shrink-0 text-violet-500" />;
+  }
+  if (text.includes('unlocked')) {
+    return <Unlock className="size-4 shrink-0 text-emerald-500" />;
+  }
+  if (text.includes('grid') || text.includes('snap')) {
+    return <Grid className="size-4 shrink-0 text-blue-500" />;
+  }
+  if (text.includes('save') || text.includes('saved')) {
+    return <Cloud className="size-4 shrink-0 text-emerald-500" />;
+  }
+  if (text.includes('deploy') || text.includes('started')) {
+    return <Rocket className="size-4 shrink-0 text-indigo-500" />;
+  }
+  if (text.includes('layout')) {
+    return <Sparkles className="size-4 shrink-0 text-violet-500" />;
+  }
+  if (text.includes('copy') || text.includes('clipboard')) {
+    return <Copy className="size-4 shrink-0 text-blue-500" />;
+  }
+  if (
+    text.includes('clear') ||
+    text.includes('deleted') ||
+    text.includes('removed')
+  ) {
+    return <Trash2 className="size-4 shrink-0 text-red-500" />;
+  }
+  if (
+    text.includes('warning') ||
+    text.includes('attention') ||
+    text.includes('no selection') ||
+    text.includes('empty')
+  ) {
+    return <AlertTriangle className="size-4 shrink-0 text-amber-500" />;
+  }
+  if (
+    text.includes('success') ||
+    text.includes('created') ||
+    text.includes('added') ||
+    text.includes('applied')
+  ) {
+    return <CheckCircle2 className="size-4 shrink-0 text-emerald-500" />;
+  }
+
+  return <Info className="size-4 shrink-0 text-blue-400" />;
+}
+
 export function Toaster() {
   const { toasts } = useToast();
 
   return (
-    <ToastProvider>
-      {toasts.map(function ({ id, title, description, action, ...props }) {
+    <ToastProvider duration={4000}>
+      {toasts.map(function ({
+        id,
+        title,
+        description,
+        action,
+        variant,
+        icon,
+        ...props
+      }) {
+        const titleStr = typeof title === 'string' ? title : '';
+        const descStr = typeof description === 'string' ? description : '';
+
+        // If an icon is provided by the caller, use it. Otherwise, select a fallback icon.
+        const toastIcon =
+          icon !== undefined
+            ? icon
+            : getToastIcon(titleStr, descStr, variant || undefined);
+
         return (
-          <Toast key={id} {...props}>
-            <div className="grid gap-1">
-              {title && <ToastTitle>{title}</ToastTitle>}
-              {description && (
-                <ToastDescription>{description}</ToastDescription>
-              )}
+          <Toast key={id} variant={variant} {...props}>
+            <div className="flex items-center gap-2.5">
+              {toastIcon}
+              <div className="flex min-w-0 flex-col">
+                {title && <ToastTitle>{title}</ToastTitle>}
+                {description && (
+                  <ToastDescription>{description}</ToastDescription>
+                )}
+              </div>
             </div>
             {action}
             <ToastClose />
