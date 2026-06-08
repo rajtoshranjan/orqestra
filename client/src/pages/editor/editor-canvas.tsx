@@ -20,7 +20,15 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useLocalStorage } from 'usehooks-ts';
-import { Sparkles, Grid3x3, Lock, Unlock, Grid, Rocket } from 'lucide-react';
+import {
+  Sparkles,
+  Grid3x3,
+  Lock,
+  Unlock,
+  Grid,
+  Rocket,
+  AlertTriangle,
+} from 'lucide-react';
 import { EditorToolbar } from './editor-toolbar';
 import { ServiceCatalog } from './service-catalog';
 import { NodeInspector } from './node-inspector';
@@ -654,6 +662,34 @@ export function CanvasEditor({
       setNodes(nextNodes);
     }
   }, [edges, nodes, setNodes]);
+
+  /* Automatically clean up any redundant edges (direct connections between parent container and descendants). */
+  React.useEffect(() => {
+    if (nodes.length === 0 || edges.length === 0) {
+      return;
+    }
+
+    const isAncestor = (ancestorId: string, descendantId: string): boolean => {
+      let current = nodes.find((n) => n.id === descendantId);
+      while (current && current.parentNode) {
+        if (current.parentNode === ancestorId) {
+          return true;
+        }
+        current = nodes.find((n) => n.id === current!.parentNode);
+      }
+      return false;
+    };
+
+    const nextEdges = edges.filter(
+      (edge) =>
+        !isAncestor(edge.source, edge.target) &&
+        !isAncestor(edge.target, edge.source),
+    );
+
+    if (nextEdges.length !== edges.length) {
+      setEdges(nextEdges);
+    }
+  }, [nodes, edges, setEdges]);
 
   /* Derived */
   const selectedNodes = nodes.filter((node) => node.selected);
@@ -1493,6 +1529,9 @@ export function CanvasEditor({
 
   const handleConnect = React.useCallback<OnConnect>(
     (connection) => {
+      if (!connection.source || !connection.target) {
+        return;
+      }
       const currentNodes = nodesRef.current;
       const sourceNode = currentNodes.find(
         (node) => node.id === connection.source,
@@ -1500,6 +1539,35 @@ export function CanvasEditor({
       const targetNode = currentNodes.find(
         (node) => node.id === connection.target,
       );
+
+      // Helper function to check if node A is an ancestor of node B.
+      const isAncestor = (
+        ancestorId: string,
+        descendantId: string,
+      ): boolean => {
+        let current = currentNodes.find((n) => n.id === descendantId);
+        while (current && current.parentNode) {
+          if (current.parentNode === ancestorId) {
+            return true;
+          }
+          current = currentNodes.find((n) => n.id === current!.parentNode);
+        }
+        return false;
+      };
+
+      if (
+        isAncestor(connection.source, connection.target) ||
+        isAncestor(connection.target, connection.source)
+      ) {
+        toast({
+          title: 'Redundant Connection',
+          description:
+            'Nesting already defines containment. A direct arrow connection between container and nested resource is unnecessary.',
+          variant: 'default',
+          icon: <AlertTriangle className="size-4 text-amber-500" />,
+        });
+        return;
+      }
 
       if (
         sourceNode?.data.serviceId === 'lambda' &&

@@ -29,14 +29,19 @@ export const subnetService: ServiceDefinition<SubnetConfig> = {
   validationRules: [
     {
       id: 'subnet-requires-vpc-parent',
-      message: 'Subnet must be placed inside a VPC container.',
-      check: ({ node, nodes }) => {
+      message: 'Subnet must be placed inside or connected to a VPC.',
+      check: ({ node, nodes, edges }) => {
         let current = nodes.find((n) => n.id === node.parentNode);
         while (current) {
           if (current.data.serviceId === 'vpc') return false;
           current = nodes.find((n) => n.id === current!.parentNode);
         }
-        return true;
+
+        const hasVpcEdge = edges.some((edge) => {
+          const otherId = edge.source === node.id ? edge.target : edge.source;
+          return nodes.find((n) => n.id === otherId)?.data.serviceId === 'vpc';
+        });
+        return !hasVpcEdge;
       },
     },
   ] satisfies ValidationRule[],
