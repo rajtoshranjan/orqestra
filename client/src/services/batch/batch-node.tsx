@@ -15,10 +15,7 @@ type BatchNodeDataShape = {
   deploymentStatus?: 'not_deployed' | 'deployed' | 'dirty';
 };
 
-function BatchNodeComponent({
-  data,
-  selected,
-}: NodeProps<BatchNodeDataShape>) {
+function BatchNodeComponent({ data, selected }: NodeProps<BatchNodeDataShape>) {
   const { config, validationErrors, deploymentStatus = 'not_deployed' } = data;
   const errorCount = Object.values(validationErrors).filter(Boolean).length;
   const hasErrors = errorCount > 0;

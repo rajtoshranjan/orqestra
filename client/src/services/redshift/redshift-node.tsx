@@ -15,7 +15,10 @@ type RedshiftNodeDataShape = {
   deploymentStatus?: 'not_deployed' | 'deployed' | 'dirty';
 };
 
-function RedshiftNodeComponent({ data, selected }: NodeProps<RedshiftNodeDataShape>) {
+function RedshiftNodeComponent({
+  data,
+  selected,
+}: NodeProps<RedshiftNodeDataShape>) {
   const { config, validationErrors, deploymentStatus = 'not_deployed' } = data;
   const errorCount = Object.values(validationErrors).filter(Boolean).length;
   const hasErrors = errorCount > 0;

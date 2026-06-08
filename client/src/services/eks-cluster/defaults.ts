@@ -1,8 +1,6 @@
 import type { EksClusterConfig } from './types';
 
-export function createDefaultEksClusterConfig(
-  index: number,
-): EksClusterConfig {
+export function createDefaultEksClusterConfig(index: number): EksClusterConfig {
   return {
     clusterName: `eks-cluster-${index}`,
     kubernetesVersion: '1.30',

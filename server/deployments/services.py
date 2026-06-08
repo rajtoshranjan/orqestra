@@ -242,14 +242,41 @@ def _sync_deployed_resources(
 
     resources = tofu_state.get("resources", [])
     resource_objects = []
+
+    # Map sanitized node IDs to original node info
+    node_mapping = {}
+    for node in state.project.nodes or []:
+        node_id = node.get("id")
+        if node_id:
+            sanitized = "".join(
+                c if (c.isalnum() or c == "_") else "_" for c in node_id
+            )
+            if sanitized and sanitized[0].isdigit():
+                sanitized = f"n_{sanitized}"
+            if not sanitized:
+                sanitized = "unnamed"
+            node_mapping[sanitized] = {
+                "node_id": node_id,
+                "service_id": node.get("data", {}).get("service_id", ""),
+            }
+
     for resource in resources:
+        res_name = resource.get("name", "")
+        node_info = node_mapping.get(res_name)
+        if node_info:
+            node_id = node_info["node_id"]
+            service_id = node_info["service_id"]
+        else:
+            node_id = res_name
+            service_id = _tofu_type_to_service_id(resource.get("type", ""))
+
         for instance in resource.get("instances", []):
             attributes = instance.get("attributes", {})
             resource_objects.append(
                 DeployedResource(
                     deployment_state=state,
-                    node_id=resource.get("name", ""),
-                    service_id=_tofu_type_to_service_id(resource.get("type", "")),
+                    node_id=node_id,
+                    service_id=service_id,
                     resource_identifier=attributes.get("arn", attributes.get("id", "")),
                     config_hash="",
                     status="active",
@@ -314,6 +341,55 @@ def _tofu_type_to_service_id(tofu_type: str) -> str:
     """Map a Terraform resource type to our service ID."""
     mapping = {
         "aws_lambda_function": "lambda",
+        "aws_lambda_function_url": "lambda",
+        "aws_lambda_layer_version": "lambda-layer",
+        "aws_s3_bucket": "s3",
+        "aws_dynamodb_table": "dynamodb",
+        "aws_vpc": "vpc",
+        "aws_subnet": "subnet",
+        "aws_security_group": "security-group",
+        "aws_iam_role": "iam-role",
+        "aws_ecr_repository": "ecr",
+        "aws_ecs_cluster": "ecs-cluster",
+        "aws_eks_cluster": "eks-cluster",
+        "aws_cloudfront_distribution": "cloudfront",
+        "aws_route53_zone": "route53",
+        "aws_sns_topic": "sns",
+        "aws_sqs_queue": "sqs",
+        "aws_db_instance": "rds",
+        "aws_rds_cluster": "aurora",
+        "aws_elasticache_cluster": "elasticache",
+        "aws_elasticache_replication_group": "elasticache",
+        "aws_redshift_cluster": "redshift",
+        "aws_efs_file_system": "efs",
+        "aws_secretsmanager_secret": "secrets-manager",
+        "aws_kms_key": "kms",
+        "aws_api_gateway_rest_api": "api-gateway",
+        "aws_api_gateway_stage": "api-gateway",
+        "aws_cloudwatch_metric_alarm": "cloudwatch",
+        "aws_cloudwatch_log_group": "cloudwatch",
+        "aws_sfn_state_machine": "step-function",
+        "aws_kinesis_stream": "kinesis",
+        "aws_acm_certificate": "acm",
+        "aws_appsync_graphql_api": "appsync",
+        "aws_athena_workgroup": "athena",
+        "aws_bedrockagent_agent": "bedrock",
+        "aws_cloudtrail": "cloudtrail",
+        "aws_docdb_cluster": "documentdb",
+        "aws_docdb_cluster_instance": "documentdb",
+        "aws_glue_catalog_database": "glue",
+        "aws_glue_crawler": "glue",
+        "aws_guardduty_detector": "guardduty",
+        "aws_msk_cluster": "msk",
+        "aws_neptune_cluster": "neptune",
+        "aws_neptune_cluster_instance": "neptune",
+        "aws_lb": "alb",
+        "aws_opensearch_domain": "opensearch",
+        "aws_sagemaker_notebook_instance": "sagemaker",
+        "aws_ses_email_identity": "ses",
+        "aws_ssm_parameter": "ssm",
+        "aws_vpc_endpoint": "vpc-endpoint",
+        "aws_wafv2_web_acl": "waf",
     }
     return mapping.get(tofu_type, tofu_type)
 

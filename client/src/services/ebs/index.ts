@@ -37,7 +37,11 @@ export const ebsService: ServiceDefinition<EBSConfig> = {
   aiHints: {
     summary: 'Persistent block storage volumes for use with EC2 instances.',
     role: 'Provides durable, high-performance block storage for compute workloads.',
-    useCases: ['OS root volumes', 'Database storage', 'High-IOPS application data'],
+    useCases: [
+      'OS root volumes',
+      'Database storage',
+      'High-IOPS application data',
+    ],
     keyAttributes: ['volumeName', 'volumeType', 'sizeGb', 'encrypted'],
   } satisfies AIHints,
 

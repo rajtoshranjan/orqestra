@@ -1,8 +1,8 @@
 import type { Route53Config } from './types';
 
-export function createDefaultRoute53Config(_index: number): Route53Config {
+export function createDefaultRoute53Config(index: number): Route53Config {
   return {
-    hostedZoneName: 'example.com',
+    hostedZoneName: `example-${index}.com`,
     zoneType: 'public',
   };
 }

@@ -1,6 +1,8 @@
 import type { ElastiCacheConfig } from './types';
 
-export function createDefaultElastiCacheConfig(index: number): ElastiCacheConfig {
+export function createDefaultElastiCacheConfig(
+  index: number,
+): ElastiCacheConfig {
   return {
     clusterName: `cache-cluster-${index}`,
     engine: 'redis',

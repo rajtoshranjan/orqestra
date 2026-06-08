@@ -7,7 +7,10 @@ import { fsxConfigSchema } from '@/schemas/resources.schema';
 import { Input } from '@/components/ui';
 import { InspectorSection, InspectorField } from '@/components';
 
-const FILE_SYSTEM_TYPE_OPTIONS: Array<{ value: FSxConfig['fileSystemType']; label: string }> = [
+const FILE_SYSTEM_TYPE_OPTIONS: Array<{
+  value: FSxConfig['fileSystemType'];
+  label: string;
+}> = [
   { value: 'LUSTRE', label: 'Lustre (HPC / ML)' },
   { value: 'WINDOWS', label: 'Windows (SMB)' },
   { value: 'NETAPP_ONTAP', label: 'NetApp ONTAP' },

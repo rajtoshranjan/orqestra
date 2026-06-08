@@ -71,7 +71,10 @@ export const codebuildService: ServiceDefinition<CodeBuildConfig> = {
       name: getCodeBuildDisplayName(config),
       connectionCount,
       details: [
-        { label: 'Compute', value: config.computeType.replace('BUILD_GENERAL1_', '') },
+        {
+          label: 'Compute',
+          value: config.computeType.replace('BUILD_GENERAL1_', ''),
+        },
       ],
     };
   },

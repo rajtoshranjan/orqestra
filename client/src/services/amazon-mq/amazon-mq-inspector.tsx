@@ -41,10 +41,7 @@ export function AmazonMqInspector({
   return (
     <div className="animate-fade-in space-y-6">
       <InspectorSection title="Amazon MQ Configuration">
-        <InspectorField
-          label="Broker Name"
-          error={errors.brokerName?.message}
-        >
+        <InspectorField label="Broker Name" error={errors.brokerName?.message}>
           <Input
             type="text"
             className="border-border/80 bg-background/50 text-foreground"
@@ -52,10 +49,7 @@ export function AmazonMqInspector({
           />
         </InspectorField>
 
-        <InspectorField
-          label="Engine Type"
-          error={errors.engineType?.message}
-        >
+        <InspectorField label="Engine Type" error={errors.engineType?.message}>
           <select
             className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
             {...register('engineType')}

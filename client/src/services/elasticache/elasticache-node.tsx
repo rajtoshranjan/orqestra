@@ -15,7 +15,10 @@ type ElastiCacheNodeDataShape = {
   deploymentStatus?: 'not_deployed' | 'deployed' | 'dirty';
 };
 
-function ElastiCacheNodeComponent({ data, selected }: NodeProps<ElastiCacheNodeDataShape>) {
+function ElastiCacheNodeComponent({
+  data,
+  selected,
+}: NodeProps<ElastiCacheNodeDataShape>) {
   const { config, validationErrors, deploymentStatus = 'not_deployed' } = data;
   const errorCount = Object.values(validationErrors).filter(Boolean).length;
   const hasErrors = errorCount > 0;

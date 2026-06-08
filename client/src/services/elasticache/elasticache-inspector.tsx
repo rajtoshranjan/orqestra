@@ -7,7 +7,10 @@ import { elasticacheConfigSchema } from '@/schemas/resources.schema';
 import { Input } from '@/components/ui';
 import { InspectorSection, InspectorField } from '@/components';
 
-const ENGINE_OPTIONS: Array<{ value: ElastiCacheConfig['engine']; label: string }> = [
+const ENGINE_OPTIONS: Array<{
+  value: ElastiCacheConfig['engine'];
+  label: string;
+}> = [
   { value: 'redis', label: 'Redis' },
   { value: 'memcached', label: 'Memcached' },
 ];

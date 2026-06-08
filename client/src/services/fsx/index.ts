@@ -35,7 +35,8 @@ export const fsxService: ServiceDefinition<FSxConfig> = {
   InspectorComponent: FSxInspector,
 
   aiHints: {
-    summary: 'Fully managed high-performance file systems built on popular file system types.',
+    summary:
+      'Fully managed high-performance file systems built on popular file system types.',
     role: 'Provides shared file storage for compute-intensive and enterprise workloads.',
     useCases: [
       'HPC and ML training data',

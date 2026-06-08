@@ -7,7 +7,10 @@ import { ebsConfigSchema } from '@/schemas/resources.schema';
 import { Input } from '@/components/ui';
 import { InspectorSection, InspectorField } from '@/components';
 
-const VOLUME_TYPE_OPTIONS: Array<{ value: EBSConfig['volumeType']; label: string }> = [
+const VOLUME_TYPE_OPTIONS: Array<{
+  value: EBSConfig['volumeType'];
+  label: string;
+}> = [
   { value: 'gp3', label: 'gp3 (General Purpose SSD)' },
   { value: 'gp2', label: 'gp2 (General Purpose SSD, legacy)' },
   { value: 'io1', label: 'io1 (Provisioned IOPS SSD)' },

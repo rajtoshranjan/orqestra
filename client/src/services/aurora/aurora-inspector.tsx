@@ -7,10 +7,11 @@ import { auroraConfigSchema } from '@/schemas/resources.schema';
 import { Input } from '@/components/ui';
 import { InspectorSection, InspectorField } from '@/components';
 
-const ENGINE_OPTIONS: Array<{ value: AuroraConfig['engine']; label: string }> = [
-  { value: 'aurora-postgresql', label: 'Aurora PostgreSQL' },
-  { value: 'aurora-mysql', label: 'Aurora MySQL' },
-];
+const ENGINE_OPTIONS: Array<{ value: AuroraConfig['engine']; label: string }> =
+  [
+    { value: 'aurora-postgresql', label: 'Aurora PostgreSQL' },
+    { value: 'aurora-mysql', label: 'Aurora MySQL' },
+  ];
 
 export function AuroraInspector({
   config,

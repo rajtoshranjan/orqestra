@@ -74,14 +74,17 @@ export function SignUpPage() {
         <CardTitle className="text-xl font-bold tracking-tight text-foreground">
           Sign Up
         </CardTitle>
-        <CardDescription className="text-muted-foreground text-xs">
+        <CardDescription className="text-xs text-muted-foreground">
           Create a new account to get started
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
           <div className="grid gap-1.5">
-            <label htmlFor="name" className="text-xs font-semibold text-foreground">
+            <label
+              htmlFor="name"
+              className="text-xs font-semibold text-foreground"
+            >
               Name
             </label>
             <Input
@@ -92,11 +95,16 @@ export function SignUpPage() {
               className="border-input text-foreground focus-visible:ring-primary"
             />
             {errors.name?.message && (
-              <p className="text-[10px] text-destructive">{errors.name.message}</p>
+              <p className="text-[10px] text-destructive">
+                {errors.name.message}
+              </p>
             )}
           </div>
           <div className="grid gap-1.5">
-            <label htmlFor="email" className="text-xs font-semibold text-foreground">
+            <label
+              htmlFor="email"
+              className="text-xs font-semibold text-foreground"
+            >
               Email Address
             </label>
             <Input
@@ -107,11 +115,16 @@ export function SignUpPage() {
               className="border-input text-foreground focus-visible:ring-primary"
             />
             {errors.email?.message && (
-              <p className="text-[10px] text-destructive">{errors.email.message}</p>
+              <p className="text-[10px] text-destructive">
+                {errors.email.message}
+              </p>
             )}
           </div>
           <div className="grid gap-1.5">
-            <label htmlFor="password" className="text-xs font-semibold text-foreground">
+            <label
+              htmlFor="password"
+              className="text-xs font-semibold text-foreground"
+            >
               Password
             </label>
             <Input
@@ -122,11 +135,16 @@ export function SignUpPage() {
               className="border-input text-foreground focus-visible:ring-primary"
             />
             {errors.password?.message && (
-              <p className="text-[10px] text-destructive">{errors.password.message}</p>
+              <p className="text-[10px] text-destructive">
+                {errors.password.message}
+              </p>
             )}
           </div>
           <div className="grid gap-1.5">
-            <label htmlFor="confirmPassword" className="text-xs font-semibold text-foreground">
+            <label
+              htmlFor="confirmPassword"
+              className="text-xs font-semibold text-foreground"
+            >
               Confirm Password
             </label>
             <Input
@@ -137,7 +155,9 @@ export function SignUpPage() {
               className="border-input text-foreground focus-visible:ring-primary"
             />
             {errors.confirmPassword?.message && (
-              <p className="text-[10px] text-destructive">{errors.confirmPassword.message}</p>
+              <p className="text-[10px] text-destructive">
+                {errors.confirmPassword.message}
+              </p>
             )}
           </div>
           {serverError && (
@@ -145,7 +165,11 @@ export function SignUpPage() {
               {serverError}
             </div>
           )}
-          <Button type="submit" className="w-full text-xs font-semibold mt-2" disabled={isPending}>
+          <Button
+            type="submit"
+            className="mt-2 w-full text-xs font-semibold"
+            disabled={isPending}
+          >
             {isPending ? 'Signing up...' : 'Sign Up'}
           </Button>
         </form>
@@ -153,7 +177,10 @@ export function SignUpPage() {
       <CardFooter className="justify-center border-t border-border/50 pt-4">
         <p className="text-xs text-muted-foreground">
           Already have an account?{' '}
-          <Link to="/login" className="text-primary hover:underline font-medium">
+          <Link
+            to="/login"
+            className="font-medium text-primary hover:underline"
+          >
             Log in
           </Link>
         </p>

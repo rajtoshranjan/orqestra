@@ -2,7 +2,9 @@ import type { ServiceValidationErrors } from '../types';
 import type { BatchConfig } from './types';
 import { batchConfigSchema } from '@/schemas/resources.schema';
 
-export function validateBatchConfig(config: BatchConfig): ServiceValidationErrors {
+export function validateBatchConfig(
+  config: BatchConfig,
+): ServiceValidationErrors {
   const result = batchConfigSchema.safeParse(config);
   if (result.success) return {};
   const errors: ServiceValidationErrors = {};

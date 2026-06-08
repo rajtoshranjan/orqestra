@@ -18,9 +18,12 @@ export const handleRefreshToken = async (): Promise<string | null> => {
   try {
     const refreshToken = localStorageManager.getRefreshToken();
     if (refreshToken) {
-      const res = await axios.post(`${EnvVariables.apiUrl}/accounts/token/refresh/`, {
-        refresh: refreshToken,
-      });
+      const res = await axios.post(
+        `${EnvVariables.apiUrl}/accounts/token/refresh/`,
+        {
+          refresh: refreshToken,
+        },
+      );
       // CustomJsonRenderer wraps inside data: { access: ... }
       const newAccess = res.data?.data?.access;
       if (newAccess) {
@@ -68,7 +71,7 @@ api.interceptors.response.use(
       }
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export const queryClient = new QueryClient({

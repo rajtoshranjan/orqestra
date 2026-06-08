@@ -38,10 +38,7 @@ export function SecretsManagerInspector({
   return (
     <div className="animate-fade-in space-y-6">
       <InspectorSection title="Secrets Manager Configuration">
-        <InspectorField
-          label="Secret Name"
-          error={errors.secretName?.message}
-        >
+        <InspectorField label="Secret Name" error={errors.secretName?.message}>
           <Input
             type="text"
             className="border-border/80 bg-background/50 text-foreground"
@@ -51,10 +48,7 @@ export function SecretsManagerInspector({
           />
         </InspectorField>
 
-        <InspectorField
-          label="Description"
-          error={errors.description?.message}
-        >
+        <InspectorField label="Description" error={errors.description?.message}>
           <Input
             type="text"
             className="border-border/80 bg-background/50 text-foreground"

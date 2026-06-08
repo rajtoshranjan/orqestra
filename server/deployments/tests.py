@@ -237,3 +237,101 @@ class DeploymentTests(BaseTestCase):
         # Test invalid token
         response = self.client.post(url + "?token=invalidtoken", {}, format="json")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class TofuSyncTests(BaseTestCase):
+    """Tests for OpenTofu state mapping and resource synchronization."""
+
+    def test_tofu_type_to_service_id(self):
+        from .services import _tofu_type_to_service_id
+
+        self.assertEqual(_tofu_type_to_service_id("aws_lambda_function"), "lambda")
+        self.assertEqual(_tofu_type_to_service_id("aws_s3_bucket"), "s3")
+        self.assertEqual(_tofu_type_to_service_id("aws_dynamodb_table"), "dynamodb")
+        self.assertEqual(
+            _tofu_type_to_service_id("aws_unknown_type"), "aws_unknown_type"
+        )
+
+    def test_sync_deployed_resources(self):
+        from .models import ProjectDeploymentState
+        from .services import _sync_deployed_resources
+
+        project = Project.objects.create(
+            organisation=self.organisation,
+            name="Sync Test Project",
+            nodes=[
+                {
+                    "id": "s3-bucket-1",
+                    "type": "s3",
+                    "data": {
+                        "service_id": "s3",
+                        "label": "My Bucket",
+                        "config": {"bucket_name": "my-bucket"},
+                    },
+                },
+                {
+                    "id": "dynamodb-table-2",
+                    "type": "dynamodb",
+                    "data": {
+                        "service_id": "dynamodb",
+                        "label": "My Table",
+                        "config": {"table_name": "my-table"},
+                    },
+                },
+            ],
+            edges=[],
+        )
+
+        state = ProjectDeploymentState.objects.create(
+            project=project,
+            deployed_graph_hash="somehash",
+        )
+
+        tofu_state = {
+            "resources": [
+                {
+                    "type": "aws_s3_bucket",
+                    "name": "s3_bucket_1",
+                    "instances": [
+                        {
+                            "attributes": {
+                                "arn": "arn:aws:s3:::my-bucket-arn",
+                                "id": "my-bucket-id",
+                            }
+                        }
+                    ],
+                },
+                {
+                    "type": "aws_dynamodb_table",
+                    "name": "dynamodb_table_2",
+                    "instances": [
+                        {
+                            "attributes": {
+                                "arn": "arn:aws:dynamodb:us-east-1:123456789012:table/my-table",
+                                "id": "my-table-id",
+                            }
+                        }
+                    ],
+                },
+            ]
+        }
+
+        _sync_deployed_resources(state, tofu_state)
+
+        resources = state.resources.all().order_by("service_id")
+        self.assertEqual(resources.count(), 2)
+
+        # Assert DynamoDB resource maps to original node_id and correct service_id
+        dynamodb_res = resources.filter(service_id="dynamodb").first()
+        self.assertIsNotNone(dynamodb_res)
+        self.assertEqual(dynamodb_res.node_id, "dynamodb-table-2")
+        self.assertEqual(
+            dynamodb_res.resource_identifier,
+            "arn:aws:dynamodb:us-east-1:123456789012:table/my-table",
+        )
+
+        # Assert S3 resource maps to original node_id and correct service_id
+        s3_res = resources.filter(service_id="s3").first()
+        self.assertIsNotNone(s3_res)
+        self.assertEqual(s3_res.node_id, "s3-bucket-1")
+        self.assertEqual(s3_res.resource_identifier, "arn:aws:s3:::my-bucket-arn")

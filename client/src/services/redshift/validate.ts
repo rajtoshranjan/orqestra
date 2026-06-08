@@ -2,7 +2,9 @@ import type { ServiceValidationErrors } from '../types';
 import type { RedshiftConfig } from './types';
 import { redshiftConfigSchema } from '@/schemas/resources.schema';
 
-export function validateRedshiftConfig(config: RedshiftConfig): ServiceValidationErrors {
+export function validateRedshiftConfig(
+  config: RedshiftConfig,
+): ServiceValidationErrors {
   const result = redshiftConfigSchema.safeParse(config);
   if (result.success) return {};
   const errors: ServiceValidationErrors = {};

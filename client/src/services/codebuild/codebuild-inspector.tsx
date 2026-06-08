@@ -52,10 +52,7 @@ export function CodeBuildInspector({
           />
         </InspectorField>
 
-        <InspectorField
-          label="Build Image"
-          error={errors.buildImage?.message}
-        >
+        <InspectorField label="Build Image" error={errors.buildImage?.message}>
           <Input
             type="text"
             className="border-border/80 bg-background/50 text-foreground"

@@ -25,7 +25,14 @@ export const batchService: ServiceDefinition<BatchConfig> = {
     provides: ['batch-compute'],
   },
   allowedParents: ['region', 'vpc', 'subnet', 'environment'],
-  allowedRelationships: ['ec2', 'iam-role', 'sqs', 'cloudwatch', 's3', 'security-group'],
+  allowedRelationships: [
+    'ec2',
+    'iam-role',
+    'sqs',
+    'cloudwatch',
+    's3',
+    'security-group',
+  ],
 
   createDefaultConfig: createDefaultBatchConfig,
   validate: validateBatchConfig,

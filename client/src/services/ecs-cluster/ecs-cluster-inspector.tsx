@@ -52,10 +52,7 @@ export function EcsClusterInspector({
           />
         </InspectorField>
 
-        <InspectorField
-          label="Launch Type"
-          error={errors.launchType?.message}
-        >
+        <InspectorField label="Launch Type" error={errors.launchType?.message}>
           <select
             className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
             {...register('launchType')}

@@ -15,7 +15,10 @@ type AuroraNodeDataShape = {
   deploymentStatus?: 'not_deployed' | 'deployed' | 'dirty';
 };
 
-function AuroraNodeComponent({ data, selected }: NodeProps<AuroraNodeDataShape>) {
+function AuroraNodeComponent({
+  data,
+  selected,
+}: NodeProps<AuroraNodeDataShape>) {
   const { config, validationErrors, deploymentStatus = 'not_deployed' } = data;
   const errorCount = Object.values(validationErrors).filter(Boolean).length;
   const hasErrors = errorCount > 0;

@@ -43,7 +43,8 @@ export const auroraService: ServiceDefinition<AuroraConfig> = {
   InspectorComponent: AuroraInspector,
 
   aiHints: {
-    summary: 'MySQL and PostgreSQL-compatible relational database with auto-scaling storage.',
+    summary:
+      'MySQL and PostgreSQL-compatible relational database with auto-scaling storage.',
     role: 'High-performance, highly available relational database for cloud-native applications.',
     useCases: [
       'Cloud-native transactional databases',

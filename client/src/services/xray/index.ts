@@ -25,7 +25,13 @@ export const xrayService: ServiceDefinition<XRayConfig> = {
     provides: ['tracing-service'],
   },
   allowedParents: ['account', 'region', 'environment'],
-  allowedRelationships: ['lambda', 'ec2', 'api-gateway', 'ecs-cluster', 'eks-cluster'],
+  allowedRelationships: [
+    'lambda',
+    'ec2',
+    'api-gateway',
+    'ecs-cluster',
+    'eks-cluster',
+  ],
 
   createDefaultConfig: createDefaultXRayConfig,
   validate: validateXRayConfig,
@@ -35,7 +41,8 @@ export const xrayService: ServiceDefinition<XRayConfig> = {
   InspectorComponent: XRayInspector,
 
   aiHints: {
-    summary: 'Distributed tracing service for debugging and analysing microservices applications.',
+    summary:
+      'Distributed tracing service for debugging and analysing microservices applications.',
     role: 'Provides end-to-end visibility into request flows across distributed systems.',
     useCases: [
       'Request latency analysis',

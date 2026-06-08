@@ -44,8 +44,7 @@ export const amazonMqService: ServiceDefinition<AmazonMqConfig> = {
   InspectorComponent: AmazonMqInspector,
 
   aiHints: {
-    summary:
-      'Managed message broker for ActiveMQ and RabbitMQ workloads.',
+    summary: 'Managed message broker for ActiveMQ and RabbitMQ workloads.',
     role: 'Enables migration of on-premises message broker applications to the cloud.',
     useCases: [
       'Legacy messaging migration',

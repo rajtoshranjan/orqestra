@@ -5,10 +5,7 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { CognitoConfig } from './types';
-import {
-  createDefaultCognitoConfig,
-  getCognitoDisplayName,
-} from './defaults';
+import { createDefaultCognitoConfig, getCognitoDisplayName } from './defaults';
 import { validateCognitoConfig } from './validate';
 import { CognitoNode } from './cognito-node';
 import { CognitoInspector } from './cognito-inspector';
@@ -64,7 +61,10 @@ export const cognitoService: ServiceDefinition<CognitoConfig> = {
       connectionCount,
       details: [
         { label: 'MFA', value: config.mfaConfiguration },
-        { label: 'Self Sign-Up', value: config.selfSignUpEnabled ? 'Yes' : 'No' },
+        {
+          label: 'Self Sign-Up',
+          value: config.selfSignUpEnabled ? 'Yes' : 'No',
+        },
       ],
     };
   },

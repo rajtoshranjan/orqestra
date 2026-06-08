@@ -5,7 +5,10 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { RedshiftConfig } from './types';
-import { createDefaultRedshiftConfig, getRedshiftDisplayName } from './defaults';
+import {
+  createDefaultRedshiftConfig,
+  getRedshiftDisplayName,
+} from './defaults';
 import { validateRedshiftConfig } from './validate';
 import { RedshiftNode } from './redshift-node';
 import { RedshiftInspector } from './redshift-inspector';
@@ -25,7 +28,13 @@ export const redshiftService: ServiceDefinition<RedshiftConfig> = {
     provides: ['data-warehouse'],
   },
   allowedParents: ['subnet', 'vpc', 'region'],
-  allowedRelationships: ['security-group', 'kms', 's3', 'cloudwatch', 'iam-role'],
+  allowedRelationships: [
+    'security-group',
+    'kms',
+    's3',
+    'cloudwatch',
+    'iam-role',
+  ],
 
   createDefaultConfig: createDefaultRedshiftConfig,
   validate: validateRedshiftConfig,
@@ -35,7 +44,8 @@ export const redshiftService: ServiceDefinition<RedshiftConfig> = {
   InspectorComponent: RedshiftInspector,
 
   aiHints: {
-    summary: 'Petabyte-scale cloud data warehouse for analytics and business intelligence.',
+    summary:
+      'Petabyte-scale cloud data warehouse for analytics and business intelligence.',
     role: 'Stores and queries large datasets for analytical workloads and reporting.',
     useCases: [
       'Data warehousing',
@@ -43,7 +53,12 @@ export const redshiftService: ServiceDefinition<RedshiftConfig> = {
       'ETL pipelines',
       'Log analytics',
     ],
-    keyAttributes: ['clusterIdentifier', 'nodeType', 'numberOfNodes', 'databaseName'],
+    keyAttributes: [
+      'clusterIdentifier',
+      'nodeType',
+      'numberOfNodes',
+      'databaseName',
+    ],
   } satisfies AIHints,
 
   deploymentHints: { isDeployable: true } satisfies DeploymentHints,

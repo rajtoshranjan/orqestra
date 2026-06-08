@@ -2,7 +2,9 @@ import type { ServiceValidationErrors } from '../types';
 import type { ElastiCacheConfig } from './types';
 import { elasticacheConfigSchema } from '@/schemas/resources.schema';
 
-export function validateElastiCacheConfig(config: ElastiCacheConfig): ServiceValidationErrors {
+export function validateElastiCacheConfig(
+  config: ElastiCacheConfig,
+): ServiceValidationErrors {
   const result = elasticacheConfigSchema.safeParse(config);
   if (result.success) return {};
   const errors: ServiceValidationErrors = {};

@@ -1,6 +1,8 @@
 import type { CodePipelineConfig } from './types';
 
-export function createDefaultCodePipelineConfig(index: number): CodePipelineConfig {
+export function createDefaultCodePipelineConfig(
+  index: number,
+): CodePipelineConfig {
   return {
     pipelineName: `pipeline-${index}`,
     pipelineType: 'V2',
