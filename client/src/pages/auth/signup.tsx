@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import {
@@ -13,6 +13,7 @@ import {
   CardTitle,
   Input,
 } from '@/components/ui';
+import { useFormErrorHandler } from '@/hooks';
 import { useSignup } from '@/api/auth';
 
 const signupSchema = z
@@ -40,31 +41,31 @@ type SignupFormData = z.infer<typeof signupSchema>;
 
 export function SignUpPage() {
   const navigate = useNavigate();
-  const [serverError, setServerError] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
   });
 
+  const { serverError, handleErrors, clearServerError } =
+    useFormErrorHandler<SignupFormData>(
+      setError,
+      'Failed to sign up. Email may already be in use.',
+    );
+
   const { mutate: signup, isPending } = useSignup();
 
   const onSubmit = (data: SignupFormData) => {
-    setServerError(null);
+    clearServerError();
     signup(data, {
       onSuccess: () => {
         navigate('/login');
       },
-      onError: (error: any) => {
-        const detail =
-          error?.response?.data?.meta?.message ||
-          error?.meta?.message ||
-          'Failed to sign up. Email may already be in use.';
-        setServerError(detail);
-      },
+      onError: handleErrors,
     });
   };
 
@@ -161,7 +162,7 @@ export function SignUpPage() {
             )}
           </div>
           {serverError && (
-            <div className="rounded-md bg-destructive/10 p-2 text-center text-xs text-destructive">
+            <div className="rounded-md bg-destructive/10 p-2 text-left text-xs text-destructive">
               {serverError}
             </div>
           )}

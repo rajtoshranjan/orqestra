@@ -80,6 +80,8 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    default_error_messages = {"no_active_account": "Incorrect credentials."}
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if "username" in self.initial_data and "email" not in self.initial_data:

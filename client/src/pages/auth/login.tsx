@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import {
@@ -13,6 +13,7 @@ import {
   CardTitle,
   Input,
 } from '@/components/ui';
+import { useFormErrorHandler } from '@/hooks';
 import { localStorageManager } from '@/lib/utils/local-storage-manager';
 import { useLogin, useOrganisations } from '@/api/auth';
 
@@ -25,21 +26,27 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const [serverError, setServerError] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
 
+  const { serverError, handleErrors, clearServerError } =
+    useFormErrorHandler<LoginFormData>(
+      setError,
+      'Invalid credentials. Please try again.',
+    );
+
   const { mutate: login, isPending } = useLogin();
   const { refetch: fetchOrgs } = useOrganisations(false);
 
   const onSubmit = (data: LoginFormData) => {
-    setServerError(null);
+    clearServerError();
     login(data, {
       onSuccess: async (response) => {
         // SimpleJWT token pairing returns access & refresh inside data.
@@ -63,16 +70,18 @@ export function LoginPage() {
 
           navigate('/');
         } else {
-          setServerError('Invalid server response payload.');
+          handleErrors({
+            response: {
+              data: {
+                meta: {
+                  message: 'Invalid server response payload.',
+                },
+              },
+            },
+          });
         }
       },
-      onError: (error: any) => {
-        const detail =
-          error?.response?.data?.meta?.message ||
-          error?.meta?.message ||
-          'Invalid credentials. Please try again.';
-        setServerError(detail);
-      },
+      onError: handleErrors,
     });
   };
 
@@ -129,7 +138,7 @@ export function LoginPage() {
             )}
           </div>
           {serverError && (
-            <div className="rounded-md bg-destructive/10 p-2 text-center text-xs text-destructive">
+            <div className="rounded-md bg-destructive/10 p-2 text-left text-xs text-destructive">
               {serverError}
             </div>
           )}
