@@ -171,7 +171,7 @@ export function DynamoDBInspector({
         <div className="mt-3 grid grid-cols-3 gap-2">
           <div className="col-span-2">
             <InspectorField
-              label="Sort Key (Range Key) - Optional"
+              label="Sort Key (Range Key)"
               error={errors.rangeKey?.message}
               optional
             >
@@ -183,11 +183,7 @@ export function DynamoDBInspector({
             </InspectorField>
           </div>
           <div>
-            <InspectorField
-              label="Type"
-              error={errors.rangeKeyType?.message}
-              optional
-            >
+            <InspectorField label="Type" error={errors.rangeKeyType?.message}>
               <input type="hidden" {...register('rangeKeyType')} />
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

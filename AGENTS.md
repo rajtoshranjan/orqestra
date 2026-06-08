@@ -221,7 +221,20 @@ Prefer computed values when possible.
 
 ---
 
+## Keyboard Shortcuts
+
+Register all global keyboard shortcuts using the central `useKeyboardShortcuts` hook.
+
+Do not use ad-hoc `addEventListener` keydown blocks.
+
+Provide descriptions and categories for all shortcuts.
+
+Show shortcuts in action buttons' tooltips or HTML `title` properties (e.g. `(⌥L)`).
+
+---
+
 ## React Query
+
 
 React Query is the source of truth for server state.
 

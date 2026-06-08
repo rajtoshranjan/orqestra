@@ -5,7 +5,18 @@ import { dynamodbConfigSchema } from '@/schemas/resources.schema';
 export function validateDynamoDBConfig(
   config: DynamoDBConfig,
 ): ServiceValidationErrors {
-  const result = dynamodbConfigSchema.safeParse(config);
+  const cleanConfig = { ...config };
+
+  if (!cleanConfig.rangeKey || !cleanConfig.rangeKey.trim()) {
+    delete cleanConfig.rangeKey;
+    delete cleanConfig.rangeKeyType;
+  }
+
+  if (!cleanConfig.streamEnabled) {
+    delete cleanConfig.streamViewType;
+  }
+
+  const result = dynamodbConfigSchema.safeParse(cleanConfig);
   if (result.success) return {};
   const errors: ServiceValidationErrors = {};
   for (const issue of result.error.issues) {

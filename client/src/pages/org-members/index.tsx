@@ -1,6 +1,13 @@
 import { useState } from 'react';
 import { useLocalStorage } from 'usehooks-ts';
-import { ChevronDown, Shield, Trash2, UserPlus, Users } from 'lucide-react';
+import {
+  ChevronDown,
+  Shield,
+  Trash2,
+  UserPlus,
+  Users,
+  Check,
+} from 'lucide-react';
 
 import {
   Card,
@@ -180,6 +187,10 @@ export function OrgMembers() {
 
   const displayedMembers = [...ownerEntry, ...(members ?? [])];
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const isEmailEmpty = !inviteEmail.trim();
+  const isValidEmail = isEmailEmpty || emailRegex.test(inviteEmail.trim());
+
   return (
     <PageLayout
       title="Organisation members"
@@ -216,14 +227,27 @@ export function OrgMembers() {
                       value={inviteEmail}
                       onChange={(event) => setInviteEmail(event.target.value)}
                       placeholder="colleague@example.com"
-                      className="h-10 border-border bg-background/50 text-sm focus-visible:ring-primary"
+                      className={cn(
+                        'h-10 border-border bg-background/50 text-sm focus-visible:ring-primary',
+                        !isValidEmail &&
+                          'border-red-500 focus-visible:ring-red-500',
+                      )}
                     />
+                    {!isValidEmail && (
+                      <p className="text-[10px] text-red-500">
+                        Please enter a valid email address.
+                      </p>
+                    )}
                   </div>
                   <div>
                     <Button
                       type="submit"
                       className="h-10 w-full text-xs font-semibold"
-                      disabled={inviteMutation.isPending || !inviteEmail.trim()}
+                      disabled={
+                        inviteMutation.isPending ||
+                        isEmailEmpty ||
+                        !emailRegex.test(inviteEmail.trim())
+                      }
                     >
                       {inviteMutation.isPending
                         ? 'Sending...'
@@ -267,10 +291,15 @@ export function OrgMembers() {
                               : 'hover:border-border-hover border-border bg-background/20 hover:bg-background/40',
                           )}
                         >
-                          <span className="flex items-center gap-1.5 text-xs font-bold text-foreground">
-                            {roleOption.label}
-                            {roleOption.value === 'admin' && (
-                              <Shield className="size-3.5 text-primary" />
+                          <span className="flex w-full items-center justify-between text-xs font-bold text-foreground">
+                            <span className="flex items-center gap-1.5">
+                              {roleOption.label}
+                              {roleOption.value === 'admin' && (
+                                <Shield className="size-3.5 text-primary" />
+                              )}
+                            </span>
+                            {isSelected && (
+                              <Check className="animate-scale-in size-3.5 text-primary" />
                             )}
                           </span>
                           <span className="mt-1 text-[10px] leading-normal text-muted-foreground">

@@ -40,6 +40,14 @@ export default {
           DEFAULT: 'hsl(var(--destructive))',
           foreground: 'hsl(var(--destructive-foreground))',
         },
+        success: {
+          DEFAULT: '#10b981',
+          foreground: '#f8fafc',
+        },
+        warning: {
+          DEFAULT: '#f59e0b',
+          foreground: '#f8fafc',
+        },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',

@@ -27,6 +27,15 @@ import { NodeInspector } from './node-inspector';
 import { DeployDrawer } from './deploy-drawer';
 import { ContextMenu } from './context-menu';
 import { QuickAddMenu } from './quick-add-menu';
+import { useKeyboardShortcuts } from '@/hooks';
+import {
+  ConfirmDialog,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui';
+
 import type {
   DiagramNode,
   DiagramEdge,
@@ -48,7 +57,6 @@ import {
   countNodeErrors,
   cloneSelection,
   pasteSelection,
-  isInputElement,
   makeId,
   GRID,
   NODE_DRAG_TYPE,
@@ -79,6 +87,8 @@ import {
   setEdges as setReduxEdges,
   setLastSavedAt,
   setClipboard,
+  setIsLocked,
+  setSnapToGrid,
 } from '@/store/editor-slice';
 import {
   setDeploymentSettings,
@@ -261,6 +271,9 @@ export function CanvasEditor({
     'sidebarCollapsed',
     false,
   );
+
+  const [helpOpen, setHelpOpen] = React.useState(false);
+  const [clearConfirmOpen, setClearConfirmOpen] = React.useState(false);
 
   /* Build nodeTypes from registry (memoized) */
   const nodeTypes = React.useMemo(() => registry.getNodeTypes(), []);
@@ -577,6 +590,27 @@ export function CanvasEditor({
   React.useEffect(() => {
     dispatch(setReduxEdges(edges));
   }, [edges, dispatch]);
+
+  /* Run validation automatically whenever nodes (configurations) or edges change. */
+  React.useEffect(() => {
+    if (nodes.length === 0) return;
+
+    let hasChanges = false;
+    const nextNodes = nodes.map((node) => {
+      const nextNode = withValidatedData(node, nodes, edges);
+      if (
+        JSON.stringify(node.data.validationErrors || {}) !==
+        JSON.stringify(nextNode.data.validationErrors || {})
+      ) {
+        hasChanges = true;
+      }
+      return nextNode;
+    });
+
+    if (hasChanges) {
+      setNodes(nextNodes);
+    }
+  }, [edges, nodes, setNodes]);
 
   /* Derived */
   const selectedNodes = nodes.filter((node) => node.selected);
@@ -1013,17 +1047,21 @@ export function CanvasEditor({
       setNodes((current) => [
         ...current.map((n) => ({ ...n, selected: false })),
         {
-          ...withValidatedData({
-            ...node,
-            id: makeId(),
-            position: { x: node.position.x + 56, y: node.position.y + 56 },
-            selected: true,
-          }),
+          ...withValidatedData(
+            {
+              ...node,
+              id: makeId(),
+              position: { x: node.position.x + 56, y: node.position.y + 56 },
+              selected: true,
+            },
+            current,
+            edges,
+          ),
         },
       ]);
       dispatch(setContextMenu(null));
     },
-    [nodes, setNodes, dispatch, isLocked],
+    [nodes, edges, setNodes, dispatch, isLocked],
   );
 
   /* Deploy */
@@ -1126,108 +1164,211 @@ export function CanvasEditor({
     [updateNodesWithValidation, setEdges],
   );
 
-  /* Keyboard Shortcuts */
-  React.useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (isInputElement(event.target)) return;
-
-      const metaKey = event.metaKey || event.ctrlKey;
-
-      // Notion-style slash command overlay trigger at cursor
-      if (event.key === '/') {
-        event.preventDefault();
-        const clientX = mouseRef.current.clientX;
-        const clientY = mouseRef.current.clientY;
-        const flowPosition = reactFlowInstance?.screenToFlowPosition({
-          x: clientX,
-          y: clientY,
-        }) || { x: 0, y: 0 };
-        setQuickAdd({
-          x: clientX,
-          y: clientY,
-          flowPosition,
+  const handleSelectNode = React.useCallback(
+    (nodeId: string) => {
+      setNodes((prevNodes) =>
+        prevNodes.map((node) => ({
+          ...node,
+          selected: node.id === nodeId,
+        })),
+      );
+      const targetNode = nodesRef.current.find((node) => node.id === nodeId);
+      if (targetNode && reactFlowInstance) {
+        reactFlowInstance.fitView({
+          nodes: [targetNode],
+          duration: 400,
+          maxZoom: 1.2,
         });
-        return;
       }
+    },
+    [setNodes, reactFlowInstance],
+  );
 
-      // Auto Layout Trigger
-      const isL = event.key.toLowerCase() === 'l';
-      if ((event.altKey && isL) || (metaKey && event.shiftKey && isL)) {
-        event.preventDefault();
-        handleTriggerAutoLayout();
-        return;
-      }
+  const handleClearCanvas = React.useCallback(() => {
+    if (isLocked) return;
+    setClearConfirmOpen(true);
+  }, [isLocked]);
 
-      // Select All Nodes
-      if (metaKey && event.key.toLowerCase() === 'a') {
-        event.preventDefault();
-        setNodes((prevNodes) =>
-          prevNodes.map((node) => ({ ...node, selected: true })),
-        );
-        return;
-      }
+  const confirmClearCanvas = React.useCallback(() => {
+    setNodes([]);
+    setEdges([]);
+    toast({
+      title: 'Canvas Cleared',
+      description: 'All nodes and connections have been removed.',
+    });
+    setClearConfirmOpen(false);
+  }, [setNodes, setEdges]);
 
-      // Escape key to deselect / close menu
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        setQuickAdd(null);
-        setNodes((prevNodes) =>
-          prevNodes.map((node) => ({ ...node, selected: false })),
-        );
-        return;
-      }
-
-      if (metaKey && event.key.toLowerCase() === 's') {
-        event.preventDefault();
-        saveCurrentDiagram();
-        return;
-      }
-      if (metaKey && event.key.toLowerCase() === 'c') {
-        event.preventDefault();
-        handleCopySelection();
-        return;
-      }
-      if (metaKey && event.key.toLowerCase() === 'v') {
-        event.preventDefault();
-        handlePasteSelection();
-        return;
-      }
-      if (!metaKey && event.key === '1') {
-        event.preventDefault();
-        reactFlowInstance?.fitView({ duration: 400 });
-        return;
-      }
-      if (!metaKey && event.key === '2') {
-        event.preventDefault();
-        const selected = nodes.filter((n) => n.selected);
-        if (selected.length > 0) {
-          reactFlowInstance?.fitView({ nodes: selected, duration: 400 });
-        } else {
+  /* Centralized Keyboard Shortcuts definition list. */
+  const shortcuts = React.useMemo(() => {
+    return [
+      {
+        key: '/',
+        description: 'Open Quick Add catalog menu at cursor',
+        category: 'canvas' as const,
+        handler: () => {
+          const clientX = mouseRef.current.clientX;
+          const clientY = mouseRef.current.clientY;
+          const flowPosition = reactFlowInstance?.screenToFlowPosition({
+            x: clientX,
+            y: clientY,
+          }) || { x: 0, y: 0 };
+          setQuickAdd({ x: clientX, y: clientY, flowPosition });
+        },
+        disabled: isLocked,
+      },
+      {
+        key: 'l',
+        alt: true,
+        description: 'Auto layout resources into clean columns and containers',
+        category: 'canvas' as const,
+        handler: handleTriggerAutoLayout,
+      },
+      {
+        key: 'l',
+        alt: true,
+        shift: true,
+        description: 'Toggle canvas edit lock (Lock/Unlock drawing & moving)',
+        category: 'canvas' as const,
+        handler: () => {
+          dispatch(setIsLocked(!isLocked));
           toast({
-            title: 'No selection',
-            description: 'Select at least one node to zoom to selection.',
+            title: !isLocked ? 'Editor Locked' : 'Editor Unlocked',
+            description: !isLocked
+              ? 'Resource configurations and positions are frozen.'
+              : 'You can now configure and move resources.',
           });
-        }
-        return;
-      }
-      if (event.key === 'Delete' || event.key === 'Backspace') {
-        event.preventDefault();
-        deleteSelection();
-      }
-    };
-
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+        },
+      },
+      {
+        key: 'g',
+        alt: true,
+        description: 'Toggle snapping elements to the canvas layout grid',
+        category: 'canvas' as const,
+        handler: () => {
+          dispatch(setSnapToGrid(!snapToGrid));
+          toast({
+            title: 'Grid Snapping',
+            description: !snapToGrid
+              ? 'Elements will now align to the grid.'
+              : 'Free dragging enabled.',
+          });
+        },
+      },
+      {
+        key: 'd',
+        alt: true,
+        description: 'Open the Plan & Deploy workspace panel',
+        category: 'general' as const,
+        handler: handlePlan,
+      },
+      {
+        key: 's',
+        meta: true,
+        description: 'Manually save current architecture state to the cloud',
+        category: 'general' as const,
+        handler: saveCurrentDiagram,
+      },
+      {
+        key: 'a',
+        meta: true,
+        description: 'Select all resource nodes on the canvas',
+        category: 'edit' as const,
+        handler: () => {
+          setNodes((prevNodes) =>
+            prevNodes.map((node) => ({ ...node, selected: true })),
+          );
+        },
+        disabled: isLocked,
+      },
+      {
+        key: 'c',
+        meta: true,
+        description: 'Copy selected resources to the clipboard',
+        category: 'edit' as const,
+        handler: handleCopySelection,
+      },
+      {
+        key: 'v',
+        meta: true,
+        description: 'Paste copied resources onto the canvas',
+        category: 'edit' as const,
+        handler: handlePasteSelection,
+        disabled: isLocked,
+      },
+      {
+        key: '1',
+        description: 'Zoom to fit entire architecture in the view',
+        category: 'view' as const,
+        handler: () => {
+          reactFlowInstance?.fitView({ duration: 400 });
+        },
+      },
+      {
+        key: '2',
+        description: 'Zoom to fit currently selected resources',
+        category: 'view' as const,
+        handler: () => {
+          const selected = nodesRef.current.filter((node) => node.selected);
+          if (selected.length > 0) {
+            reactFlowInstance?.fitView({ nodes: selected, duration: 400 });
+          } else {
+            toast({
+              title: 'No selection',
+              description: 'Select at least one node to zoom to selection.',
+            });
+          }
+        },
+      },
+      {
+        key: 'Delete',
+        description: 'Delete selected resources and connections',
+        category: 'edit' as const,
+        handler: deleteSelection,
+        disabled: isLocked,
+      },
+      {
+        key: 'Backspace',
+        description: 'Delete selected resources and connections',
+        category: 'edit' as const,
+        handler: deleteSelection,
+        disabled: isLocked,
+      },
+      {
+        key: 'Escape',
+        description: 'Cancel active action, clear selection or close menus',
+        category: 'general' as const,
+        handler: () => {
+          setQuickAdd(null);
+          setNodes((prevNodes) =>
+            prevNodes.map((node) => ({ ...node, selected: false })),
+          );
+        },
+      },
+      {
+        key: '?',
+        description: 'Open the Keyboard Shortcuts helper panel',
+        category: 'general' as const,
+        handler: () => {
+          setHelpOpen(true);
+        },
+      },
+    ];
   }, [
-    deleteSelection,
+    isLocked,
+    snapToGrid,
+    reactFlowInstance,
+    handleTriggerAutoLayout,
+    handlePlan,
+    saveCurrentDiagram,
     handleCopySelection,
     handlePasteSelection,
-    saveCurrentDiagram,
-    reactFlowInstance,
-    nodes,
-    handleTriggerAutoLayout,
+    deleteSelection,
+    dispatch,
     setNodes,
   ]);
+
+  useKeyboardShortcuts(shortcuts, [shortcuts]);
 
   /* Context menu click-away */
   React.useEffect(() => {
@@ -1404,6 +1545,9 @@ export function CanvasEditor({
         onAutoLayout={handleTriggerAutoLayout}
         isSaving={updateProjectMutation.isPending}
         deploymentStatus={deploymentResult.status}
+        onSelectNode={handleSelectNode}
+        onHelp={() => setHelpOpen(true)}
+        onClearCanvas={handleClearCanvas}
       />
 
       {/* Main Editor Area */}
@@ -1667,6 +1811,87 @@ export function CanvasEditor({
         onPlan={validateAndPlan}
         nodes={nodes}
         edges={edges}
+      />
+
+      {/* Help Shortcuts Dialog */}
+      <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
+        <DialogContent className="border-border bg-[var(--color-bg-surface)] text-foreground sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle className="text-sm font-bold text-foreground">
+              Keyboard Shortcuts
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2 text-xs">
+            {(['general', 'canvas', 'view', 'edit'] as const).map((cat) => {
+              const catShortcuts = shortcuts.filter(
+                (s) => s.category === cat && s.key !== 'Backspace',
+              );
+              if (catShortcuts.length === 0) return null;
+
+              return (
+                <div key={cat} className="space-y-2">
+                  <h4 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {cat === 'general'
+                      ? 'General Actions'
+                      : cat === 'canvas'
+                        ? 'Canvas Controls'
+                        : cat === 'view'
+                          ? 'View Options'
+                          : 'Editing Tools'}
+                  </h4>
+                  <div className="space-y-1.5">
+                    {catShortcuts.map((shortcut) => {
+                      const displayKeys = [];
+                      if (shortcut.meta) displayKeys.push('⌘');
+                      if (shortcut.alt) displayKeys.push('⌥');
+                      if (shortcut.shift) displayKeys.push('⇧');
+                      displayKeys.push(
+                        shortcut.key === ' ' ? 'Space' : shortcut.key,
+                      );
+
+                      return (
+                        <div
+                          key={
+                            shortcut.key +
+                            (shortcut.meta ? 'm' : '') +
+                            (shortcut.alt ? 'a' : '')
+                          }
+                          className="flex items-center justify-between border-b border-border/20 py-1 last:border-0"
+                        >
+                          <span className="text-[11px] text-muted-foreground">
+                            {shortcut.description}
+                          </span>
+                          <div className="flex gap-0.5">
+                            {displayKeys.map((k, idx) => (
+                              <kbd
+                                key={idx}
+                                className="rounded border border-border/80 bg-muted px-1.5 py-0.5 font-mono text-[9px] font-bold text-foreground shadow-sm"
+                              >
+                                {k}
+                              </kbd>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Clear Canvas Confirmation */}
+      <ConfirmDialog
+        open={clearConfirmOpen}
+        onOpenChange={setClearConfirmOpen}
+        title="Clear Canvas"
+        description="Are you sure you want to clear the canvas? This will permanently delete all nodes and connections from the current layout. This action cannot be undone."
+        confirmText="Clear Canvas"
+        cancelText="Cancel"
+        variant="destructive"
+        onConfirm={confirmClearCanvas}
       />
     </div>
   );

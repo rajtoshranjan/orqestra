@@ -186,7 +186,7 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
                   <Card
                     key={project.projectId}
                     onClick={() => onOpenProject(project.projectId)}
-                    className="group relative flex cursor-pointer flex-col justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-5 text-left transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-sm"
+                    className="group relative flex cursor-pointer flex-col justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-5 text-left transition-all duration-300 ease-out hover:-translate-y-1 hover:border-primary/40 hover:shadow-md hover:shadow-primary/5"
                   >
                     <div className="space-y-4">
                       {/* Card Header: Title & Project Status. */}
@@ -222,7 +222,7 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
                     <div className="mt-5 flex select-none items-center justify-between border-t border-border/10 pt-3">
                       <span className="inline-flex h-7 items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 text-[11px] font-medium text-[var(--color-text-secondary)] transition-colors group-hover:border-primary/30 group-hover:bg-primary/5 group-hover:text-primary">
                         <LayoutDashboard className="size-3.5 text-[var(--color-text-muted)] transition-colors group-hover:text-primary" />
-                        Configure Project
+                        Open Canvas
                       </span>
 
                       <Button

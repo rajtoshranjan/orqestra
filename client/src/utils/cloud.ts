@@ -143,15 +143,17 @@ export function enrichPlanWithDeploymentDiff(
 export function normalizePersistedDiagram(
   parsed: Partial<PersistedDiagram>,
 ): PersistedDiagram {
+  const nodes = parsed.nodes ?? [];
+  const edges = parsed.edges ?? [];
   return {
     projectId: parsed.projectId ?? makeId(),
     projectName: parsed.projectName?.trim() || createProjectName(1),
     projectDescription:
       parsed.projectDescription ?? 'Visual architecture project',
-    nodes: (parsed.nodes ?? []).map((node) =>
-      withValidatedData({ ...node, selected: false }),
+    nodes: nodes.map((node) =>
+      withValidatedData({ ...node, selected: false }, nodes, edges),
     ),
-    edges: parsed.edges ?? [],
+    edges: edges,
     deploymentSettings:
       parsed.deploymentSettings ?? DEFAULT_DEPLOYMENT_SETTINGS,
     lastSavedAt: parsed.lastSavedAt ?? null,
@@ -162,7 +164,7 @@ export function serializeDiagram(diagram: PersistedDiagram): PersistedDiagram {
   return {
     ...diagram,
     nodes: diagram.nodes.map((node) => ({
-      ...withValidatedData(node),
+      ...withValidatedData(node, diagram.nodes, diagram.edges),
       selected: false,
       dragging: false,
     })),

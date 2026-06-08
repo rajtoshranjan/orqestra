@@ -7,6 +7,10 @@ import {
   Rocket,
   Sparkles,
   Unlock,
+  HelpCircle,
+  ChevronDown,
+  Cloud,
+  CloudOff,
 } from 'lucide-react';
 import React from 'react';
 
@@ -17,6 +21,13 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
 } from '@/components/ui';
 import { ProjectSettingsModal } from '@/pages/editor/project-settings-modal';
 import { cn } from '@/lib/utils';
@@ -25,6 +36,7 @@ import { setIsLocked, setSnapToGrid } from '@/store/editor-slice';
 import { DeploymentStatus } from '@/types';
 import type { DiagramNode } from '@/types';
 import { formatRelativeTime, hasValidationErrors } from '@/utils';
+import { registry } from '@/services';
 
 /**
  * Derives toolbar-relevant node counts from the Redux nodes array.
@@ -45,6 +57,9 @@ export type EditorToolbarProps = {
   onAutoLayout?: () => void;
   isSaving?: boolean;
   deploymentStatus: DeploymentStatus;
+  onSelectNode?: (nodeId: string) => void;
+  onHelp?: () => void;
+  onClearCanvas?: () => void;
 };
 
 function EditorToolbarComponent({
@@ -53,6 +68,9 @@ function EditorToolbarComponent({
   onAutoLayout,
   isSaving = false,
   deploymentStatus,
+  onSelectNode,
+  onHelp,
+  onClearCanvas,
 }: EditorToolbarProps) {
   const dispatch = useAppDispatch();
   const [settingsOpen, setSettingsOpen] = React.useState(false);
@@ -79,6 +97,12 @@ function EditorToolbarComponent({
     (prev, next) =>
       prev.nodeCount === next.nodeCount &&
       prev.invalidNodeCount === next.invalidNodeCount,
+  );
+
+  const invalidNodes = useAppSelector((state) =>
+    state.editor.nodes.filter((node) =>
+      hasValidationErrors(node.data.validationErrors),
+    ),
   );
 
   const isDeploying =
@@ -127,38 +151,127 @@ function EditorToolbarComponent({
                 Edit Project Info
               </TooltipContent>
             </Tooltip>
+
+            {/* Save Status Icon */}
+            {isSaving ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="ml-1.5 flex cursor-default items-center text-primary">
+                    <Loader2 size={12} className="animate-spin" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  Saving changes…
+                </TooltipContent>
+              </Tooltip>
+            ) : lastSavedAt ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="ml-1.5 flex cursor-default items-center text-success">
+                    <Cloud size={12} />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  Saved {formatRelativeTime(lastSavedAt)} (
+                  {new Date(lastSavedAt).toLocaleString()})
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="ml-1.5 flex cursor-default items-center text-muted-foreground">
+                    <CloudOff size={12} className="opacity-60" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  Unsaved changes
+                </TooltipContent>
+              </Tooltip>
+            )}
           </div>
         </div>
 
-        {/* CENTER: Node count + status pill + Saved status */}
+        {/* CENTER: Status pill + Saved status */}
         <div className="flex items-center gap-1.5">
-          <Badge
-            variant="accent"
-            className="rounded-full px-2 py-[2px] text-[10px] font-medium"
-          >
-            {nodeCount} node{nodeCount !== 1 ? 's' : ''}
-          </Badge>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className={cn(
+                  'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-semibold outline-none transition-all',
+                  invalidNodeCount > 0
+                    ? 'cursor-pointer border-warning/20 bg-warning/10 text-warning shadow-sm shadow-warning/5 hover:bg-warning/20'
+                    : 'cursor-default border-success/20 bg-success/10 text-success',
+                )}
+              >
+                <span
+                  className={cn(
+                    'size-1.5 rounded-full',
+                    invalidNodeCount > 0
+                      ? 'animate-pulse bg-warning'
+                      : 'bg-success',
+                  )}
+                />
+                {readyCount}/{nodeCount} ready
+              </button>
+            </PopoverTrigger>
+            <PopoverContent
+              align="center"
+              side="bottom"
+              className="z-[9999] w-80 border-border bg-[var(--color-bg-surface)] p-3 text-foreground shadow-xl"
+            >
+              <div className="space-y-2">
+                <div className="flex items-center justify-between border-b border-border/60 pb-1.5">
+                  <span className="text-xs font-bold text-foreground">
+                    Validation Findings
+                  </span>
+                  <Badge
+                    variant={invalidNodeCount > 0 ? 'warning' : 'success'}
+                    className="px-1.5 py-0 text-[9px]"
+                  >
+                    {invalidNodeCount > 0
+                      ? `${invalidNodeCount} Issue${invalidNodeCount > 1 ? 's' : ''}`
+                      : 'Clean'}
+                  </Badge>
+                </div>
 
-          <span className="hidden text-[11px] text-muted-foreground sm:inline-block">
-            {readyCount}/{nodeCount} ready
-          </span>
+                {invalidNodeCount > 0 ? (
+                  <div className="max-h-60 space-y-2.5 overflow-y-auto pr-1">
+                    {invalidNodes.map((node) => {
+                      const service = registry.find(node.data.serviceId);
+                      const errors = Object.entries(node.data.validationErrors)
+                        .filter(([, msg]) => Boolean(msg))
+                        .map(([, msg]) => msg);
 
-          <span className="hidden text-[11px] text-muted-foreground/40 sm:inline-block">
-            •
-          </span>
-
-          <span className="hidden shrink-0 whitespace-nowrap text-[11px] text-muted-foreground sm:inline-block">
-            {isSaving ? (
-              <span className="flex animate-pulse items-center gap-1 text-primary">
-                <Loader2 size={10} className="animate-spin" />
-                Saving…
-              </span>
-            ) : lastSavedAt ? (
-              `Saved ${formatRelativeTime(lastSavedAt)}`
-            ) : (
-              'Unsaved'
-            )}
-          </span>
+                      return (
+                        <div key={node.id} className="space-y-1 text-left">
+                          <button
+                            onClick={() => onSelectNode?.(node.id)}
+                            className="block text-left text-[11px] font-bold text-primary outline-none hover:underline"
+                          >
+                            {node.data.label}{' '}
+                            <span className="text-[9px] font-normal text-muted-foreground">
+                              ({service?.shortName || node.data.serviceId})
+                            </span>
+                          </button>
+                          <ul className="list-disc space-y-0.5 pl-4 text-[10px] leading-normal text-muted-foreground">
+                            {errors.map((err, idx) => (
+                              <li key={idx}>{err}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="py-4 text-center text-xs leading-relaxed text-muted-foreground">
+                    No structural or configuration issues detected. Ready for
+                    deployment.
+                  </div>
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
 
         {/* RIGHT: Icon actions + Plan + Deploy */}
@@ -176,12 +289,17 @@ function EditorToolbarComponent({
                   isLocked &&
                     'bg-warning/20 text-warning hover:bg-warning/30 hover:text-warning',
                 )}
+                title={
+                  isLocked
+                    ? 'Unlock Editor (⌥Shift+L)'
+                    : 'Lock Editor (⌥Shift+L)'
+                }
               >
                 {isLocked ? <Lock size={15} /> : <Unlock size={15} />}
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-xs">
-              {isLocked ? 'Unlock editor' : 'Lock editor'}
+              {isLocked ? 'Unlock Editor (⌥Shift+L)' : 'Lock Editor (⌥Shift+L)'}
             </TooltipContent>
           </Tooltip>
 
@@ -198,12 +316,13 @@ function EditorToolbarComponent({
                   snapToGrid &&
                     'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
                 )}
+                title="Toggle Snap to Grid (⌥G)"
               >
                 <Grid3x3 size={15} />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-xs">
-              Toggle snap to grid
+              Toggle Snap to Grid (⌥G)
             </TooltipContent>
           </Tooltip>
 
@@ -216,12 +335,67 @@ function EditorToolbarComponent({
                 onClick={onAutoLayout}
                 aria-label="Auto layout diagram"
                 className="size-8 text-muted-foreground transition-all duration-200 hover:bg-accent/20 hover:text-primary"
+                title="Auto Layout Canvas (⌥L)"
               >
                 <Sparkles size={15} />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-xs">
-              Auto layout diagram (Alt+L)
+              Auto Layout Canvas (⌥L)
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Canvas Actions Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8 text-muted-foreground transition-all duration-200 hover:bg-accent/20 hover:text-primary"
+                title="Canvas Actions"
+              >
+                <ChevronDown size={15} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="z-[9999] w-48 border-border bg-[var(--color-bg-surface)] text-foreground"
+            >
+              <DropdownMenuItem
+                onClick={onAutoLayout}
+                className="flex cursor-pointer items-center justify-between text-xs"
+              >
+                <span>Auto Layout</span>
+                <kbd className="rounded border border-border/60 bg-muted px-1.5 text-[9px] opacity-65">
+                  ⌥L
+                </kbd>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={onClearCanvas}
+                disabled={isLocked}
+                className="cursor-pointer text-xs text-red-500 hover:text-red-600 focus:text-red-600 disabled:opacity-50"
+              >
+                Clear Canvas
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Help Shortcuts Button */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onHelp}
+                aria-label="Show Keyboard Shortcuts"
+                className="size-8 text-muted-foreground transition-all duration-200 hover:bg-accent/20 hover:text-primary"
+                title="Show Keyboard Shortcuts (?)"
+              >
+                <HelpCircle size={15} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">
+              Show Keyboard Shortcuts (?)
             </TooltipContent>
           </Tooltip>
 
@@ -233,6 +407,7 @@ function EditorToolbarComponent({
             onClick={onPlan}
             size="sm"
             className="flex items-center gap-1.5 font-semibold text-white shadow-sm"
+            title="Open Plan & Deploy (⌥D)"
           >
             {isDeploying ? (
               <Loader2 size={13} className="animate-spin" />
