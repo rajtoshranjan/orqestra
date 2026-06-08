@@ -161,7 +161,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
     <>
       <aside
         className={cn(
-          'flex min-h-screen w-14 shrink-0 flex-col border-r border-border bg-[var(--color-bg-surface)] text-card-foreground transition-all duration-300',
+          'flex h-full w-14 shrink-0 flex-col border-r border-border bg-[var(--color-bg-surface)] text-card-foreground transition-all duration-300',
           isCollapsed ? 'md:w-14' : 'md:w-52',
         )}
       >
@@ -201,11 +201,9 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                   <button
                     type="button"
                     className={cn(
-                      'group flex w-full min-w-0 items-center gap-2 rounded-lg border border-border/60 bg-accent/5 p-2 text-left shadow-sm transition-all duration-200',
-                      isCollapsed
-                        ? 'justify-center border-none bg-transparent p-1 shadow-none'
-                        : 'md:justify-start',
-                      'hover:shadow-glow hover:border-primary/30 hover:bg-accent/10',
+                      'group flex w-full min-w-0 items-center justify-center gap-2 rounded-lg border-none bg-transparent p-1 text-left shadow-none transition-all duration-200',
+                      !isCollapsed &&
+                        'md:justify-start md:border-none md:bg-[var(--color-bg-elevated)] md:p-2 md:shadow-none md:hover:bg-[var(--color-bg-hover)]',
                     )}
                     aria-label={
                       activeOrganisation
@@ -218,24 +216,27 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                         : 'Select organisation'
                     }
                   >
-                    {isCollapsed ? (
-                      <span className="flex size-8 items-center justify-center rounded-md border border-white/10 bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 text-[10px] font-extrabold text-white shadow-[0_0_12px_rgba(99,102,241,0.25)] transition-transform duration-200 group-hover:scale-105">
-                        {getOrganisationInitials(activeOrganisation?.name)}
-                      </span>
-                    ) : (
+                    <span
+                      className={cn(
+                        'flex size-8 shrink-0 items-center justify-center rounded-md bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 text-[10px] font-extrabold text-white transition-transform duration-200',
+                        isCollapsed
+                          ? 'group-hover:scale-105'
+                          : 'group-hover:scale-105 md:group-hover:scale-100',
+                      )}
+                    >
+                      {getOrganisationInitials(activeOrganisation?.name)}
+                    </span>
+                    {!isCollapsed && (
                       <>
-                        <span className="flex size-8 shrink-0 items-center justify-center rounded-md border border-white/10 bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 text-[10px] font-extrabold text-white shadow-[0_0_12px_rgba(99,102,241,0.25)]">
-                          {getOrganisationInitials(activeOrganisation?.name)}
-                        </span>
-                        <span className="min-w-0 flex-1">
+                        <span className="hidden min-w-0 flex-1 text-left md:block">
                           <span className="block truncate text-xs font-semibold leading-tight tracking-tight text-foreground">
                             {activeOrganisation?.name ?? 'Organisation'}
                           </span>
-                          <span className="mt-0.5 inline-flex items-center rounded-full bg-primary/10 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-primary">
+                          <span className="mt-0.5 inline-flex items-center rounded-full bg-[var(--color-accent-subtle)] px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-[var(--color-accent)]">
                             {activeOrganisation?.role ?? 'Member'}
                           </span>
                         </span>
-                        <ChevronDown className="size-3.5 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                        <ChevronDown className="hidden size-3.5 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180 md:block" />
                       </>
                     )}
                   </button>

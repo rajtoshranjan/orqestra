@@ -29,9 +29,9 @@ function AppLayout() {
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-[var(--color-bg-base)] text-foreground">
+    <div className="flex h-screen overflow-hidden bg-[var(--color-bg-base)] text-foreground">
       <AppSidebar onNavigate={handleShellNavigate} />
-      <div className="flex min-h-screen min-w-0 flex-1 flex-col">
+      <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
         <AppHeader />
         <main className="min-w-0 flex-1 overflow-y-auto bg-background">
           <Outlet />
