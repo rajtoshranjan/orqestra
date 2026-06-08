@@ -1,0 +1,1 @@
+# AWS AppSync service package.

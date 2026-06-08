@@ -1,0 +1,1 @@
+# Amazon SES service package.
