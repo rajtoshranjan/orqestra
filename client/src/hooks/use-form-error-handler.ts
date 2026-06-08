@@ -16,26 +16,36 @@ export function useFormErrorHandler<T extends FieldValues>(
       const validationErrors = error?.response?.data?.errors;
       if (validationErrors && typeof validationErrors === 'object') {
         let hasSetFieldError = false;
+
+        const getErrorMessage = (value: any): string | null => {
+          if (!value) return null;
+          if (Array.isArray(value)) {
+            return value[0] ? String(value[0]) : null;
+          }
+          return String(value);
+        };
+
+        const nonFieldMsg =
+          getErrorMessage(validationErrors.non_field_errors) ||
+          getErrorMessage(validationErrors.detail);
+
+        if (nonFieldMsg) {
+          setServerError(nonFieldMsg);
+          return;
+        }
+
         Object.entries(validationErrors).forEach(([field, messages]) => {
-          const message = Array.isArray(messages) ? messages[0] : messages;
+          if (field === 'detail' || field === 'non_field_errors') return;
+
+          const message = getErrorMessage(messages);
           if (message) {
             setError(field as Path<T>, {
               type: 'server',
-              message: String(message),
+              message: message,
             });
             hasSetFieldError = true;
           }
         });
-
-        const nonFieldMsg =
-          validationErrors.non_field_errors?.[0] ||
-          validationErrors.detail?.[0] ||
-          validationErrors.detail;
-
-        if (nonFieldMsg) {
-          setServerError(String(nonFieldMsg));
-          return;
-        }
 
         if (hasSetFieldError) {
           return;
