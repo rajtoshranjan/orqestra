@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocalStorage } from 'usehooks-ts';
-import { Shield, Trash2, UserPlus, Users } from 'lucide-react';
+import { ChevronDown, Shield, Trash2, UserPlus, Users } from 'lucide-react';
 
 import {
   Card,
@@ -12,6 +12,10 @@ import {
   Input,
   Badge,
   ConfirmDialog,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
 } from '@/components/ui';
 import { PageLayout } from '@/components';
 import {
@@ -20,6 +24,7 @@ import {
   useAddOrganisationMember,
   useRemoveOrganisationMember,
   useGetUserInfo,
+  useUpdateOrganisationMember,
 } from '@/api/auth';
 import { localStorageManager } from '@/lib/utils/local-storage-manager';
 import { toast } from '@/hooks/use-toast';
@@ -52,6 +57,7 @@ export function OrgMembers() {
 
   const inviteMutation = useAddOrganisationMember();
   const removeMutation = useRemoveOrganisationMember();
+  const updateRoleMutation = useUpdateOrganisationMember();
 
   const [activeOrgId] = useLocalStorage<string | null>('activeOrgId', null);
   const activeOrganisationId = activeOrgId;
@@ -125,6 +131,34 @@ export function OrgMembers() {
         setMemberToRemove(null);
       },
     });
+  };
+
+  const handleUpdateRole = (
+    memberId: string,
+    role: 'admin' | 'regular' | 'guest',
+  ) => {
+    updateRoleMutation.mutate(
+      { memberId, role },
+      {
+        onSuccess: () => {
+          toast({
+            title: 'Success',
+            description: 'Member role updated successfully.',
+          });
+        },
+        onError: (error: any) => {
+          const errorMsg =
+            error.response?.data?.detail ||
+            error.message ||
+            'Failed to update member role.';
+          toast({
+            title: 'Error',
+            description: errorMsg,
+            variant: 'destructive',
+          });
+        },
+      },
+    );
   };
 
   const canManageMembers =
@@ -323,21 +357,77 @@ export function OrgMembers() {
                             </div>
                           </td>
                           <td className="px-2 py-3">
-                            <Badge
-                              className={cn(
-                                'rounded-full border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider shadow-none',
-                                isOwner &&
-                                  'border-purple-500/20 bg-purple-500/10 text-purple-400',
-                                member.role === 'admin' &&
-                                  'bg-error/10 text-error border-error/20',
-                                member.role === 'regular' &&
-                                  'border-primary/20 bg-primary/10 text-primary',
-                                member.role === 'guest' &&
-                                  'border-border bg-muted text-muted-foreground',
-                              )}
-                            >
-                              {member.role}
-                            </Badge>
+                            {canManageMembers && !isOwner && !isSelf ? (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <button
+                                    type="button"
+                                    disabled={updateRoleMutation.isPending}
+                                    className="group flex items-center gap-1 rounded-full border border-border/80 bg-background/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground transition-all hover:border-primary/30 hover:bg-background/40 hover:text-foreground focus:outline-none disabled:opacity-50"
+                                  >
+                                    <span
+                                      className={cn(
+                                        member.role === 'admin' && 'text-error',
+                                        member.role === 'regular' &&
+                                          'text-primary',
+                                        member.role === 'guest' &&
+                                          'text-muted-foreground',
+                                      )}
+                                    >
+                                      {member.role}
+                                    </span>
+                                    <ChevronDown className="size-2.5 transition-transform duration-200 group-hover:translate-y-0.5" />
+                                  </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                  className="w-40 border-border bg-[var(--color-bg-surface)] text-foreground"
+                                  align="start"
+                                >
+                                  {[
+                                    { value: 'admin', label: 'Administrator' },
+                                    {
+                                      value: 'regular',
+                                      label: 'Regular Member',
+                                    },
+                                    { value: 'guest', label: 'Guest / Viewer' },
+                                  ].map((roleOpt) => (
+                                    <DropdownMenuItem
+                                      key={roleOpt.value}
+                                      onClick={() =>
+                                        handleUpdateRole(
+                                          member.id,
+                                          roleOpt.value as any,
+                                        )
+                                      }
+                                      disabled={member.role === roleOpt.value}
+                                      className={cn(
+                                        'flex cursor-pointer items-center justify-between px-2.5 py-1.5 text-xs text-foreground hover:bg-accent/50 focus:bg-accent/50',
+                                        member.role === roleOpt.value &&
+                                          'cursor-default font-bold text-primary opacity-60',
+                                      )}
+                                    >
+                                      {roleOpt.label}
+                                    </DropdownMenuItem>
+                                  ))}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            ) : (
+                              <Badge
+                                className={cn(
+                                  'rounded-full border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider shadow-none',
+                                  isOwner &&
+                                    'border-purple-500/20 bg-purple-500/10 text-purple-400',
+                                  member.role === 'admin' &&
+                                    'bg-error/10 text-error border-error/20',
+                                  member.role === 'regular' &&
+                                    'border-primary/20 bg-primary/10 text-primary',
+                                  member.role === 'guest' &&
+                                    'border-border bg-muted text-muted-foreground',
+                                )}
+                              >
+                                {member.role}
+                              </Badge>
+                            )}
                           </td>
                           {canManageMembers && (
                             <td className="py-3 pl-4 text-right">

@@ -20,7 +20,7 @@ class OrganisationsTests(BaseTestCase):
         self.assertEqual(response.data["role"], "owner")
 
     def test_list_organisations(self):
-        # Create an organization where user is owner.
+        # Create an organisation where user is owner.
         Organisation.objects.create(name="Owned Org", owner=self.user)
 
         # Create another user and org.

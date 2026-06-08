@@ -25,7 +25,7 @@ def get_active_organisation(request, raise_exception=True):
                 raise PermissionDenied("You do not have access to this organisation.")
             return None
 
-    # Fallback: Find any organization where user is owner or member.
+    # Fallback: Find any organisation where user is owner or member.
     org = Organisation.objects.filter(owner=request.user).first()
     if not org:
         member = OrganisationMember.objects.filter(user=request.user).first()

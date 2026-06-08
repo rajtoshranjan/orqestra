@@ -50,7 +50,7 @@ export function LoginPage() {
           localStorageManager.setToken(access);
           localStorageManager.setRefreshToken(refresh);
 
-          // Get organizations to set the active organization ID.
+          // Get organisations to set the active organisation ID.
           try {
             const orgsRes = await fetchOrgs();
             const orgs = orgsRes.data;
@@ -82,14 +82,17 @@ export function LoginPage() {
         <CardTitle className="text-xl font-bold tracking-tight text-foreground">
           Welcome back
         </CardTitle>
-        <CardDescription className="text-muted-foreground text-xs">
+        <CardDescription className="text-xs text-muted-foreground">
           Login with your email and password
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form className="grid gap-4" onSubmit={handleSubmit(onSubmit)}>
           <div className="grid gap-1.5">
-            <label htmlFor="email" className="text-xs font-semibold text-foreground">
+            <label
+              htmlFor="email"
+              className="text-xs font-semibold text-foreground"
+            >
               Email Address
             </label>
             <Input
@@ -100,11 +103,16 @@ export function LoginPage() {
               className="border-input text-foreground focus-visible:ring-primary"
             />
             {errors.email?.message && (
-              <p className="text-[10px] text-destructive">{errors.email.message}</p>
+              <p className="text-[10px] text-destructive">
+                {errors.email.message}
+              </p>
             )}
           </div>
           <div className="grid gap-1.5">
-            <label htmlFor="password" className="text-xs font-semibold text-foreground">
+            <label
+              htmlFor="password"
+              className="text-xs font-semibold text-foreground"
+            >
               Password
             </label>
             <Input
@@ -115,7 +123,9 @@ export function LoginPage() {
               className="border-input text-foreground focus-visible:ring-primary"
             />
             {errors.password?.message && (
-              <p className="text-[10px] text-destructive">{errors.password.message}</p>
+              <p className="text-[10px] text-destructive">
+                {errors.password.message}
+              </p>
             )}
           </div>
           {serverError && (
@@ -123,7 +133,11 @@ export function LoginPage() {
               {serverError}
             </div>
           )}
-          <Button type="submit" className="w-full text-xs font-semibold mt-2" disabled={isPending}>
+          <Button
+            type="submit"
+            className="mt-2 w-full text-xs font-semibold"
+            disabled={isPending}
+          >
             {isPending ? 'Logging in...' : 'Login'}
           </Button>
         </form>
@@ -131,7 +145,10 @@ export function LoginPage() {
       <CardFooter className="justify-center border-t border-border/50 pt-4">
         <p className="text-xs text-muted-foreground">
           Don&apos;t have an account?{' '}
-          <Link to="/signup" className="text-primary hover:underline font-medium">
+          <Link
+            to="/signup"
+            className="font-medium text-primary hover:underline"
+          >
             Sign up
           </Link>
         </p>

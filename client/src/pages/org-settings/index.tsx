@@ -86,8 +86,8 @@ export function OrgSettings() {
 
   return (
     <PageLayout
-      title="Organization Settings"
-      description="Manage organization details, role-based access control permissions, and operational logs."
+      title="Organisation Settings"
+      description="Manage organisation details, role-based access control permissions, and operational logs."
       maxWidthClass="max-w-6xl"
     >
       <Tabs defaultValue="general" className="space-y-6">
@@ -113,10 +113,10 @@ export function OrgSettings() {
           <Card className="max-w-2xl rounded-lg border-border bg-[var(--color-bg-surface)] shadow-none">
             <CardHeader className="p-5">
               <CardTitle className="text-base font-bold text-foreground">
-                Organization Details
+                Organisation Details
               </CardTitle>
               <CardDescription className="text-xs text-muted-foreground">
-                Change the display name of your organization.
+                Change the display name of your organisation.
               </CardDescription>
             </CardHeader>
             <CardContent className="p-5 pt-0">
@@ -126,7 +126,7 @@ export function OrgSettings() {
                     htmlFor="org-name"
                     className="text-xs font-semibold text-muted-foreground"
                   >
-                    Organization Name
+                    Organisation Name
                   </label>
                   <Input
                     id="org-name"
@@ -168,7 +168,7 @@ export function OrgSettings() {
               </CardTitle>
               <CardDescription className="text-xs text-muted-foreground">
                 Track logins, deployment workflows, resource updates, and
-                configuration actions executed in this organization.
+                configuration actions executed in this organisation.
               </CardDescription>
             </CardHeader>
             <CardContent className="p-5 pt-0">
