@@ -42,3 +42,27 @@ class OrganisationMember(BaseModel):
 
     def __str__(self):
         return f"{self.user.email} - {self.organisation.name} ({self.role})"
+
+
+class AuditLog(BaseModel):
+    organisation = models.ForeignKey(
+        Organisation,
+        on_delete=models.CASCADE,
+        related_name="audit_logs",
+    )
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="audit_actions",
+    )
+    action = models.CharField(max_length=100)
+    details = models.JSONField(default=dict, blank=True)
+
+    class Meta(BaseModel.Meta):
+        db_table = "audit_logs"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        actor_email = self.actor.email if self.actor else "system"
+        return f"{self.action} by {actor_email} in {self.organisation.name}"

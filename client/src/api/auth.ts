@@ -13,6 +13,10 @@ export type OrganisationInfo = {
   id: string;
   name: string;
   role: 'owner' | 'admin' | 'regular' | 'guest';
+  ownerEmail?: string;
+  ownerName?: string;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export type OrganisationMemberInfo = {
@@ -73,32 +77,48 @@ export const logoutRequest = async (refreshToken: string) => {
   return response.data;
 };
 
+// Mapper for backend to frontend Organisation properties.
+const mapServerOrganisation = (org: any): OrganisationInfo => ({
+  id: org.id,
+  name: org.name,
+  role: org.role,
+  ownerEmail: org.owner_email,
+  ownerName: org.owner_name,
+  createdAt: org.created_at,
+  updatedAt: org.updated_at,
+});
+
 // Organisations APIs.
 export const fetchOrganisations = async (): Promise<OrganisationInfo[]> => {
-  const response =
-    await api.get<ServerResponse<OrganisationInfo[]>>('/organisations/');
-  return response.data.data;
+  const response = await api.get<ServerResponse<any[]>>('/organisations/');
+  return response.data.data.map(mapServerOrganisation);
 };
 
 export const createOrganisation = async (payload: {
   name: string;
 }): Promise<OrganisationInfo> => {
-  const response = await api.post<ServerResponse<OrganisationInfo>>(
+  const response = await api.post<ServerResponse<any>>(
     '/organisations/',
     payload,
   );
-  return response.data.data;
+  return mapServerOrganisation(response.data.data);
 };
 
 export const updateOrganisation = async (payload: {
   organisationId: string;
   name: string;
 }): Promise<OrganisationInfo> => {
-  const response = await api.patch<ServerResponse<OrganisationInfo>>(
+  const response = await api.patch<ServerResponse<any>>(
     `/organisations/${payload.organisationId}/`,
     { name: payload.name },
   );
-  return response.data.data;
+  return mapServerOrganisation(response.data.data);
+};
+
+export const deleteOrganisation = async (
+  organisationId: string,
+): Promise<void> => {
+  await api.delete(`/organisations/${organisationId}/`);
 };
 
 export const fetchOrganisationMembers = async (): Promise<
@@ -131,6 +151,40 @@ export const removeOrganisationMember = async (
   memberId: string,
 ): Promise<void> => {
   await api.delete(`/organisations/members/${memberId}/`);
+};
+
+export const updateOrganisationMember = async (payload: {
+  memberId: string;
+  role: string;
+}): Promise<any> => {
+  const response = await api.patch<ServerResponse<any>>(
+    `/organisations/members/${payload.memberId}/`,
+    { role: payload.role },
+  );
+  return response.data.data;
+};
+
+export interface AuditLogEntry {
+  id: string;
+  action: string;
+  details: Record<string, any>;
+  actorEmail: string | null;
+  actorName: string | null;
+  createdAt: string;
+}
+
+export const fetchAuditLogs = async (): Promise<AuditLogEntry[]> => {
+  const response = await api.get<ServerResponse<any[]>>(
+    '/organisations/audit-logs/',
+  );
+  return response.data.data.map((log) => ({
+    id: log.id,
+    action: log.action,
+    details: log.details,
+    actorEmail: log.actor_email,
+    actorName: log.actor_name,
+    createdAt: log.created_at,
+  }));
 };
 
 // React Query Hooks.
@@ -198,6 +252,16 @@ export const useUpdateOrganisation = () => {
   });
 };
 
+export const useDeleteOrganisation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: deleteOrganisation,
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['organisations'] });
+    },
+  });
+};
+
 export const useOrganisationMembers = (enabled = true) =>
   useQuery({
     queryKey: ['organisationMembers'],
@@ -224,3 +288,20 @@ export const useRemoveOrganisationMember = () => {
     },
   });
 };
+
+export const useUpdateOrganisationMember = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: updateOrganisationMember,
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['organisationMembers'] });
+    },
+  });
+};
+
+export const useAuditLogs = (enabled = true) =>
+  useQuery({
+    queryKey: ['auditLogs'],
+    queryFn: fetchAuditLogs,
+    enabled,
+  });

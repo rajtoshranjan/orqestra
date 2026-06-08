@@ -1,6 +1,7 @@
 import { ChevronDown, LogOut, Settings as SettingsIcon } from 'lucide-react';
 
 import { useLocation } from 'react-router-dom';
+import { useLocalStorage } from 'usehooks-ts';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,15 +16,24 @@ import { history } from '@/lib/utils';
 import { localStorageManager } from '@/lib/utils/local-storage-manager';
 
 const getCurrentSectionLabel = (): string => {
-  if (window.location.pathname === '/') {
+  const path = window.location.pathname;
+  if (path === '/') {
     return 'Projects';
   }
 
-  if (window.location.pathname === '/preferences') {
+  if (path === '/preferences') {
     return 'Preferences';
   }
 
-  return window.location.pathname.replace('/', '');
+  if (path === '/org-settings') {
+    return 'Organisation Settings';
+  }
+
+  if (path === '/org-members') {
+    return 'Organisation Members';
+  }
+
+  return path.replace('/', '');
 };
 
 const shouldShowOrganisationContext = (pathname: string): boolean => {
@@ -48,11 +58,10 @@ export function AppHeader() {
   const isAuthenticated = localStorageManager.hasToken();
   const { data: user } = useGetUserInfo(isAuthenticated);
   const { data: organisations } = useOrganisations(isAuthenticated);
-  const activeOrganisationId = localStorageManager.getActiveOrgId();
+  const [activeOrgId] = useLocalStorage<string | null>('activeOrgId', null);
   const activeOrganisation =
-    organisations?.find(
-      (organisation) => organisation.id === activeOrganisationId,
-    ) || organisations?.[0];
+    organisations?.find((organisation) => organisation.id === activeOrgId) ||
+    organisations?.[0];
   const showOrganisationContext = shouldShowOrganisationContext(
     location.pathname,
   );

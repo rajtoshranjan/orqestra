@@ -18,8 +18,12 @@ class CloudServicesViewSet(viewsets.ViewSet):
     Conforms to DRF guidelines in agent.md by using framework primitives.
     """
 
-    authentication_classes = []
-    permission_classes = [AllowAny]
+    def get_permissions(self):
+        if self.action == "health":
+            return [AllowAny()]
+        from rest_framework.permissions import IsAuthenticated
+
+        return [IsAuthenticated()]
 
     @action(detail=False, methods=["get"], url_path="health")
     def health(self, request):

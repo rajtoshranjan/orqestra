@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -15,14 +16,15 @@ class UserViewSet(ModelViewSet):
     permission_classes = [IsSelf]
 
     def get_permissions(self):
-        if self.action == "list":
-            self.permission_classes = [IsAuthenticated]
-        elif self.action == "create":
+        if self.action == "create":
             self.permission_classes = [AllowAny]
         return super(UserViewSet, self).get_permissions()
 
     def get_queryset(self):
-        return User.objects.all()
+        return User.objects.filter(id=self.request.user.id)
+
+    def list(self, request, *args, **kwargs):
+        raise PermissionDenied("Listing all users is not allowed.")
 
     @action(detail=False, methods=["get", "patch"])
     def me(self, request):

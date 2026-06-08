@@ -53,3 +53,49 @@ class CanManageOrganisation(IsAuthenticated):
                 ).exists()
             )
         return False
+
+
+class CanWriteOrganisation(IsAuthenticated):
+    """
+    Checks if the user has write/mutate permissions in the active organisation.
+    Allows owner, ADMIN, and REGULAR, but blocks GUEST.
+    """
+
+    def has_permission(self, request, view):
+        if not super().has_permission(request, view):
+            return False
+        org = get_active_organisation(request, raise_exception=False)
+        if not org:
+            return False
+        if org.owner == request.user:
+            return True
+        return org.members.filter(
+            user=request.user,
+            role__in=[
+                OrganisationMemberRole.ADMIN.value,
+                OrganisationMemberRole.REGULAR.value,
+            ],
+        ).exists()
+
+    def has_object_permission(self, request, view, obj):
+        org = None
+        if isinstance(obj, Organisation):
+            org = obj
+        elif hasattr(obj, "organisation"):
+            org = obj.organisation
+        elif hasattr(obj, "project") and hasattr(obj.project, "organisation"):
+            org = obj.project.organisation
+
+        if not org:
+            return False
+
+        if org.owner == request.user:
+            return True
+
+        return org.members.filter(
+            user=request.user,
+            role__in=[
+                OrganisationMemberRole.ADMIN.value,
+                OrganisationMemberRole.REGULAR.value,
+            ],
+        ).exists()

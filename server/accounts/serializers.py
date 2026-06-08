@@ -84,3 +84,25 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         super().__init__(*args, **kwargs)
         if "username" in self.initial_data and "email" not in self.initial_data:
             self.initial_data["email"] = self.initial_data["username"]
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        user = self.user
+        request = self.context.get("request")
+        if request and user:
+            old_user = request.user
+            request.user = user
+            try:
+                from organisations.helpers import get_active_organisation, log_action
+
+                org = get_active_organisation(request)
+                if org:
+                    log_action(
+                        organisation=org,
+                        actor=user,
+                        action="user.login",
+                        details={"email": user.email},
+                    )
+            finally:
+                request.user = old_user
+        return data

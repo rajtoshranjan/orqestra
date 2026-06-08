@@ -24,10 +24,16 @@ export const localStorageManager = {
 
   // Active Organisation.
   getActiveOrgId: () => {
-    return localStorage.getItem('activeOrgId');
+    const raw = localStorage.getItem('activeOrgId');
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return raw;
+    }
   },
   setActiveOrgId: (id: string) => {
-    localStorage.setItem('activeOrgId', id);
+    localStorage.setItem('activeOrgId', JSON.stringify(id));
   },
   removeActiveOrgId: () => {
     localStorage.removeItem('activeOrgId');

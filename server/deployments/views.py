@@ -33,6 +33,10 @@ class DeploymentViewSet(viewsets.GenericViewSet):
     def get_permissions(self):
         if self.action == "callback":
             self.permission_classes = [AllowAny]
+        elif self.action == "create":
+            from organisations.permissions import CanWriteOrganisation
+
+            self.permission_classes = [CanWriteOrganisation]
         else:
             self.permission_classes = [IsOrganisationMember]
         return super(DeploymentViewSet, self).get_permissions()
@@ -74,6 +78,18 @@ class DeploymentViewSet(viewsets.GenericViewSet):
             )
 
         deployment = create_deployment(project)
+        from organisations.helpers import log_action
+
+        log_action(
+            organisation=active_org,
+            actor=request.user,
+            action="deployment.trigger",
+            details={
+                "project_id": str(project.id),
+                "project_name": project.name,
+                "deployment_id": str(deployment.id),
+            },
+        )
         return Response(
             DeploymentSerializer(deployment).data,
             status=status.HTTP_202_ACCEPTED,
@@ -92,6 +108,26 @@ class DeploymentViewSet(viewsets.GenericViewSet):
     @action(detail=True, methods=["post"], url_path="callback")
     def callback(self, request, pk=None):
         """Webhook endpoint for the deployer to report results (POST /deployments/<pk>/callback/)."""
+        token = request.query_params.get("token")
+        if not token:
+            from rest_framework.exceptions import PermissionDenied
+
+            raise PermissionDenied("Callback token is missing.")
+
+        import hashlib
+        import hmac
+
+        from django.conf import settings
+
+        expected_token = hmac.new(
+            settings.SECRET_KEY.encode(), str(pk).encode(), hashlib.sha256
+        ).hexdigest()
+
+        if not hmac.compare_digest(token, expected_token):
+            from rest_framework.exceptions import PermissionDenied
+
+            raise PermissionDenied("Callback token is invalid.")
+
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 

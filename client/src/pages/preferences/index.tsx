@@ -38,13 +38,13 @@ export function Preferences() {
       maxWidthClass="max-w-5xl"
     >
       <Card className="w-full rounded-lg border-[var(--color-border)] bg-[var(--color-bg-surface)] shadow-sm">
-        <CardHeader>
+        <CardHeader className="pb-3">
           <CardTitle className="text-base">Appearance</CardTitle>
           <CardDescription>
             Choose the color mode used across the workspace.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-0">
           <div className="grid gap-3 sm:grid-cols-2">
             {themeOptions.map((option) => {
               const Icon = option.icon;
@@ -57,7 +57,7 @@ export function Preferences() {
                   onClick={() => dispatch(setTheme(option.value))}
                   aria-pressed={active}
                   className={cn(
-                    'flex min-h-[104px] items-start gap-3 rounded-lg border p-4 text-left transition-all duration-200',
+                    'flex min-h-[96px] items-start gap-3 rounded-lg border p-3 text-left transition-all duration-200',
                     active
                       ? 'border-primary bg-primary/5 text-foreground ring-1 ring-primary'
                       : 'border-[var(--color-border)] bg-[var(--color-bg-surface)] text-muted-foreground hover:border-[var(--color-border-hover)] hover:bg-[var(--color-bg-elevated)] hover:text-foreground',

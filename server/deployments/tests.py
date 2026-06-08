@@ -7,6 +7,7 @@ from orqestra.tests import BaseTestCase
 from projects.models import Project
 
 from .models import Deployment, DeploymentStatus, ProjectDeploymentState
+from .services import _generate_callback_token
 
 
 class DeploymentTests(BaseTestCase):
@@ -131,7 +132,11 @@ class DeploymentTests(BaseTestCase):
             "outputs": {},
         }
 
-        url = reverse("deployment-callback", kwargs={"pk": str(deployment.id)})
+        token = _generate_callback_token(deployment.id)
+        url = (
+            reverse("deployment-callback", kwargs={"pk": str(deployment.id)})
+            + f"?token={token}"
+        )
         response = self.client.post(url, callback_payload, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -176,7 +181,11 @@ class DeploymentTests(BaseTestCase):
             "outputs": {},
         }
 
-        url = reverse("deployment-callback", kwargs={"pk": str(deployment.id)})
+        token = _generate_callback_token(deployment.id)
+        url = (
+            reverse("deployment-callback", kwargs={"pk": str(deployment.id)})
+            + f"?token={token}"
+        )
         response = self.client.post(url, callback_payload, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -213,3 +222,18 @@ class DeploymentTests(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data["deployed"])
         self.assertEqual(len(response.data["resources"]), 0)
+
+    def test_deployment_callback_unauthorized(self):
+        deployment = Deployment.objects.create(
+            project=self.project,
+            status=DeploymentStatus.INVOKING,
+            graph_snapshot={},
+        )
+        url = reverse("deployment-callback", kwargs={"pk": str(deployment.id)})
+        # Test missing token
+        response = self.client.post(url, {}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Test invalid token
+        response = self.client.post(url + "?token=invalidtoken", {}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

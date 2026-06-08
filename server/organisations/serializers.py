@@ -9,10 +9,28 @@ from .models import Organisation, OrganisationMember
 class OrganisationSerializer(serializers.ModelSerializer):
     role = serializers.SerializerMethodField()
 
+    owner_email = serializers.EmailField(source="owner.email", read_only=True)
+    owner_name = serializers.CharField(source="owner.name", read_only=True)
+
     class Meta:
         model = Organisation
-        fields = ["id", "name", "role", "created_at", "updated_at"]
-        read_only_fields = ["id", "role", "created_at", "updated_at"]
+        fields = [
+            "id",
+            "name",
+            "role",
+            "owner_email",
+            "owner_name",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "role",
+            "owner_email",
+            "owner_name",
+            "created_at",
+            "updated_at",
+        ]
 
     def get_role(self, organisation: Organisation):
         request = self.context.get("request")
@@ -63,3 +81,15 @@ class OrganisationMemberSerializer(serializers.ModelSerializer):
         validated_data["user"] = user
         validated_data["organisation"] = active_org
         return super().create(validated_data)
+
+
+from .models import AuditLog
+
+
+class AuditLogSerializer(serializers.ModelSerializer):
+    actor_email = serializers.EmailField(source="actor.email", read_only=True)
+    actor_name = serializers.CharField(source="actor.name", read_only=True)
+
+    class Meta:
+        model = AuditLog
+        fields = ["id", "action", "details", "actor_email", "actor_name", "created_at"]

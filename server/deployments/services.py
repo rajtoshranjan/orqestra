@@ -3,6 +3,7 @@ import logging
 import requests
 from django.db import transaction
 from django.utils import timezone
+
 from orqestra.env_variables import EnvVariable
 from projects.models import Project
 
@@ -74,6 +75,17 @@ def create_deployment(project: Project) -> Deployment:
     return deployment
 
 
+def _generate_callback_token(deployment_id: str) -> str:
+    import hashlib
+    import hmac
+
+    from django.conf import settings
+
+    return hmac.new(
+        settings.SECRET_KEY.encode(), str(deployment_id).encode(), hashlib.sha256
+    ).hexdigest()
+
+
 def invoke_deployer(deployment: Deployment, existing_state: dict | None) -> None:
     """
     Invoke the deployer service via HTTP.
@@ -82,9 +94,8 @@ def invoke_deployer(deployment: Deployment, existing_state: dict | None) -> None
     In lambda mode, would invoke an AWS Lambda function.
     """
     mode = EnvVariable.DEPLOYER_MODE.value
-    callback_url = (
-        f"{EnvVariable.SERVER_BASE_URL.value}/deployments/{deployment.id}/callback/"
-    )
+    token = _generate_callback_token(deployment.id)
+    callback_url = f"{EnvVariable.SERVER_BASE_URL.value}/deployments/{deployment.id}/callback/?token={token}"
 
     payload = {
         "deployment_id": str(deployment.id),
@@ -154,6 +165,23 @@ def process_deployment_callback(deployment_id: str, results: dict) -> Deployment
         # On success, update the project deployment state.
         if status == "succeeded":
             _update_project_state(deployment, tofu_state, outputs)
+
+    from organisations.helpers import log_action
+
+    log_action(
+        organisation=deployment.project.organisation,
+        actor=None,
+        action="deployment.complete",
+        details={
+            "project_id": str(deployment.project_id),
+            "project_name": deployment.project.name,
+            "deployment_id": str(deployment.id),
+            "status": deployment.status,
+            "error": deployment.error_message
+            if deployment.status == "failed"
+            else None,
+        },
+    )
 
     return deployment
 

@@ -44,3 +44,86 @@ class OrganisationsTests(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Should contain the initial org created in setUp, the newly owned org, and the other membership org.
         self.assertEqual(len(response.data), 3)
+
+
+class OrganisationSecurityTests(BaseTestCase):
+    """Tests for role-based access control, scoping, and audit logs."""
+
+    def test_block_global_user_list(self):
+        url = reverse("user-list")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.data["detail"], "Listing all users is not allowed.")
+
+    def test_regular_member_can_list_members_but_cannot_invite(self):
+        # Create a regular member.
+        regular_user = User.objects.create_user(
+            email="regular@example.com",
+            password="RegularPassword123!",
+            name="Regular User",
+        )
+        OrganisationMember.objects.create(
+            organisation=self.organisation,
+            user=regular_user,
+            role=OrganisationMemberRole.REGULAR.value,
+        )
+
+        # Authenticate as regular member.
+        self.client.force_authenticate(user=regular_user)
+        self.client.credentials(HTTP_X_ACTIVE_ORG_ID=str(self.organisation.id))
+
+        # Can list members.
+        url = reverse("organisation-member-list")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+
+        # Cannot invite member.
+        response = self.client.post(
+            url,
+            {
+                "email": "newinvite@example.com",
+                "role": OrganisationMemberRole.GUEST.value,
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_guest_cannot_write_projects(self):
+        # Create a guest member.
+        guest_user = User.objects.create_user(
+            email="guest@example.com",
+            password="GuestPassword123!",
+            name="Guest User",
+        )
+        OrganisationMember.objects.create(
+            organisation=self.organisation,
+            user=guest_user,
+            role=OrganisationMemberRole.GUEST.value,
+        )
+
+        # Authenticate as guest.
+        self.client.force_authenticate(user=guest_user)
+        self.client.credentials(HTTP_X_ACTIVE_ORG_ID=str(self.organisation.id))
+
+        # Guest cannot create project.
+        url = reverse("project-list")
+        response = self.client.post(url, {"name": "Guest Project"}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_audit_logs_recorded(self):
+        # Create a project as admin/owner.
+        url = reverse("project-list")
+        response = self.client.post(url, {"name": "Logged Project"}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Verify audit log was created.
+        from organisations.models import AuditLog
+
+        self.assertTrue(
+            AuditLog.objects.filter(
+                organisation=self.organisation,
+                actor=self.user,
+                action="project.create",
+            ).exists()
+        )

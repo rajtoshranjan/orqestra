@@ -1,14 +1,17 @@
 import { useEffect, useState, type ComponentType } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useLocalStorage } from 'usehooks-ts';
+import { useQueryClient } from '@tanstack/react-query';
 import {
-  Building2,
+  Check,
+  ChevronDown,
   Hexagon,
   LayoutDashboard,
   PanelLeftClose,
   PanelLeftOpen,
-  PencilLine,
   Plus,
+  Settings,
+  Users,
 } from 'lucide-react';
 
 import {
@@ -28,15 +31,12 @@ import {
 } from './ui/dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import {
-  useCreateOrganisation,
-  useOrganisations,
-  useUpdateOrganisation,
-} from '@/api/auth';
+
+import { useCreateOrganisation, useOrganisations } from '@/api/auth';
 import { cn } from '@/lib/utils';
 import { localStorageManager } from '@/lib/utils/local-storage-manager';
 
-export type AppShellView = 'projects';
+export type AppShellView = 'projects' | 'settings' | 'members';
 
 type AppSidebarProps = {
   onNavigate: (path: string) => void;
@@ -48,6 +48,18 @@ const navItems = [
     label: 'Projects',
     path: '/',
     icon: LayoutDashboard,
+  },
+  {
+    view: 'members',
+    label: 'Members',
+    path: '/org-members',
+    icon: Users,
+  },
+  {
+    view: 'settings',
+    label: 'Settings',
+    path: '/org-settings',
+    icon: Settings,
   },
 ] satisfies Array<{
   view: AppShellView;
@@ -75,22 +87,22 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
     'sidebarCollapsed',
     false,
   );
+  const queryClient = useQueryClient();
   const isAuthenticated = localStorageManager.hasToken();
   const { data: organisations } = useOrganisations(isAuthenticated);
   const createOrganisationMutation = useCreateOrganisation();
-  const updateOrganisationMutation = useUpdateOrganisation();
-  const activeOrganisationId = localStorageManager.getActiveOrgId();
+  const [activeOrgId, setActiveOrgId] = useLocalStorage<string | null>(
+    'activeOrgId',
+    null,
+  );
+  const activeOrganisationId = activeOrgId;
   const activeOrganisation =
     organisations?.find(
       (organisation) => organisation.id === activeOrganisationId,
     ) || organisations?.[0];
   const [createOrganisationDialogOpen, setCreateOrganisationDialogOpen] =
     useState<boolean>(false);
-  const [editOrganisationDialogOpen, setEditOrganisationDialogOpen] =
-    useState<boolean>(false);
   const [newOrganisationName, setNewOrganisationName] = useState<string>('');
-  const [editedOrganisationName, setEditedOrganisationName] =
-    useState<string>('');
 
   useEffect(() => {
     if (!isAuthenticated || !organisations?.length) {
@@ -103,31 +115,26 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
 
     if (!activeOrganisationId || !hasValidActiveOrganisation) {
       localStorageManager.setActiveOrgId(organisations[0].id);
-      window.location.reload();
+      setActiveOrgId(organisations[0].id);
+      void queryClient.invalidateQueries();
     }
-  }, [activeOrganisationId, isAuthenticated, organisations]);
+  }, [
+    activeOrganisationId,
+    isAuthenticated,
+    organisations,
+    queryClient,
+    setActiveOrgId,
+  ]);
 
   const handleSwitchOrganisation = (organisationId: string): void => {
     localStorageManager.setActiveOrgId(organisationId);
-    window.location.reload();
+    setActiveOrgId(organisationId);
+    void queryClient.invalidateQueries();
   };
-
-  const canEditActiveOrganisation =
-    activeOrganisation?.role === 'owner' ||
-    activeOrganisation?.role === 'admin';
 
   const handleCreateOrganisationClick = (): void => {
     setNewOrganisationName('');
     setCreateOrganisationDialogOpen(true);
-  };
-
-  const handleEditOrganisationClick = (): void => {
-    if (!canEditActiveOrganisation) {
-      return;
-    }
-
-    setEditedOrganisationName(activeOrganisation?.name ?? '');
-    setEditOrganisationDialogOpen(true);
   };
 
   const handleCreateOrganisationSubmit = (event: React.FormEvent): void => {
@@ -142,32 +149,9 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
       {
         onSuccess: (organisation) => {
           localStorageManager.setActiveOrgId(organisation.id);
+          setActiveOrgId(organisation.id);
           setCreateOrganisationDialogOpen(false);
-          window.location.reload();
-        },
-      },
-    );
-  };
-
-  const handleEditOrganisationSubmit = (event: React.FormEvent): void => {
-    event.preventDefault();
-
-    if (
-      !activeOrganisation ||
-      !canEditActiveOrganisation ||
-      !editedOrganisationName.trim()
-    ) {
-      return;
-    }
-
-    updateOrganisationMutation.mutate(
-      {
-        organisationId: activeOrganisation.id,
-        name: editedOrganisationName.trim(),
-      },
-      {
-        onSuccess: () => {
-          setEditOrganisationDialogOpen(false);
+          void queryClient.invalidateQueries();
         },
       },
     );
@@ -210,84 +194,113 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
         </div>
 
         {isAuthenticated && organisations?.length ? (
-          <div className="border-b border-border p-3">
-            <div className="flex min-w-0 items-center justify-between gap-2">
+          <div className="p-2">
+            <div className="flex items-center gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
                     className={cn(
-                      'flex min-w-0 items-center gap-1.5 rounded-md px-0 py-1 text-left transition-colors hover:bg-accent/30',
-                      isCollapsed ? 'justify-center' : 'md:justify-start',
+                      'group flex w-full min-w-0 items-center gap-2 rounded-lg border border-border/60 bg-accent/5 p-2 text-left shadow-sm transition-all duration-200',
+                      isCollapsed
+                        ? 'justify-center border-none bg-transparent p-1 shadow-none'
+                        : 'md:justify-start',
+                      'hover:shadow-glow hover:border-primary/30 hover:bg-accent/10',
                     )}
                     aria-label={
                       activeOrganisation
-                        ? `Selected organisation ${activeOrganisation.name}`
+                        ? `Switch organisation: ${activeOrganisation.name}`
+                        : 'Select organisation'
+                    }
+                    title={
+                      activeOrganisation
+                        ? `Switch organisation — ${activeOrganisation.name}`
                         : 'Select organisation'
                     }
                   >
                     {isCollapsed ? (
-                      <span className="flex size-6 items-center justify-center rounded-md bg-primary/10 text-[10px] font-bold text-primary">
+                      <span className="flex size-8 items-center justify-center rounded-md border border-white/10 bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 text-[10px] font-extrabold text-white shadow-[0_0_12px_rgba(99,102,241,0.25)] transition-transform duration-200 group-hover:scale-105">
                         {getOrganisationInitials(activeOrganisation?.name)}
                       </span>
                     ) : (
                       <>
-                        <span className="hidden min-w-0 items-center gap-1.5 md:flex">
-                          <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-                            <Building2 className="size-3" />
+                        <span className="flex size-8 shrink-0 items-center justify-center rounded-md border border-white/10 bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 text-[10px] font-extrabold text-white shadow-[0_0_12px_rgba(99,102,241,0.25)]">
+                          {getOrganisationInitials(activeOrganisation?.name)}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-xs font-semibold leading-tight tracking-tight text-foreground">
+                            {activeOrganisation?.name ?? 'Organisation'}
                           </span>
-                          <span className="min-w-0">
-                            <span className="block truncate text-xs font-medium text-foreground">
-                              {activeOrganisation?.name ?? 'Organisation'}
-                            </span>
+                          <span className="mt-0.5 inline-flex items-center rounded-full bg-primary/10 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-primary">
+                            {activeOrganisation?.role ?? 'Member'}
                           </span>
                         </span>
+                        <ChevronDown className="size-3.5 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
                       </>
                     )}
                   </button>
                 </DropdownMenuTrigger>
+
                 <DropdownMenuContent
-                  className="w-56 border-border bg-[var(--color-bg-surface)] text-foreground"
+                  className="w-60 rounded-lg border-border bg-[var(--color-bg-surface)] p-1.5 text-foreground shadow-xl"
                   align="start"
                   side="right"
+                  sideOffset={12}
                 >
-                  <DropdownMenuLabel className="px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Organisations
+                  <DropdownMenuLabel className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/85">
+                    Switch Organisation
                   </DropdownMenuLabel>
-                  {organisations.map((organisation) => (
-                    <DropdownMenuItem
-                      key={organisation.id}
-                      onClick={() => handleSwitchOrganisation(organisation.id)}
-                      className={cn(
-                        'cursor-pointer px-2.5 py-2 text-xs',
-                        organisation.id === activeOrganisationId &&
-                          'bg-accent/30 font-bold text-primary',
-                      )}
-                    >
-                      {organisation.name}
-                    </DropdownMenuItem>
-                  ))}
-                  <DropdownMenuSeparator className="bg-border" />
+                  {organisations.map((organisation) => {
+                    const isActive = organisation.id === activeOrganisationId;
+                    return (
+                      <DropdownMenuItem
+                        key={organisation.id}
+                        onClick={() =>
+                          handleSwitchOrganisation(organisation.id)
+                        }
+                        className={cn(
+                          'flex cursor-pointer items-center justify-between gap-3 rounded-md px-2.5 py-2 text-xs transition-colors duration-150',
+                          isActive
+                            ? 'bg-primary/10 font-medium text-primary hover:bg-primary/15'
+                            : 'text-foreground hover:bg-accent/50',
+                        )}
+                      >
+                        <div className="flex min-w-0 items-center gap-2.5">
+                          <span
+                            className={cn(
+                              'flex h-6 w-6 shrink-0 items-center justify-center rounded border border-white/5 text-[9px] font-bold text-white',
+                              isActive
+                                ? 'bg-gradient-to-tr from-indigo-500 to-purple-500 shadow-[0_0_8px_rgba(99,102,241,0.2)]'
+                                : 'bg-muted text-muted-foreground',
+                            )}
+                          >
+                            {getOrganisationInitials(organisation.name)}
+                          </span>
+                          <div className="min-w-0">
+                            <span className="block truncate font-medium text-foreground">
+                              {organisation.name}
+                            </span>
+                            <span className="mt-0.5 block text-[9px] uppercase tracking-wide text-muted-foreground">
+                              {organisation.role}
+                            </span>
+                          </div>
+                        </div>
+                        {isActive && (
+                          <Check className="size-3.5 shrink-0 text-primary" />
+                        )}
+                      </DropdownMenuItem>
+                    );
+                  })}
+                  <DropdownMenuSeparator className="my-1.5 bg-border/60" />
                   <DropdownMenuItem
                     onClick={handleCreateOrganisationClick}
-                    className="flex cursor-pointer items-center gap-2 px-2.5 py-2 text-xs text-primary focus:bg-primary/5 focus:text-primary"
+                    className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-2 text-xs text-primary hover:bg-primary/5 focus:bg-primary/5 focus:text-primary"
                   >
                     <Plus className="size-3.5" />
-                    New Org
+                    New Organisation
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-
-              {canEditActiveOrganisation && !isCollapsed ? (
-                <button
-                  type="button"
-                  onClick={handleEditOrganisationClick}
-                  aria-label="Edit organisation"
-                  className="hidden rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent/30 hover:text-foreground md:block"
-                >
-                  <PencilLine className="size-4" />
-                </button>
-              ) : null}
             </div>
           </div>
         ) : null}
@@ -355,59 +368,6 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
           </button>
         </div>
       </aside>
-
-      <Dialog
-        open={editOrganisationDialogOpen}
-        onOpenChange={setEditOrganisationDialogOpen}
-      >
-        <DialogContent className="border-border bg-[var(--color-bg-surface)] text-foreground sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-sm font-bold text-foreground">
-              Edit Organisation
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleEditOrganisationSubmit} className="space-y-4">
-            <div className="space-y-1">
-              <label
-                htmlFor="edit-organisation-name"
-                className="text-xs font-semibold text-muted-foreground"
-              >
-                Organisation Name
-              </label>
-              <Input
-                id="edit-organisation-name"
-                value={editedOrganisationName}
-                onChange={(event) =>
-                  setEditedOrganisationName(event.target.value)
-                }
-                placeholder="My Awesome Org"
-                className="h-8 border-input text-xs text-foreground focus-visible:ring-primary"
-              />
-            </div>
-            <DialogFooter className="mt-4 gap-2 sm:gap-0">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setEditOrganisationDialogOpen(false)}
-                className="h-8 border-border text-xs text-foreground hover:bg-accent/50"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                className="h-8 text-xs"
-                disabled={
-                  !editedOrganisationName.trim() ||
-                  updateOrganisationMutation.isPending ||
-                  editedOrganisationName.trim() === activeOrganisation?.name
-                }
-              >
-                {updateOrganisationMutation.isPending ? 'Saving...' : 'Save'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
 
       <Dialog
         open={createOrganisationDialogOpen}

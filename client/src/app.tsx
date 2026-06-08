@@ -6,6 +6,8 @@ import {
   Projects,
   Editor,
   Preferences,
+  OrgSettings,
+  OrgMembers,
   LoginPage,
   SignUpPage,
   AuthLayout,
@@ -118,6 +120,8 @@ function App() {
                 }
               />
               <Route path="/preferences" element={<Preferences />} />
+              <Route path="/org-settings" element={<OrgSettings />} />
+              <Route path="/org-members" element={<OrgMembers />} />
             </Route>
             <Route
               path="/editor/:projectId"
