@@ -33,6 +33,7 @@ export function QuickAddMenu({ x, y, onAddNode, onClose }: QuickAddMenuProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   const services = useMemo(() => registry.getAll(), []);
 
@@ -56,12 +57,24 @@ export function QuickAddMenu({ x, y, onAddNode, onClose }: QuickAddMenuProps) {
     );
   }, [searchTerm, services]);
 
-  // Adjust selection if search list shrinks
+  // Adjust selection if search list shrinks.
   useEffect(() => {
     setSelectedIndex(0);
   }, [filteredServices.length]);
 
-  // Auto-focus input on mount
+  // Scroll the active selected item into view.
+  useEffect(() => {
+    if (listRef.current && filteredServices.length > 0) {
+      const selectedElement = listRef.current.children[
+        selectedIndex
+      ] as HTMLElement;
+      if (selectedElement) {
+        selectedElement.scrollIntoView({ block: 'nearest' });
+      }
+    }
+  }, [selectedIndex, filteredServices.length]);
+
+  // Auto-focus input on mount.
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
@@ -133,7 +146,7 @@ export function QuickAddMenu({ x, y, onAddNode, onClose }: QuickAddMenuProps) {
       </div>
 
       {/* Services List */}
-      <div className="max-h-[220px] overflow-y-auto p-1">
+      <div ref={listRef} className="max-h-[220px] overflow-y-auto p-1">
         {filteredServices.map((service, index) => {
           const ServiceIcon = service.icon;
           const isSelected = index === selectedIndex;

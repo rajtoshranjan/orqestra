@@ -208,6 +208,49 @@ const findBestParentForDraggedNode = (
   return { bestParent, absoluteDraggedPosition, nodesWithDraggedNode };
 };
 
+const isDiagramStructureEqual = (
+  nodesA: DiagramNode[],
+  nodesB: DiagramNode[],
+  edgesA: DiagramEdge[],
+  edgesB: DiagramEdge[],
+): boolean => {
+  if (nodesA.length !== nodesB.length) return false;
+  if (edgesA.length !== edgesB.length) return false;
+
+  // Check nodes structure & configs
+  for (let i = 0; i < nodesA.length; i++) {
+    const nA = nodesA[i];
+    const nB = nodesB.find((n) => n.id === nA.id);
+    if (!nB) return false;
+
+    if (nA.parentNode !== nB.parentNode) return false;
+    if (nA.position.x !== nB.position.x || nA.position.y !== nB.position.y)
+      return false;
+    if (nA.width !== nB.width || nA.height !== nB.height) return false;
+
+    // Check config
+    if (JSON.stringify(nA.data.config) !== JSON.stringify(nB.data.config))
+      return false;
+  }
+
+  // Check edges
+  for (let i = 0; i < edgesA.length; i++) {
+    const eA = edgesA[i];
+    const eB = edgesB.find((e) => e.id === eA.id);
+    if (!eB) return false;
+    if (
+      eA.source !== eB.source ||
+      eA.target !== eB.target ||
+      eA.sourceHandle !== eB.sourceHandle ||
+      eA.targetHandle !== eB.targetHandle
+    ) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
 type CanvasEditorProps = {
   initialProject: PersistedDiagram;
   onNavigateHome: () => void;
@@ -679,10 +722,14 @@ export function CanvasEditor({
 
   /* Autosave Effect. */
   React.useEffect(() => {
-    // Skip autosave if nothing changed from initial loaded state.
+    // Skip autosave if nothing changed structurally from initial loaded state.
     if (
-      nodes === originalProjectRef.current.nodes &&
-      edges === originalProjectRef.current.edges &&
+      isDiagramStructureEqual(
+        nodes,
+        originalProjectRef.current.nodes,
+        edges,
+        originalProjectRef.current.edges,
+      ) &&
       deploymentSettings === originalProjectRef.current.deploymentSettings &&
       projectName === originalProjectRef.current.projectName &&
       projectDescription === originalProjectRef.current.projectDescription
