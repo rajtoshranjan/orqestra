@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocalStorage } from 'usehooks-ts';
-import { Building2, History, Search } from 'lucide-react';
+import { Building2, Cloud, History, Search } from 'lucide-react';
 
 import {
   Card,
@@ -28,14 +28,14 @@ import {
   useUpdateOrganisation,
   useAuditLogs,
   useDeleteOrganisation,
-} from '@/api/auth';
+} from '@/api';
 import { localStorageManager } from '@/lib/utils/local-storage-manager';
 import { toast } from '@/hooks/use-toast';
+import { AWSAccountsTab } from './aws-accounts-tab';
 
 export function OrgSettings() {
   const isAuthenticated = localStorageManager.hasToken();
 
-  // Queries
   const { data: organisations } = useOrganisations(isAuthenticated);
 
   const [activeOrgId] = useLocalStorage<string | null>('activeOrgId', null);
@@ -46,29 +46,24 @@ export function OrgSettings() {
 
   const { data: auditLogs = [] } = useAuditLogs(!!activeOrganisation);
 
-  // Mutations
   const updateOrganisationMutation = useUpdateOrganisation();
   const deleteOrgMutation = useDeleteOrganisation();
 
-  // Local State
   const [orgName, setOrgName] = useState<string>('');
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [confirmName, setConfirmName] = useState('');
   const [logSearch, setLogSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
+  const ITEMS_PER_PAGE = 8;
 
-  // Sync org name state
   useEffect(() => {
     setOrgName(activeOrganisation?.name ?? '');
   }, [activeOrganisation?.id, activeOrganisation?.name]);
 
-  // Reset pagination on search change
   useEffect(() => {
     setCurrentPage(1);
   }, [logSearch]);
 
-  // Authorization checks
   const isOwner = activeOrganisation?.role === 'owner';
   const isAdmin = activeOrganisation?.role === 'admin';
   const canManage = isOwner || isAdmin;
@@ -122,38 +117,34 @@ export function OrgSettings() {
     });
   };
 
-  const getActionBadgeColor = (action: string) => {
-    if (action.includes('organisation'))
-      return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
-    if (action.includes('project'))
-      return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
-    if (action.includes('deployment'))
-      return 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20';
-    if (action.includes('member'))
-      return 'bg-teal-500/10 text-teal-400 border-teal-500/20';
+  const getActionBadgeColor = (action: string): string => {
+    if (action.includes('organisation')) return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
+    if (action.includes('project')) return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+    if (action.includes('deployment')) return 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20';
+    if (action.includes('member')) return 'bg-teal-500/10 text-teal-400 border-teal-500/20';
+    if (action.includes('aws')) return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
     return 'bg-green-500/10 text-green-400 border-green-500/20';
   };
 
-  const renderLogDetails = (details: Record<string, any>) => {
+  const renderLogDetails = (details: Record<string, unknown>): React.ReactNode => {
     if (!details || Object.keys(details).length === 0) {
       return <span className="text-muted-foreground">-</span>;
     }
     return (
       <div className="flex flex-wrap gap-1">
-        {Object.entries(details).map(([key, val]) => (
+        {Object.entries(details).map(([key, value]) => (
           <Badge
             key={key}
             variant="outline"
             className="border-border bg-background/50 px-1.5 py-0.5 font-mono text-[9px] font-normal text-muted-foreground"
           >
-            {key}: {typeof val === 'object' ? JSON.stringify(val) : String(val)}
+            {key}: {typeof value === 'object' ? JSON.stringify(value) : String(value)}
           </Badge>
         ))}
       </div>
     );
   };
 
-  // Filter and paginate logs
   const filteredLogs = auditLogs.filter((log) => {
     const query = logSearch.toLowerCase().trim();
     if (!query) return true;
@@ -164,10 +155,10 @@ export function OrgSettings() {
     );
   });
 
-  const totalPages = Math.max(1, Math.ceil(filteredLogs.length / itemsPerPage));
+  const totalPages = Math.max(1, Math.ceil(filteredLogs.length / ITEMS_PER_PAGE));
   const paginatedLogs = filteredLogs.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
   );
 
   return (
@@ -177,13 +168,20 @@ export function OrgSettings() {
       maxWidthClass="max-w-6xl"
     >
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full max-w-sm grid-cols-2 rounded-lg border border-border bg-[var(--color-bg-surface)] p-1">
+        <TabsList className="grid w-full max-w-2xl grid-cols-3 rounded-lg border border-border bg-[var(--color-bg-surface)] p-1">
           <TabsTrigger
             value="general"
             className="flex items-center gap-1.5 rounded-md py-1.5 text-xs"
           >
             <Building2 className="size-3.5" />
             General
+          </TabsTrigger>
+          <TabsTrigger
+            value="aws-accounts"
+            className="flex items-center gap-1.5 rounded-md py-1.5 text-xs"
+          >
+            <Cloud className="size-3.5" />
+            AWS Accounts
           </TabsTrigger>
           <TabsTrigger
             value="logs"
@@ -194,7 +192,7 @@ export function OrgSettings() {
           </TabsTrigger>
         </TabsList>
 
-        {/* Tab 1: General Settings */}
+        {/* General Tab */}
         <TabsContent value="general" className="space-y-6">
           <Card className="max-w-2xl rounded-lg border-border bg-[var(--color-bg-surface)] shadow-none">
             <CardHeader className="p-5">
@@ -217,7 +215,7 @@ export function OrgSettings() {
                   <Input
                     id="org-name"
                     value={orgName}
-                    onChange={(e) => setOrgName(e.target.value)}
+                    onChange={(event) => setOrgName(event.target.value)}
                     placeholder="My Organisation"
                     disabled={!canManage}
                     className="h-10 text-sm"
@@ -251,8 +249,7 @@ export function OrgSettings() {
                 Danger Zone
               </CardTitle>
               <CardDescription className="text-xs text-red-400">
-                Permanently delete this organisation and all its project
-                designs.
+                Permanently delete this organisation and all its project designs.
               </CardDescription>
             </CardHeader>
             <CardContent className="flex items-center justify-between gap-4 p-5 pt-0">
@@ -284,7 +281,12 @@ export function OrgSettings() {
           </Card>
         </TabsContent>
 
-        {/* Tab 2: Audit Logs */}
+        {/* AWS Accounts Tab */}
+        <TabsContent value="aws-accounts" className="space-y-6">
+          <AWSAccountsTab canManage={canManage} />
+        </TabsContent>
+
+        {/* Audit Logs Tab */}
         <TabsContent value="logs" className="space-y-6">
           <Card className="rounded-lg border-border bg-[var(--color-bg-surface)] shadow-none">
             <CardHeader className="p-5">
@@ -359,7 +361,7 @@ export function OrgSettings() {
                             )}
                           </td>
                           <td className="p-3">
-                            {renderLogDetails(log.details)}
+                            {renderLogDetails(log.details as Record<string, unknown>)}
                           </td>
                           <td className="p-3 text-right text-muted-foreground">
                             {new Date(log.createdAt).toLocaleString(undefined, {
@@ -380,9 +382,9 @@ export function OrgSettings() {
               {totalPages > 1 && (
                 <div className="flex items-center justify-between pt-2">
                   <span className="text-[11px] text-muted-foreground">
-                    Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-                    {Math.min(currentPage * itemsPerPage, filteredLogs.length)}{' '}
-                    of {filteredLogs.length} entries
+                    Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to{' '}
+                    {Math.min(currentPage * ITEMS_PER_PAGE, filteredLogs.length)} of{' '}
+                    {filteredLogs.length} entries
                   </span>
                   <div className="flex items-center gap-1">
                     <Button
@@ -404,7 +406,9 @@ export function OrgSettings() {
                       size="sm"
                       disabled={currentPage === totalPages}
                       onClick={() =>
-                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                        setCurrentPage((prev) =>
+                          Math.min(prev + 1, totalPages)
+                        )
                       }
                       className="h-7 px-2 text-xs"
                     >

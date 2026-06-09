@@ -79,6 +79,7 @@ export type PersistedDiagram = {
   projectId: string;
   projectName: string;
   projectDescription: string;
+  awsAccountId: string | null;
   nodes: DiagramNode[];
   edges: DiagramEdge[];
   deploymentSettings: DeploymentSettings;

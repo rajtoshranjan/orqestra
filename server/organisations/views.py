@@ -5,12 +5,13 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from .constants import OrganisationMemberRole
 from .helpers import get_active_organisation, log_action
-from .models import Organisation, OrganisationMember
-from .permissions import CanManageOrganisation, IsOrganisationMember
+from .models import Organisation, OrganisationMember, AWSAccount
+from .permissions import CanManageOrganisation, IsOrganisationMember, CanWriteOrganisation
 from .serializers import (
     AuditLogSerializer,
     OrganisationMemberSerializer,
     OrganisationSerializer,
+    AWSAccountSerializer,
 )
 
 
@@ -128,3 +129,51 @@ class AuditLogViewSet(ReadOnlyModelViewSet):
     def get_queryset(self):
         org = get_active_organisation(self.request)
         return org.audit_logs.all().select_related("actor")
+
+
+class AWSAccountViewSet(ModelViewSet):
+    serializer_class = AWSAccountSerializer
+
+    def get_permissions(self):
+        if self.action in ["list", "retrieve"]:
+            self.permission_classes = [IsOrganisationMember]
+        else:
+            self.permission_classes = [CanWriteOrganisation]
+        return super().get_permissions()
+
+    def get_queryset(self):
+        org = get_active_organisation(self.request, raise_exception=False)
+        if org:
+            return AWSAccount.objects.filter(organisation_id=org.id)
+        return AWSAccount.objects.none()
+
+    def perform_create(self, serializer):
+        active_org = get_active_organisation(self.request)
+        aws_account = serializer.save(organisation=active_org)
+        log_action(
+            organisation=active_org,
+            actor=self.request.user,
+            action="aws_account.create",
+            details={"aws_account_id": str(aws_account.id), "aws_account_name": aws_account.name},
+        )
+
+    def perform_update(self, serializer):
+        aws_account = serializer.save()
+        log_action(
+            organisation=aws_account.organisation,
+            actor=self.request.user,
+            action="aws_account.update",
+            details={"aws_account_id": str(aws_account.id), "aws_account_name": aws_account.name},
+        )
+
+    def perform_destroy(self, instance):
+        org = instance.organisation
+        aws_account_id = str(instance.id)
+        aws_account_name = instance.name
+        instance.delete()
+        log_action(
+            organisation=org,
+            actor=self.request.user,
+            action="aws_account.delete",
+            details={"aws_account_id": aws_account_id, "aws_account_name": aws_account_name},
+        )

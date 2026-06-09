@@ -6,6 +6,7 @@ import {
   ShieldCheck,
   ShieldAlert,
   BadgeDollarSign,
+  AlertTriangle,
 } from 'lucide-react';
 import React from 'react';
 import type {
@@ -53,6 +54,8 @@ export type DeployDrawerProps = {
   deploymentResult: DeploymentResult;
   onPlan: () => void;
   onDeploy: () => void;
+  onOpenProjectSettings: () => void;
+  awsAccountId: string | null;
   nodes: DiagramNode[];
   edges: DiagramEdge[];
 };
@@ -131,6 +134,8 @@ export function DeployDrawer({
   deploymentResult,
   onPlan,
   onDeploy,
+  onOpenProjectSettings,
+  awsAccountId,
   nodes,
   edges,
 }: DeployDrawerProps) {
@@ -220,6 +225,26 @@ export function DeployDrawer({
           <div className="flex-1 overflow-y-auto">
             {/* PLAN TAB */}
             <TabsContent value="plan" className="m-0 space-y-5 p-4">
+              {!awsAccountId && (
+                <div className="flex items-start gap-2.5 rounded-md border border-amber-500/30 bg-amber-500/10 p-3">
+                  <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-amber-500" />
+                  <div className="space-y-1.5">
+                    <p className="text-xs font-semibold text-amber-500">
+                      No AWS account linked
+                    </p>
+                    <p className="text-[10.5px] leading-relaxed text-muted-foreground">
+                      Attach an AWS account to this project before deploying.
+                    </p>
+                    <button
+                      onClick={onOpenProjectSettings}
+                      className="text-[10.5px] font-medium text-amber-400 underline underline-offset-2 hover:no-underline"
+                    >
+                      Open Project Settings →
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <section>
                 <SectionHeader>Deployment Region</SectionHeader>
                 <div className="space-y-4">
@@ -228,8 +253,8 @@ export function DeployDrawer({
                     <Input
                       type="text"
                       value={deploymentSettings.region}
-                      onChange={(e) =>
-                        patchSettings({ region: e.target.value })
+                      onChange={(event) =>
+                        patchSettings({ region: event.target.value })
                       }
                       className="h-8 border-border/80 bg-background/50 text-xs"
                     />
@@ -356,7 +381,7 @@ export function DeployDrawer({
               <section className="border-t border-border/60 pt-2">
                 <Button
                   onClick={onDeploy}
-                  disabled={isRunning || !hasChanges}
+                  disabled={isRunning || !hasChanges || !awsAccountId}
                   className="flex h-9 w-full items-center justify-center gap-2 bg-gradient-to-r from-primary to-[#6366f1] text-xs font-semibold text-white shadow-md hover:brightness-105 disabled:opacity-50"
                   size="default"
                 >
@@ -367,7 +392,12 @@ export function DeployDrawer({
                   )}
                   {isRunning ? 'Deploying…' : 'Deploy to AWS'}
                 </Button>
-                {!hasChanges && !isRunning && (
+                {!awsAccountId && (
+                  <p className="mt-1.5 text-center text-[10px] text-amber-500/80">
+                    Link an AWS account in project settings to deploy.
+                  </p>
+                )}
+                {awsAccountId && !hasChanges && !isRunning && (
                   <p className="mt-1.5 text-center text-[10px] text-muted-foreground">
                     No changes detected in the architecture plan.
                   </p>

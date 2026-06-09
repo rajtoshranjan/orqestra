@@ -77,6 +77,17 @@ class DeploymentViewSet(viewsets.GenericViewSet):
                 status=status.HTTP_409_CONFLICT,
             )
 
+        if not project.aws_account:
+            return Response(
+                {
+                    "error": (
+                        "No AWS account is configured for this project. "
+                        "Select one in the project settings before deploying."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         deployment = create_deployment(project)
         from organisations.helpers import log_action
 

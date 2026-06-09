@@ -295,18 +295,35 @@ def _get_existing_tofu_state(project: Project) -> dict | None:
 
 
 def _build_aws_credentials(deployment: Deployment) -> dict:
-    """Build AWS credentials dict from server environment for the deployer."""
-    import os
+    """Build AWS credentials dict from the project's selected AWS account for the deployer."""
+    project = deployment.project
+    aws_account = project.aws_account
+
+    if not aws_account:
+        raise RuntimeError(
+            f"No AWS account is associated with project '{project.name}'. "
+            "Please select an AWS account in the project settings before deploying."
+        )
+
+    from utils.encryption import decrypt_val
+
+    try:
+        access_key_id = decrypt_val(aws_account.access_key_id)
+        secret_access_key = decrypt_val(aws_account.secret_access_key)
+    except Exception as exc:
+        logger.exception("Failed to decrypt AWS credentials for project %s", project.id)
+        raise RuntimeError(f"Failed to decrypt AWS credentials: {exc}")
 
     return {
-        "access_key_id": os.environ.get("AWS_ACCESS_KEY_ID", ""),
-        "secret_access_key": os.environ.get("AWS_SECRET_ACCESS_KEY", ""),
+        "access_key_id": access_key_id,
+        "secret_access_key": secret_access_key,
         "region": deployment.graph_snapshot.get("settings", {}).get(
             "region", "us-east-1"
         )
         or "us-east-1",
-        "endpoint_url": os.environ.get("AWS_ENDPOINT_URL", ""),
+        "endpoint_url": aws_account.endpoint_url,
     }
+
 
 
 def _build_code_bundles(deployment: Deployment) -> dict:

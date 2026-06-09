@@ -33,6 +33,7 @@ import { ProjectSettingsModal } from '@/pages/editor/project-settings-modal';
 import { cn } from '@/lib/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setIsLocked, setSnapToGrid } from '@/store/editor-slice';
+import { setProjectSettingsOpen } from '@/store/ui-slice';
 import { DeploymentStatus } from '@/types';
 import type { DiagramNode } from '@/types';
 import { formatRelativeTime, hasValidationErrors } from '@/utils';
@@ -73,7 +74,6 @@ function EditorToolbarComponent({
   onClearCanvas,
 }: EditorToolbarProps) {
   const dispatch = useAppDispatch();
-  const [settingsOpen, setSettingsOpen] = React.useState(false);
 
   const { projectName, lastSavedAt, snapToGrid, isLocked } = useAppSelector(
     (state) => ({
@@ -88,6 +88,8 @@ function EditorToolbarComponent({
       prev.snapToGrid === next.snapToGrid &&
       prev.isLocked === next.isLocked,
   );
+
+  const projectSettingsOpen = useAppSelector((state) => state.ui.projectSettingsOpen);
 
   const { nodeCount, invalidNodeCount } = useAppSelector(
     (state) => {
@@ -141,7 +143,7 @@ function EditorToolbarComponent({
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setSettingsOpen(true)}
+                  onClick={() => dispatch(setProjectSettingsOpen(true))}
                   className="size-5 text-muted-foreground hover:bg-accent hover:text-foreground"
                 >
                   <PencilLine size={11} />
@@ -422,8 +424,8 @@ function EditorToolbarComponent({
       </header>
 
       <ProjectSettingsModal
-        open={settingsOpen}
-        onOpenChange={setSettingsOpen}
+        open={projectSettingsOpen}
+        onOpenChange={(open) => dispatch(setProjectSettingsOpen(open))}
       />
     </TooltipProvider>
   );

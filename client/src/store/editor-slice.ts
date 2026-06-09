@@ -11,6 +11,7 @@ type EditorState = {
   projectId: string;
   projectName: string;
   projectDescription: string;
+  awsAccountId: string | null;
   nodes: DiagramNode[];
   edges: DiagramEdge[];
   lastSavedAt: string | null;
@@ -23,6 +24,7 @@ const initialState: EditorState = {
   projectId: '',
   projectName: '',
   projectDescription: '',
+  awsAccountId: null,
   nodes: [],
   edges: [],
   lastSavedAt: null,
@@ -39,6 +41,7 @@ export const editorSlice = createSlice({
       state.projectId = action.payload.projectId;
       state.projectName = action.payload.projectName;
       state.projectDescription = action.payload.projectDescription;
+      state.awsAccountId = action.payload.awsAccountId;
       state.nodes = action.payload.nodes;
       state.edges = action.payload.edges;
       state.lastSavedAt = action.payload.lastSavedAt;
@@ -48,6 +51,9 @@ export const editorSlice = createSlice({
     },
     setProjectDescription: (state, action: PayloadAction<string>) => {
       state.projectDescription = action.payload;
+    },
+    setAwsAccountId: (state, action: PayloadAction<string | null>) => {
+      state.awsAccountId = action.payload;
     },
     setNodes: (state, action: PayloadAction<DiagramNode[]>) => {
       state.nodes = action.payload;
@@ -74,6 +80,7 @@ export const {
   setProject,
   setProjectName,
   setProjectDescription,
+  setAwsAccountId,
   setNodes,
   setEdges,
   setLastSavedAt,

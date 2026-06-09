@@ -102,7 +102,11 @@ import {
   setDeploymentSettings,
   setActiveDeploymentId,
 } from '@/store/deployment-slice';
-import { setDeployDrawerOpen, setContextMenu } from '@/store/ui-slice';
+import {
+  setDeployDrawerOpen,
+  setProjectSettingsOpen,
+  setContextMenu,
+} from '@/store/ui-slice';
 
 const PRO_OPTIONS = { hideAttribution: true };
 const CONTAINER_CHILD_PADDING = 24;
@@ -275,6 +279,7 @@ export function CanvasEditor({
     projectId: currentProjectId,
     projectName,
     projectDescription,
+    awsAccountId,
     snapToGrid,
     isLocked,
     clipboard,
@@ -619,6 +624,7 @@ export function CanvasEditor({
     deploymentSettings: initialProject.deploymentSettings,
     projectName: initialProject.projectName,
     projectDescription: initialProject.projectDescription,
+    awsAccountId: initialProject.awsAccountId,
   });
 
   const mouseRef = React.useRef({
@@ -703,6 +709,7 @@ export function CanvasEditor({
       nextProjectId: string,
       nextProjectName: string,
       nextProjectDescription: string,
+      nextAwsAccountId: string | null,
       nextNodes: DiagramNode[],
       nextEdges: DiagramEdge[],
       nextSettings: DeploymentSettings,
@@ -713,6 +720,7 @@ export function CanvasEditor({
         projectId: nextProjectId,
         projectName: nextProjectName,
         projectDescription: nextProjectDescription,
+        awsAccountId: nextAwsAccountId,
         nodes: nextNodes,
         edges: nextEdges,
         deploymentSettings: nextSettings,
@@ -733,6 +741,7 @@ export function CanvasEditor({
           deploymentSettings: nextSettings,
           projectName: nextProjectName,
           projectDescription: nextProjectDescription,
+          awsAccountId: nextAwsAccountId,
         };
 
         if (!silent) {
@@ -768,7 +777,8 @@ export function CanvasEditor({
       ) &&
       deploymentSettings === originalProjectRef.current.deploymentSettings &&
       projectName === originalProjectRef.current.projectName &&
-      projectDescription === originalProjectRef.current.projectDescription
+      projectDescription === originalProjectRef.current.projectDescription &&
+      awsAccountId === originalProjectRef.current.awsAccountId
     ) {
       return;
     }
@@ -778,6 +788,7 @@ export function CanvasEditor({
         currentProjectId,
         projectName,
         projectDescription,
+        awsAccountId,
         nodes,
         edges,
         deploymentSettings,
@@ -792,6 +803,7 @@ export function CanvasEditor({
     deploymentSettings,
     projectName,
     projectDescription,
+    awsAccountId,
     currentProjectId,
     persistDiagram,
   ]);
@@ -1149,6 +1161,17 @@ export function CanvasEditor({
 
   /* Deploy */
   const handleDeploy = React.useCallback(async () => {
+    if (!awsAccountId) {
+      toast({
+        title: 'AWS account required',
+        description:
+          'Select an AWS account in Project Settings before deploying.',
+        variant: 'destructive',
+      });
+      dispatch(setProjectSettingsOpen(true));
+      return;
+    }
+
     const { valid, nodes: validatedNodes } = validateAndPlan();
 
     if (!valid) {
@@ -1200,6 +1223,7 @@ export function CanvasEditor({
       });
     }
   }, [
+    awsAccountId,
     currentProjectId,
     projectName,
     projectDescription,
@@ -1930,6 +1954,8 @@ export function CanvasEditor({
           void handleDeploy();
         }}
         onPlan={validateAndPlan}
+        onOpenProjectSettings={() => dispatch(setProjectSettingsOpen(true))}
+        awsAccountId={awsAccountId}
         nodes={nodes}
         edges={edges}
       />

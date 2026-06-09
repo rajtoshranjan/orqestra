@@ -12,3 +12,7 @@ psycopg-pool==3.2.4
 
 # HTTP
 requests==2.32.3
+
+# Security / Encryption
+cryptography==42.0.5
+

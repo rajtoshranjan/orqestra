@@ -66,3 +66,23 @@ class AuditLog(BaseModel):
     def __str__(self):
         actor_email = self.actor.email if self.actor else "system"
         return f"{self.action} by {actor_email} in {self.organisation.name}"
+
+
+class AWSAccount(BaseModel):
+    organisation = models.ForeignKey(
+        Organisation,
+        on_delete=models.CASCADE,
+        related_name="aws_accounts",
+    )
+    name = models.CharField(max_length=255)
+    access_key_id = models.CharField(max_length=255)
+    secret_access_key = models.CharField(max_length=255)
+    endpoint_url = models.CharField(max_length=512, blank=True, default="")
+
+    class Meta(BaseModel.Meta):
+        db_table = "aws_accounts"
+        unique_together = ("organisation", "name")
+
+    def __str__(self):
+        return f"{self.name} ({self.organisation.name})"
+

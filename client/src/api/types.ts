@@ -18,6 +18,7 @@ export type ServerProject = {
   nodes: any[];
   edges: any[];
   deployment_settings: any;
+  aws_account: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -67,6 +68,7 @@ export function mapServerToClientProject(
     projectId: server.id,
     projectName: server.name,
     projectDescription: server.description,
+    awsAccountId: server.aws_account || null,
     nodes: snakeToCamelRecursive(server.nodes) || [],
     edges: snakeToCamelRecursive(server.edges) || [],
     deploymentSettings: snakeToCamelRecursive(server.deployment_settings) || {},
@@ -82,6 +84,8 @@ export function mapClientToServerProject(
   if (client.projectName !== undefined) server.name = client.projectName;
   if (client.projectDescription !== undefined)
     server.description = client.projectDescription;
+  if (client.awsAccountId !== undefined)
+    server.aws_account = client.awsAccountId;
   if (client.nodes !== undefined)
     server.nodes = camelToSnakeRecursive(client.nodes);
   if (client.edges !== undefined)

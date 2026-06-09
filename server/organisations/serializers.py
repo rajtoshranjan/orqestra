@@ -1,9 +1,10 @@
 from rest_framework import serializers
 
 from accounts.models import User
+from utils.encryption import decrypt_val, encrypt_val
 
 from .helpers import get_active_organisation
-from .models import Organisation, OrganisationMember
+from .models import AuditLog, AWSAccount, Organisation, OrganisationMember
 
 
 class OrganisationSerializer(serializers.ModelSerializer):
@@ -83,9 +84,6 @@ class OrganisationMemberSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
-from .models import AuditLog
-
-
 class AuditLogSerializer(serializers.ModelSerializer):
     actor_email = serializers.EmailField(source="actor.email", read_only=True)
     actor_name = serializers.CharField(source="actor.name", read_only=True)
@@ -93,3 +91,54 @@ class AuditLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = AuditLog
         fields = ["id", "action", "details", "actor_email", "actor_name", "created_at"]
+
+
+class AWSAccountSerializer(serializers.ModelSerializer):
+    secret_access_key = serializers.CharField(write_only=True, required=False)
+    access_key_id = serializers.CharField(required=False)
+
+    class Meta:
+        model = AWSAccount
+        fields = [
+            "id",
+            "organisation",
+            "name",
+            "access_key_id",
+            "secret_access_key",
+            "endpoint_url",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "organisation", "created_at", "updated_at"]
+
+    def validate(self, attrs):
+        if not self.instance:
+            if not attrs.get("access_key_id"):
+                raise serializers.ValidationError({"access_key_id": "This field is required."})
+            if not attrs.get("secret_access_key"):
+                raise serializers.ValidationError({"secret_access_key": "This field is required."})
+        return attrs
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        try:
+            decrypted_ak = decrypt_val(instance.access_key_id)
+            if len(decrypted_ak) > 4:
+                ret["access_key_id"] = decrypted_ak[:4] + "*" * (len(decrypted_ak) - 4)
+            else:
+                ret["access_key_id"] = "****"
+        except Exception:
+            ret["access_key_id"] = "****"
+        return ret
+
+    def create(self, validated_data):
+        validated_data["access_key_id"] = encrypt_val(validated_data["access_key_id"])
+        validated_data["secret_access_key"] = encrypt_val(validated_data["secret_access_key"])
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        if "access_key_id" in validated_data:
+            validated_data["access_key_id"] = encrypt_val(validated_data["access_key_id"])
+        if "secret_access_key" in validated_data:
+            validated_data["secret_access_key"] = encrypt_val(validated_data["secret_access_key"])
+        return super().update(instance, validated_data)

@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 
 import { formatRelativeTime } from '@/utils';
-import { useProjects, useDeleteProject } from '@/api';
+import { useProjects, useDeleteProject, useAWSAccounts } from '@/api';
 import {
   Button,
   Card,
@@ -22,20 +22,39 @@ import {
   DropdownMenuContent,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  Input,
+  Select,
 } from '@/components/ui';
 import { PageLayout } from '@/components';
 
 type ProjectsProps = {
   onOpenProject: (projectId: string) => void;
-  onNewProject: () => void;
+  onNewProject: (params: {
+    projectName: string;
+    projectDescription: string;
+    awsAccountId: string | null;
+  }) => void;
 };
 
 export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
   const { data: projects = [], isLoading } = useProjects();
+  const { data: awsAccounts = [] } = useAWSAccounts();
   const deleteProjectMutation = useDeleteProject();
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
+  const [newProjectOpen, setNewProjectOpen] = useState(false);
+  const [newProjectForm, setNewProjectForm] = useState({
+    projectName: '',
+    projectDescription: '',
+    awsAccountId: '',
+  });
 
   /* Search & Filter States */
   const [searchQuery, setSearchQuery] = useState('');
@@ -43,6 +62,23 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
 
   const deleteProject = (projectId: string) => {
     deleteProjectMutation.mutate(projectId);
+  };
+
+  const handleCreateProject = () => {
+    if (!newProjectForm.projectName.trim() || !newProjectForm.awsAccountId) {
+      return;
+    }
+    onNewProject({
+      projectName: newProjectForm.projectName,
+      projectDescription: newProjectForm.projectDescription,
+      awsAccountId: newProjectForm.awsAccountId,
+    });
+    setNewProjectOpen(false);
+    setNewProjectForm({
+      projectName: '',
+      projectDescription: '',
+      awsAccountId: '',
+    });
   };
 
   /* Filter and Sort logic for Projects */
@@ -100,12 +136,12 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
                   <span className="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-muted-foreground/60 transition-colors duration-200 group-focus-within:text-primary">
                     <Search className="size-3.5" />
                   </span>
-                  <input
+                  <Input
                     type="text"
                     placeholder="Search projects..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="h-8 w-44 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-surface)] pl-8 pr-2.5 text-xs text-[var(--color-text-primary)] placeholder-muted-foreground transition-all duration-200 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 sm:w-56"
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                    className="h-8 w-44 border-[var(--color-border)] bg-[var(--color-bg-surface)] pl-8 pr-2.5 text-xs sm:w-56"
                   />
                 </div>
 
@@ -171,7 +207,7 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
                 {/* Create Project Button. */}
                 <Button
                   type="button"
-                  onClick={onNewProject}
+                  onClick={() => setNewProjectOpen(true)}
                   className="flex h-8 items-center gap-1 rounded-md border border-primary/35 bg-primary px-3 text-xs font-semibold text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary/90 hover:shadow-md hover:shadow-primary/20"
                 >
                   <Plus className="size-3.5" />
@@ -229,8 +265,8 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
                         variant="ghost"
                         size="icon"
                         type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
+                        onClick={(event) => {
+                          event.stopPropagation();
                           setProjectToDelete(project.projectId);
                           setConfirmOpen(true);
                         }}
@@ -253,12 +289,114 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
               description="You haven't created any architectures yet. Click below to start designing on the canvas."
               icon={LayoutDashboard}
               actionText="Create Project"
-              onAction={onNewProject}
+              onAction={() => setNewProjectOpen(true)}
               className="py-12"
             />
           </div>
         )}
       </div>
+
+      {/* New Project Dialog */}
+      <Dialog open={newProjectOpen} onOpenChange={setNewProjectOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Create New Project</DialogTitle>
+            <DialogDescription>
+              Set up a new architecture project. You can configure additional
+              settings later in the editor.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <label htmlFor="projectName" className="text-sm font-medium">
+                Project Name
+              </label>
+              <Input
+                id="projectName"
+                placeholder="e.g., My Web App Infrastructure"
+                value={newProjectForm.projectName}
+                onChange={(event) =>
+                  setNewProjectForm({
+                    ...newProjectForm,
+                    projectName: event.target.value,
+                  })
+                }
+              />
+            </div>
+            <div className="grid gap-2">
+              <label
+                htmlFor="projectDescription"
+                className="text-sm font-medium"
+              >
+                Description (Optional)
+              </label>
+              <textarea
+                id="projectDescription"
+                placeholder="Describe your architecture..."
+                value={newProjectForm.projectDescription}
+                onChange={(event) =>
+                  setNewProjectForm({
+                    ...newProjectForm,
+                    projectDescription: event.target.value,
+                  })
+                }
+                className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
+            <div className="grid gap-2">
+              <label htmlFor="awsAccount" className="text-sm font-medium">
+                AWS Account
+              </label>
+              {awsAccounts.length === 0 ? (
+                <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                  No AWS accounts found. Please configure one in{' '}
+                  <a
+                    href="/org-settings"
+                    className="underline hover:no-underline"
+                  >
+                    organisation settings
+                  </a>
+                  .
+                </div>
+              ) : (
+                <Select
+                  id="awsAccount"
+                  value={newProjectForm.awsAccountId}
+                  onChange={(event) =>
+                    setNewProjectForm({
+                      ...newProjectForm,
+                      awsAccountId: event.target.value,
+                    })
+                  }
+                >
+                  <option value="">Select an AWS account...</option>
+                  {awsAccounts.map((account) => (
+                    <option key={account.id} value={account.id}>
+                      {account.name}
+                    </option>
+                  ))}
+                </Select>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNewProjectOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateProject}
+              disabled={
+                !newProjectForm.projectName.trim() ||
+                !newProjectForm.awsAccountId ||
+                awsAccounts.length === 0
+              }
+            >
+              Create Project
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog
         open={confirmOpen}

@@ -75,21 +75,29 @@ function App() {
 
   const createProjectMutation = useCreateProject();
 
-  const handleNewProject = useCallback(async () => {
-    const diagram = createInitialDiagram();
-    try {
-      const serverProject = await createProjectMutation.mutateAsync({
-        projectName: diagram.projectName,
-        projectDescription: diagram.projectDescription,
-        nodes: diagram.nodes,
-        edges: diagram.edges,
-        deploymentSettings: diagram.deploymentSettings,
-      });
-      history.push(`/editor/${encodeURIComponent(serverProject.projectId)}`);
-    } catch (err) {
-      console.error('Failed to create new project:', err);
-    }
-  }, [createProjectMutation]);
+  const handleNewProject = useCallback(
+    async (params: {
+      projectName: string;
+      projectDescription: string;
+      awsAccountId: string | null;
+    }) => {
+      const diagram = createInitialDiagram();
+      try {
+        const serverProject = await createProjectMutation.mutateAsync({
+          projectName: params.projectName,
+          projectDescription: params.projectDescription,
+          awsAccountId: params.awsAccountId,
+          nodes: diagram.nodes,
+          edges: diagram.edges,
+          deploymentSettings: diagram.deploymentSettings,
+        });
+        history.push(`/editor/${encodeURIComponent(serverProject.projectId)}`);
+      } catch (err) {
+        console.error('Failed to create new project:', err);
+      }
+    },
+    [createProjectMutation],
+  );
 
   const handleNavigateHome = useCallback(() => {
     history.push('/');
