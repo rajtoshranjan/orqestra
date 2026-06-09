@@ -850,11 +850,13 @@ export function CanvasEditor({
       currentProjectId,
       projectName,
       projectDescription,
+      awsAccountId,
       nodes,
       edges,
       deploymentSettings,
     );
   }, [
+    awsAccountId,
     currentProjectId,
     deploymentSettings,
     edges,
@@ -1007,7 +1009,7 @@ export function CanvasEditor({
     }
 
     setLocalValidationResult({
-      status: DeploymentStatus.Pending,
+      status: DeploymentStatus.Idle,
       lastRunAt: new Date().toISOString(),
       logs: [
         createLog(
@@ -1188,6 +1190,7 @@ export function CanvasEditor({
       currentProjectId,
       projectName,
       projectDescription,
+      awsAccountId,
       validatedNodes,
       edges,
       deploymentSettings,
