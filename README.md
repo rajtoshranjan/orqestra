@@ -219,7 +219,6 @@ Run Django management commands inside the `server` container, for example:
 
 ```bash
 docker compose run --rm server python manage.py migrate
-docker compose run --rm server python manage.py createsuperuser
 ```
 
 ## Project Structure
