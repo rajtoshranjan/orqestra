@@ -171,7 +171,7 @@ Orqestra is built as a monorepo with a clear separation between the visual edito
 * **`server/`** - Django + DRF backend handling organizations, projects, validation, and deployment orchestration
 * **`deployer/`** - Service responsible for generating and executing infrastructure deployment plans
 
-The orchestration layer is provider-agnostic by design. AWS support is implemented as a plugin, with multi-cloud support planned. For a deeper dive into the platform design, see [ARCHITECTURE.md](./ARCHITECTURE.md).
+The orchestration layer is provider-agnostic by design. AWS support is implemented as a plugin, with multi-cloud support planned. For a deeper dive into the platform design, see [docs/architecture.md](./docs/architecture.md).
 
 ## Getting Started
 
@@ -228,14 +228,13 @@ orqestra/
 ├── server/      # Django + DRF backend (API, validation, orchestration)
 ├── deployer/    # Infrastructure deployment engine
 ├── docs/        # Additional documentation
-├── ARCHITECTURE.md
 ├── AGENTS.md
 └── docker-compose.yml
 ```
 
 ## Documentation
 
-* [ARCHITECTURE.md](./ARCHITECTURE.md) - Platform architecture, design philosophy, and core principles
+* [docs/architecture.md](./docs/architecture.md) - Platform architecture and core domain model
 * [AGENTS.md](./AGENTS.md) - Guidelines for contributors and AI coding agents
 * [docs/](./docs) - Additional reference documentation
 
