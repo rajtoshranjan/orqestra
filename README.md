@@ -6,6 +6,8 @@ Instead of managing infrastructure through configuration files, cloud consoles, 
 
 Orqestra bridges the gap between architecture design and infrastructure deployment by combining visual architecture modeling, infrastructure-as-code generation, deployment automation, and future AI-assisted workflows within a single platform.
 
+![Orqestra editor showing a visual architecture graph with Lambda, IAM Role, VPC, Subnet, S3, SNS, and SQS resources](docs/editor.jpg)
+
 ## Table of Contents
 
 - [Why Orqestra?](#why-orqestra)
