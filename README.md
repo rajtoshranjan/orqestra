@@ -6,6 +6,19 @@ Instead of managing infrastructure through configuration files, cloud consoles, 
 
 Orqestra bridges the gap between architecture design and infrastructure deployment by combining visual architecture modeling, infrastructure-as-code generation, deployment automation, and future AI-assisted workflows within a single platform.
 
+## Table of Contents
+
+- [Why Orqestra?](#why-orqestra)
+- [Core Principles](#core-principles)
+- [Key Capabilities](#key-capabilities)
+- [Architecture](#architecture)
+- [Getting Started](#getting-started)
+- [Project Structure](#project-structure)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
+- [License](#license)
+- [Vision](#vision)
+
 ## Why Orqestra?
 
 Traditional infrastructure workflows are fragmented:
@@ -40,7 +53,7 @@ Resources, relationships, deployment plans, validation results, and generated in
 
 ### Architecture Before Configuration
 
-Engineers should think about systems, boundaries, dependencies, and data flow—not provider-specific configuration details.
+Engineers should think about systems, boundaries, dependencies, and data flow, not provider-specific configuration details.
 
 Orqestra focuses on architecture first and infrastructure implementation second.
 
@@ -61,9 +74,7 @@ Relationships are first-class citizens of the platform.
 
 ### Deployable Architecture
 
-Architecture diagrams are not documentation.
-
-Architecture diagrams are deployable.
+Architecture diagrams are not documentation. Architecture diagrams are deployable.
 
 The same graph used to design systems is used to generate deployment plans and provision cloud infrastructure.
 
@@ -152,8 +163,94 @@ The platform architecture enables future capabilities such as:
 
 These capabilities will operate directly on the architecture graph, ensuring that AI and humans share the same source of truth.
 
+## Architecture
+
+Orqestra is built as a monorepo with a clear separation between the visual editor, the API, and the deployment engine:
+
+* **`client/`** - React + TypeScript frontend providing the node-based architecture canvas
+* **`server/`** - Django + DRF backend handling organizations, projects, validation, and deployment orchestration
+* **`deployer/`** - Service responsible for generating and executing infrastructure deployment plans
+
+The orchestration layer is provider-agnostic by design. AWS support is implemented as a plugin, with multi-cloud support planned. For a deeper dive into the platform design, see [ARCHITECTURE.md](./ARCHITECTURE.md).
+
+## Getting Started
+
+### Prerequisites
+
+* [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/)
+
+### Setup
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/rajtoshranjan/orqestra.git
+   cd orqestra
+   ```
+
+2. Copy the environment template and adjust values as needed:
+
+   ```bash
+   cp .env.template .env
+   ```
+
+3. Start the local stack:
+
+   ```bash
+   docker compose up --build
+   ```
+
+This brings up the following services:
+
+| Service     | Description                              | Default URL                |
+|-------------|-------------------------------------------|-----------------------------|
+| `client`    | Frontend application                     | http://localhost:8080       |
+| `server`    | Django API                               | http://localhost:3001       |
+| `db`        | PostgreSQL database                      | localhost:5433               |
+| `deployer`  | Deployment plan generation and execution | http://localhost:8002       |
+| `ministack` | Local AWS emulator for development       | http://localhost:4566       |
+| `stackport` | Web UI for inspecting the AWS emulator   | http://localhost:8082       |
+
+### Backend management commands
+
+Run Django management commands inside the `server` container, for example:
+
+```bash
+docker compose run --rm server python manage.py migrate
+docker compose run --rm server python manage.py createsuperuser
+```
+
+## Project Structure
+
+```
+orqestra/
+├── client/      # React + TypeScript frontend (visual editor)
+├── server/      # Django + DRF backend (API, validation, orchestration)
+├── deployer/    # Infrastructure deployment engine
+├── docs/        # Additional documentation
+├── ARCHITECTURE.md
+├── AGENTS.md
+└── docker-compose.yml
+```
+
+## Documentation
+
+* [ARCHITECTURE.md](./ARCHITECTURE.md) - Platform architecture, design philosophy, and core principles
+* [AGENTS.md](./AGENTS.md) - Guidelines for contributors and AI coding agents
+* [docs/](./docs) - Additional reference documentation
+
+## Contributing
+
+Contributions are welcome. Before opening a pull request:
+
+1. Open an issue to discuss significant changes.
+2. Follow the conventions described in [AGENTS.md](./AGENTS.md) and the relevant documents under [docs/agents](./docs/agents).
+3. Ensure the application builds and tests pass locally.
+
+## License
+
+Orqestra is licensed under the [MIT License](./LICENSE).
+
 ## Vision
 
-The long-term vision for Orqestra is to become the operating system for cloud architecture and infrastructure engineering.
-
-A platform where architects, engineers, operators, and future AI agents collaborate through a shared architecture graph to design, understand, validate, and operate cloud systems at any scale.
+The long-term vision for Orqestra is to become the operating system for cloud architecture and infrastructure engineering: a platform where architects, engineers, operators, and future AI agents collaborate through a shared architecture graph to design, understand, validate, and operate cloud systems at any scale.
