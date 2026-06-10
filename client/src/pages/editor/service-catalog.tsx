@@ -130,7 +130,7 @@ export function ServiceCatalog({
                         event.dataTransfer.setData(NODE_DRAG_TYPE, service.id);
                         event.dataTransfer.effectAllowed = 'copy';
                       }}
-                      onClick={() => onAddNode(service.id)}
+                      onDoubleClick={() => onAddNode(service.id)}
                       className="mx-auto flex size-8 cursor-grab items-center justify-center rounded-[var(--radius-sm)] transition-colors [transition-duration:var(--transition-fast)] active:cursor-grabbing"
                       style={collapsedStyle}
                       title={service.name}
@@ -146,7 +146,7 @@ export function ServiceCatalog({
                         event.dataTransfer.setData(NODE_DRAG_TYPE, service.id);
                         event.dataTransfer.effectAllowed = 'copy';
                       }}
-                      onClick={() => onAddNode(service.id)}
+                      onDoubleClick={() => onAddNode(service.id)}
                       className="animate-fade-in group relative flex min-h-[56px] cursor-grab select-none items-center gap-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-2.5 shadow-sm backdrop-blur-md transition-all [transition-duration:var(--transition-base)] hover:-translate-y-px hover:border-[var(--hover-border)] hover:shadow-md active:cursor-grabbing"
                       style={itemStyle}
                       title={service.description}
