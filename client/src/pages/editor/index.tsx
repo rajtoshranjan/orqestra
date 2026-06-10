@@ -30,8 +30,8 @@ export function Editor({ projectId, onNavigateHome }: EditorProps) {
     return (
       <div className="flex h-screen w-screen flex-col items-center justify-center gap-4 bg-[var(--color-bg-base)] text-[var(--color-text-primary)]">
         <div className="relative flex size-16 items-center justify-center">
-          <div className="absolute size-full animate-ping rounded-full bg-violet-600/30 opacity-75"></div>
-          <div className="relative size-12 animate-spin rounded-full border-4 border-violet-500 border-t-transparent"></div>
+          <div className="absolute size-full animate-ping rounded-full bg-primary/30 opacity-75"></div>
+          <div className="relative size-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
         </div>
         <div className="animate-pulse text-sm font-medium tracking-wide text-[var(--color-text-secondary)]">
           Loading cloud architecture...

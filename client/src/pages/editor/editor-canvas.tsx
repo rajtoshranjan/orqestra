@@ -1348,9 +1348,9 @@ export function CanvasEditor({
               ? 'Resource configurations and positions are frozen.'
               : 'You can now configure and move resources.',
             icon: !isLocked ? (
-              <Lock className="size-4 text-violet-500" />
+              <Lock className="size-4 text-primary" />
             ) : (
-              <Unlock className="size-4 text-emerald-500" />
+              <Unlock className="size-4 text-success" />
             ),
           });
         },
@@ -1367,7 +1367,7 @@ export function CanvasEditor({
             description: !snapToGrid
               ? 'Elements will now align to the grid.'
               : 'Free dragging enabled.',
-            icon: <Grid className="size-4 text-blue-500" />,
+            icon: <Grid className="size-4 text-primary" />,
           });
         },
       },
@@ -1591,7 +1591,7 @@ export function CanvasEditor({
           description:
             'Nesting already defines containment. A direct arrow connection between container and nested resource is unnecessary.',
           variant: 'default',
-          icon: <AlertTriangle className="size-4 text-amber-500" />,
+          icon: <AlertTriangle className="size-4 text-warning" />,
         });
         return;
       }

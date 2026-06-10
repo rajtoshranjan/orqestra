@@ -8,7 +8,7 @@ import type {
   CloudFrontViewerProtocolPolicy,
 } from './types';
 import { cloudfrontConfigSchema } from '@/schemas/resources.schema';
-import { Input } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
 import { InspectorSection, InspectorField } from '@/components';
 
 const PRICE_CLASS_OPTIONS: Array<{
@@ -75,8 +75,7 @@ export function CloudFrontInspector({
         </InspectorField>
 
         <InspectorField label="Price Class" error={errors.priceClass?.message}>
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <Select
             {...register('priceClass')}
           >
             {PRICE_CLASS_OPTIONS.map((option) => (
@@ -84,15 +83,14 @@ export function CloudFrontInspector({
                 {option.label}
               </option>
             ))}
-          </select>
+          </Select>
         </InspectorField>
 
         <InspectorField
           label="Viewer Protocol Policy"
           error={errors.viewerProtocolPolicy?.message}
         >
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <Select
             {...register('viewerProtocolPolicy')}
           >
             {VIEWER_PROTOCOL_POLICY_OPTIONS.map((option) => (
@@ -100,7 +98,7 @@ export function CloudFrontInspector({
                 {option.label}
               </option>
             ))}
-          </select>
+          </Select>
         </InspectorField>
       </InspectorSection>
     </div>

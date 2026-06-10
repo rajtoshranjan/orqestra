@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { ServiceInspectorProps } from '../types';
 import type { ElasticBeanstalkConfig } from './types';
 import { elasticBeanstalkConfigSchema } from '@/schemas/resources.schema';
-import { Input } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
 import { InspectorSection, InspectorField } from '@/components';
 
 export function ElasticBeanstalkInspector({
@@ -64,13 +64,12 @@ export function ElasticBeanstalkInspector({
           label="Environment Tier"
           error={errors.environmentTier?.message}
         >
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <Select
             {...register('environmentTier')}
           >
             <option value="WebServer">WebServer</option>
             <option value="Worker">Worker</option>
-          </select>
+          </Select>
         </InspectorField>
       </InspectorSection>
     </div>

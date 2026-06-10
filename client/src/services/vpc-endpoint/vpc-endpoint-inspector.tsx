@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { ServiceInspectorProps } from '../types';
 import type { VpcEndpointConfig, VpcEndpointType } from './types';
 import { vpcEndpointConfigSchema } from '@/schemas/resources.schema';
-import { Input } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
 import { InspectorSection, InspectorField } from '@/components';
 
 const ENDPOINT_TYPE_OPTIONS: Array<{
@@ -65,8 +65,7 @@ export function VpcEndpointInspector({
           label="Endpoint Type"
           error={errors.endpointType?.message}
         >
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <Select
             {...register('endpointType')}
           >
             {ENDPOINT_TYPE_OPTIONS.map((option) => (
@@ -74,7 +73,7 @@ export function VpcEndpointInspector({
                 {option.label}
               </option>
             ))}
-          </select>
+          </Select>
         </InspectorField>
 
         <InspectorField

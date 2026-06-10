@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { ServiceInspectorProps } from '../types';
 import type { EcsClusterConfig } from './types';
 import { ecsClusterConfigSchema } from '@/schemas/resources.schema';
-import { Input } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
 import { InspectorSection, InspectorField } from '@/components';
 
 export function EcsClusterInspector({
@@ -53,14 +53,13 @@ export function EcsClusterInspector({
         </InspectorField>
 
         <InspectorField label="Launch Type" error={errors.launchType?.message}>
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <Select
             {...register('launchType')}
           >
             <option value="FARGATE">Fargate</option>
             <option value="EC2">EC2</option>
             <option value="EXTERNAL">External</option>
-          </select>
+          </Select>
         </InspectorField>
       </InspectorSection>
     </div>

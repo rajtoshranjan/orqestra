@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { ServiceInspectorProps } from '../types';
 import type { SsmConfig, SsmParameterTier, SsmParameterType } from './types';
 import { ssmConfigSchema } from '@/schemas/resources.schema';
-import { Input } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
 import { InspectorSection, InspectorField } from '@/components';
 
 const PARAMETER_TYPE_OPTIONS: Array<{
@@ -71,8 +71,7 @@ export function SsmInspector({
           label="Parameter Type"
           error={errors.parameterType?.message}
         >
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <Select
             {...register('parameterType')}
           >
             {PARAMETER_TYPE_OPTIONS.map((option) => (
@@ -80,12 +79,11 @@ export function SsmInspector({
                 {option.label}
               </option>
             ))}
-          </select>
+          </Select>
         </InspectorField>
 
         <InspectorField label="Tier" error={errors.tier?.message}>
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <Select
             {...register('tier')}
           >
             {TIER_OPTIONS.map((option) => (
@@ -93,7 +91,7 @@ export function SsmInspector({
                 {option.label}
               </option>
             ))}
-          </select>
+          </Select>
         </InspectorField>
       </InspectorSection>
     </div>

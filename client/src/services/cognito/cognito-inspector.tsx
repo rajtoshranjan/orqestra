@@ -2,7 +2,7 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import type { ServiceInspectorProps } from '../types';
 import type { CognitoConfig, CognitoMFAConfiguration } from './types';
-import { Input } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
 import { InspectorSection, InspectorField } from '@/components';
 
 const MFA_OPTIONS: Array<{ value: CognitoMFAConfiguration; label: string }> = [
@@ -61,8 +61,7 @@ export function CognitoInspector({
           label="MFA Configuration"
           error={errors.mfaConfiguration?.message}
         >
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <Select
             {...register('mfaConfiguration')}
           >
             {MFA_OPTIONS.map((option) => (
@@ -70,7 +69,7 @@ export function CognitoInspector({
                 {option.label}
               </option>
             ))}
-          </select>
+          </Select>
         </InspectorField>
 
         <div className="flex flex-col gap-2 pt-2">

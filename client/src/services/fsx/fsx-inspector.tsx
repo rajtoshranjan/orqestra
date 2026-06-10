@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { ServiceInspectorProps } from '../types';
 import type { FSxConfig } from './types';
 import { fsxConfigSchema } from '@/schemas/resources.schema';
-import { Input } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
 import { InspectorSection, InspectorField } from '@/components';
 
 const FILE_SYSTEM_TYPE_OPTIONS: Array<{
@@ -66,8 +66,7 @@ export function FSxInspector({
           label="File System Type"
           error={errors.fileSystemType?.message}
         >
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <Select
             {...register('fileSystemType')}
           >
             {FILE_SYSTEM_TYPE_OPTIONS.map((option) => (
@@ -75,7 +74,7 @@ export function FSxInspector({
                 {option.label}
               </option>
             ))}
-          </select>
+          </Select>
         </InspectorField>
 
         <InspectorField

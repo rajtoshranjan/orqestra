@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { ServiceInspectorProps } from '../types';
 import type { Route53Config } from './types';
 import { route53ConfigSchema } from '@/schemas/resources.schema';
-import { Input } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
 import { InspectorSection, InspectorField } from '@/components';
 
 export function Route53Inspector({
@@ -53,13 +53,12 @@ export function Route53Inspector({
         </InspectorField>
 
         <InspectorField label="Zone Type" error={errors.zoneType?.message}>
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <Select
             {...register('zoneType')}
           >
             <option value="public">Public</option>
             <option value="private">Private</option>
-          </select>
+          </Select>
         </InspectorField>
       </InspectorSection>
     </div>

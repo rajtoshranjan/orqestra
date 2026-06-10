@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { ServiceInspectorProps } from '../types';
 import type { CodeBuildConfig } from './types';
 import { codebuildConfigSchema } from '@/schemas/resources.schema';
-import { Input } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
 import { InspectorSection, InspectorField } from '@/components';
 
 export function CodeBuildInspector({
@@ -64,14 +64,13 @@ export function CodeBuildInspector({
           label="Compute Type"
           error={errors.computeType?.message}
         >
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <Select
             {...register('computeType')}
           >
             <option value="BUILD_GENERAL1_SMALL">Small</option>
             <option value="BUILD_GENERAL1_MEDIUM">Medium</option>
             <option value="BUILD_GENERAL1_LARGE">Large</option>
-          </select>
+          </Select>
         </InspectorField>
       </InspectorSection>
     </div>

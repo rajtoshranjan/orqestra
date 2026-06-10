@@ -101,15 +101,15 @@ const ACTION_BADGE_STYLES: Record<
 > = {
   create: {
     label: 'Create',
-    className: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+    className: 'bg-success/15 text-success border-success/30',
   },
   update: {
     label: 'Update',
-    className: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+    className: 'bg-warning/15 text-warning border-warning/30',
   },
   destroy: {
     label: 'Destroy',
-    className: 'bg-red-500/15 text-red-400 border-red-500/30',
+    className: 'bg-destructive/15 text-destructive border-destructive/30',
   },
   no_change: {
     label: 'No Change',
@@ -199,7 +199,7 @@ export function DeployDrawer({
                   <span
                     className={cn(
                       'flex size-3.5 items-center justify-center rounded-full text-[8px] text-white',
-                      highRiskCount > 0 ? 'bg-red-500' : 'bg-amber-500',
+                      highRiskCount > 0 ? 'bg-destructive' : 'bg-warning',
                     )}
                   >
                     {securityWarnings.length}
@@ -226,10 +226,10 @@ export function DeployDrawer({
             {/* PLAN TAB */}
             <TabsContent value="plan" className="m-0 space-y-5 p-4">
               {!awsAccountId && (
-                <div className="flex items-start gap-2.5 rounded-md border border-amber-500/30 bg-amber-500/10 p-3">
-                  <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-amber-500" />
+                <div className="flex items-start gap-2.5 rounded-md border border-warning/30 bg-warning/10 p-3">
+                  <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-warning" />
                   <div className="space-y-1.5">
-                    <p className="text-xs font-semibold text-amber-500">
+                    <p className="text-xs font-semibold text-warning">
                       No AWS account linked
                     </p>
                     <p className="text-[10.5px] leading-relaxed text-muted-foreground">
@@ -237,7 +237,7 @@ export function DeployDrawer({
                     </p>
                     <button
                       onClick={onOpenProjectSettings}
-                      className="text-[10.5px] font-medium text-amber-400 underline underline-offset-2 hover:no-underline"
+                      className="text-[10.5px] font-medium text-warning/80 underline underline-offset-2 hover:no-underline"
                     >
                       Open Project Settings →
                     </button>
@@ -300,7 +300,7 @@ export function DeployDrawer({
                           className={cn(
                             'bg-card-elevated rounded-md border border-border/60 bg-background/35 p-2.5 shadow-none transition-all duration-200 hover:border-primary/30',
                             isDestroy &&
-                              'border-red-500/40 bg-red-500/5 opacity-80 hover:border-red-500/50',
+                              'border-destructive/40 bg-destructive/5 opacity-80 hover:border-destructive/50',
                           )}
                         >
                           <div className="mb-1 flex items-center justify-between">
@@ -308,13 +308,13 @@ export function DeployDrawer({
                               <span
                                 className={cn(
                                   'size-1.5 shrink-0 rounded-full',
-                                  isDestroy && 'pulse-red bg-red-500',
+                                  isDestroy && 'pulse-red bg-destructive',
                                   !isDestroy &&
                                     resource.deploymentStatus === 'deployed' &&
-                                    'pulse-green bg-emerald-500',
+                                    'pulse-green bg-success',
                                   !isDestroy &&
                                     resource.deploymentStatus === 'dirty' &&
-                                    'pulse-amber bg-amber-500',
+                                    'pulse-amber bg-warning',
                                   !isDestroy &&
                                     resource.deploymentStatus ===
                                       'not_deployed' &&
@@ -393,7 +393,7 @@ export function DeployDrawer({
                   {isRunning ? 'Deploying…' : 'Deploy to AWS'}
                 </Button>
                 {!awsAccountId && (
-                  <p className="mt-1.5 text-center text-[10px] text-amber-500/80">
+                  <p className="mt-1.5 text-center text-[10px] text-warning/80">
                     Link an AWS account in project settings to deploy.
                   </p>
                 )}
@@ -410,7 +410,7 @@ export function DeployDrawer({
               <div className="flex items-center gap-2 border-b border-border pb-2">
                 {securityWarnings.length === 0 ? (
                   <>
-                    <ShieldCheck className="size-5 text-emerald-500" />
+                    <ShieldCheck className="size-5 text-success" />
                     <span className="text-xs font-semibold text-foreground">
                       Infrastructure Security Clean
                     </span>
@@ -420,7 +420,7 @@ export function DeployDrawer({
                     <ShieldAlert
                       className={cn(
                         'size-5',
-                        highRiskCount > 0 ? 'text-red-500' : 'text-amber-500',
+                        highRiskCount > 0 ? 'text-destructive' : 'text-warning',
                       )}
                     />
                     <span className="text-xs font-semibold text-foreground">
@@ -439,10 +439,10 @@ export function DeployDrawer({
                       className={cn(
                         'rounded-md border p-3',
                         warning.severity === 'high'
-                          ? 'border-red-500/30 bg-red-500/5'
+                          ? 'border-destructive/30 bg-destructive/5'
                           : warning.severity === 'medium'
-                            ? 'border-amber-500/30 bg-amber-500/5'
-                            : 'border-blue-500/30 bg-blue-500/5',
+                            ? 'border-warning/30 bg-warning/5'
+                            : 'border-primary/30 bg-primary/5',
                       )}
                     >
                       <div className="mb-1.5 flex items-center justify-between">
@@ -478,7 +478,7 @@ export function DeployDrawer({
             <TabsContent value="cost" className="m-0 space-y-4 p-4">
               <Card className="flex flex-col justify-between border border-border bg-gradient-to-br from-accent/5 via-card to-card p-4 shadow-sm">
                 <div className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  <BadgeDollarSign className="size-4 text-emerald-500" />
+                  <BadgeDollarSign className="size-4 text-success" />
                   Estimated Monthly Bill
                 </div>
                 <div className="flex items-baseline gap-1 text-2xl font-bold tracking-tight text-foreground">
@@ -493,7 +493,7 @@ export function DeployDrawer({
               </Card>
 
               {cost.worstCaseTotal > cost.total && (
-                <Card className="rounded-md border-amber-500/20 bg-amber-500/5 p-3 text-amber-500">
+                <Card className="rounded-md border-warning/20 bg-warning/5 p-3 text-warning">
                   <span className="mb-0.5 block text-xs font-bold">
                     Worst Case Scenario Estimate
                   </span>

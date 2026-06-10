@@ -5,7 +5,7 @@ import { z } from 'zod';
 
 import type { ServiceInspectorProps } from '../types';
 import type { NatGatewayConfig } from './types';
-import { Input } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
 import { InspectorSection, InspectorField } from '@/components';
 
 const natGatewayConfigSchema = z.object({
@@ -62,13 +62,12 @@ export function NatGatewayInspector({
           label="Connectivity Type"
           error={errors.connectivityType?.message}
         >
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground"
+          <Select
             {...register('connectivityType')}
           >
             <option value="public">Public</option>
             <option value="private">Private</option>
-          </select>
+          </Select>
         </InspectorField>
       </InspectorSection>
     </div>

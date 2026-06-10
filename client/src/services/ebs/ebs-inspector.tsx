@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { ServiceInspectorProps } from '../types';
 import type { EBSConfig } from './types';
 import { ebsConfigSchema } from '@/schemas/resources.schema';
-import { Input } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
 import { InspectorSection, InspectorField } from '@/components';
 
 const VOLUME_TYPE_OPTIONS: Array<{
@@ -62,8 +62,7 @@ export function EBSInspector({
         </InspectorField>
 
         <InspectorField label="Volume Type" error={errors.volumeType?.message}>
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <Select
             {...register('volumeType')}
           >
             {VOLUME_TYPE_OPTIONS.map((option) => (
@@ -71,7 +70,7 @@ export function EBSInspector({
                 {option.label}
               </option>
             ))}
-          </select>
+          </Select>
         </InspectorField>
 
         <InspectorField label="Size (GiB)" error={errors.sizeGb?.message}>

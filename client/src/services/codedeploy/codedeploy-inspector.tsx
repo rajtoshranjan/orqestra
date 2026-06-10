@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { ServiceInspectorProps } from '../types';
 import type { CodeDeployConfig } from './types';
 import { codedeployConfigSchema } from '@/schemas/resources.schema';
-import { Input } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
 import { InspectorSection, InspectorField } from '@/components';
 
 export function CodeDeployInspector({
@@ -56,14 +56,13 @@ export function CodeDeployInspector({
           label="Compute Platform"
           error={errors.computePlatform?.message}
         >
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <Select
             {...register('computePlatform')}
           >
             <option value="ECS">ECS</option>
             <option value="Lambda">Lambda</option>
             <option value="Server">Server</option>
-          </select>
+          </Select>
         </InspectorField>
       </InspectorSection>
     </div>

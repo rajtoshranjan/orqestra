@@ -91,7 +91,7 @@ export function ProjectSettingsModal({
               AWS Account
             </label>
             {awsAccounts.length === 0 ? (
-              <div className="rounded-md bg-amber-500/10 p-3 text-sm text-amber-600">
+              <div className="rounded-md bg-warning/10 p-3 text-sm text-warning">
                 No AWS accounts configured. Please set one up in organisation
                 settings.
               </div>

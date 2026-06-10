@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { ServiceInspectorProps } from '../types';
 import type { WafConfig, WafDefaultAction, WafScope } from './types';
 import { wafConfigSchema } from '@/schemas/resources.schema';
-import { Input } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
 import { InspectorSection, InspectorField } from '@/components';
 
 const SCOPE_OPTIONS: Array<{ value: WafScope; label: string }> = [
@@ -63,8 +63,7 @@ export function WafInspector({
         </InspectorField>
 
         <InspectorField label="Scope" error={errors.scope?.message}>
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <Select
             {...register('scope')}
           >
             {SCOPE_OPTIONS.map((option) => (
@@ -72,15 +71,14 @@ export function WafInspector({
                 {option.label}
               </option>
             ))}
-          </select>
+          </Select>
         </InspectorField>
 
         <InspectorField
           label="Default Action"
           error={errors.defaultAction?.message}
         >
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <Select
             {...register('defaultAction')}
           >
             {DEFAULT_ACTION_OPTIONS.map((option) => (
@@ -88,7 +86,7 @@ export function WafInspector({
                 {option.label}
               </option>
             ))}
-          </select>
+          </Select>
         </InspectorField>
       </InspectorSection>
     </div>

@@ -7,7 +7,7 @@ export const AuthLayout = () => {
       {/* Decorative Glow Blobs */}
       <div className="pointer-events-none absolute inset-0 select-none overflow-hidden">
         <div className="animate-pulse-glow absolute -left-1/4 -top-1/4 size-3/5 rounded-full bg-primary/10 blur-[130px]" />
-        <div className="absolute -bottom-1/4 -right-1/4 size-3/5 rounded-full bg-indigo-500/10 blur-[130px]" />
+        <div className="absolute -bottom-1/4 -right-1/4 size-3/5 rounded-full bg-primary/10 blur-[130px]" />
       </div>
 
       <div className="relative z-10 flex w-full max-w-sm flex-col gap-6">

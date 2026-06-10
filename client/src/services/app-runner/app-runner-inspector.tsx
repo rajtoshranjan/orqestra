@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { ServiceInspectorProps } from '../types';
 import type { AppRunnerConfig } from './types';
 import { appRunnerConfigSchema } from '@/schemas/resources.schema';
-import { Input } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
 import { InspectorSection, InspectorField } from '@/components';
 
 export function AppRunnerInspector({
@@ -53,20 +53,18 @@ export function AppRunnerInspector({
         </InspectorField>
 
         <InspectorField label="CPU" error={errors.cpu?.message}>
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <Select
             {...register('cpu')}
           >
             <option value="0.25 vCPU">0.25 vCPU</option>
             <option value="0.5 vCPU">0.5 vCPU</option>
             <option value="1 vCPU">1 vCPU</option>
             <option value="2 vCPU">2 vCPU</option>
-          </select>
+          </Select>
         </InspectorField>
 
         <InspectorField label="Memory" error={errors.memory?.message}>
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <Select
             {...register('memory')}
           >
             <option value="0.5 GB">0.5 GB</option>
@@ -74,7 +72,7 @@ export function AppRunnerInspector({
             <option value="2 GB">2 GB</option>
             <option value="3 GB">3 GB</option>
             <option value="4 GB">4 GB</option>
-          </select>
+          </Select>
         </InspectorField>
       </InspectorSection>
     </div>

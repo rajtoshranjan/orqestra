@@ -8,7 +8,7 @@ import type {
   AppSyncConfig,
 } from './types';
 import { appsyncConfigSchema } from '@/schemas/resources.schema';
-import { Input } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
 import { InspectorSection, InspectorField } from '@/components';
 
 const AUTHENTICATION_TYPE_OPTIONS: Array<{
@@ -70,8 +70,7 @@ export function AppSyncInspector({
         </InspectorField>
 
         <InspectorField label="API Type" error={errors.apiType?.message}>
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <Select
             {...register('apiType')}
           >
             {API_TYPE_OPTIONS.map((option) => (
@@ -79,15 +78,14 @@ export function AppSyncInspector({
                 {option.label}
               </option>
             ))}
-          </select>
+          </Select>
         </InspectorField>
 
         <InspectorField
           label="Authentication"
           error={errors.authenticationType?.message}
         >
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <Select
             {...register('authenticationType')}
           >
             {AUTHENTICATION_TYPE_OPTIONS.map((option) => (
@@ -95,7 +93,7 @@ export function AppSyncInspector({
                 {option.label}
               </option>
             ))}
-          </select>
+          </Select>
         </InspectorField>
       </InspectorSection>
     </div>

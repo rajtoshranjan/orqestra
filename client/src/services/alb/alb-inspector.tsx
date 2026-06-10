@@ -5,7 +5,7 @@ import { z } from 'zod';
 
 import type { ServiceInspectorProps } from '../types';
 import type { AlbConfig } from './types';
-import { Input } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
 import { InspectorSection, InspectorField } from '@/components';
 
 const albConfigSchema = z.object({
@@ -60,23 +60,21 @@ export function AlbInspector({
         </InspectorField>
 
         <InspectorField label="Scheme" error={errors.scheme?.message}>
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground"
+          <Select
             {...register('scheme')}
           >
             <option value="internet-facing">Internet-Facing</option>
             <option value="internal">Internal</option>
-          </select>
+          </Select>
         </InspectorField>
 
         <InspectorField label="Type" error={errors.lbType?.message}>
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground"
+          <Select
             {...register('lbType')}
           >
             <option value="application">Application</option>
             <option value="network">Network</option>
-          </select>
+          </Select>
         </InspectorField>
       </InspectorSection>
     </div>

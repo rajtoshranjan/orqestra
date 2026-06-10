@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { ServiceInspectorProps } from '../types';
 import type { AmazonMqConfig } from './types';
 import { amazonMqConfigSchema } from '@/schemas/resources.schema';
-import { Input } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
 import { InspectorSection, InspectorField } from '@/components';
 
 export function AmazonMqInspector({
@@ -50,13 +50,12 @@ export function AmazonMqInspector({
         </InspectorField>
 
         <InspectorField label="Engine Type" error={errors.engineType?.message}>
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <Select
             {...register('engineType')}
           >
             <option value="RABBITMQ">RabbitMQ</option>
             <option value="ACTIVEMQ">ActiveMQ</option>
-          </select>
+          </Select>
         </InspectorField>
 
         <InspectorField
@@ -74,8 +73,7 @@ export function AmazonMqInspector({
           label="Deployment Mode"
           error={errors.deploymentMode?.message}
         >
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <Select
             {...register('deploymentMode')}
           >
             <option value="SINGLE_INSTANCE">Single Instance</option>
@@ -83,7 +81,7 @@ export function AmazonMqInspector({
               Active/Standby Multi-AZ
             </option>
             <option value="CLUSTER_MULTI_AZ">Cluster Multi-AZ</option>
-          </select>
+          </Select>
         </InspectorField>
       </InspectorSection>
     </div>

@@ -351,7 +351,7 @@ export function LambdaInspector({
               >
                 <span className="flex items-center gap-1">
                   {watchedValues.snapStart === 'PublishedVersions' && (
-                    <Sparkles className="size-3 fill-amber-500/20 text-amber-500" />
+                    <Sparkles className="size-3 fill-warning/20 text-warning" />
                   )}
                   {watchedValues.snapStart === 'PublishedVersions'
                     ? 'PublishedVersions (Accelerated Cold Starts)'

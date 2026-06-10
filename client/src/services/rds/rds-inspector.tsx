@@ -2,7 +2,7 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import type { ServiceInspectorProps } from '../types';
 import type { RDSConfig, RDSEngine } from './types';
-import { Input } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
 import { InspectorSection, InspectorField } from '@/components';
 
 const ENGINE_OPTIONS: Array<{ value: RDSEngine; label: string }> = [
@@ -60,8 +60,7 @@ export function RDSInspector({
         </InspectorField>
 
         <InspectorField label="Engine" error={errors.engine?.message}>
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <Select
             {...register('engine')}
           >
             {ENGINE_OPTIONS.map((option) => (
@@ -69,7 +68,7 @@ export function RDSInspector({
                 {option.label}
               </option>
             ))}
-          </select>
+          </Select>
         </InspectorField>
 
         <InspectorField

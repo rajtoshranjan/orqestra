@@ -7,7 +7,7 @@ import type {
   GuardDutyFindingPublishingFrequency,
 } from './types';
 import { guarddutyConfigSchema } from '@/schemas/resources.schema';
-import { Input } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
 import { InspectorSection, InspectorField } from '@/components';
 
 const FINDING_PUBLISHING_FREQUENCY_OPTIONS: Array<{
@@ -68,8 +68,7 @@ export function GuardDutyInspector({
           label="Finding Publishing Frequency"
           error={errors.findingPublishingFrequency?.message}
         >
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <Select
             {...register('findingPublishingFrequency')}
           >
             {FINDING_PUBLISHING_FREQUENCY_OPTIONS.map((option) => (
@@ -77,7 +76,7 @@ export function GuardDutyInspector({
                 {option.label}
               </option>
             ))}
-          </select>
+          </Select>
         </InspectorField>
       </InspectorSection>
     </div>

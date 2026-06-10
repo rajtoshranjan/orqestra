@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { ServiceInspectorProps } from '../types';
 import type { AcmConfig, AcmValidationMethod } from './types';
 import { acmConfigSchema } from '@/schemas/resources.schema';
-import { Input } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
 import { InspectorSection, InspectorField } from '@/components';
 
 const VALIDATION_METHOD_OPTIONS: Array<{
@@ -72,8 +72,7 @@ export function AcmInspector({
           label="Validation Method"
           error={errors.validationMethod?.message}
         >
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <Select
             {...register('validationMethod')}
           >
             {VALIDATION_METHOD_OPTIONS.map((option) => (
@@ -81,7 +80,7 @@ export function AcmInspector({
                 {option.label}
               </option>
             ))}
-          </select>
+          </Select>
         </InspectorField>
       </InspectorSection>
     </div>

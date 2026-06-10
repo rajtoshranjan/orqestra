@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { ServiceInspectorProps } from '../types';
 import type { ElastiCacheConfig } from './types';
 import { elasticacheConfigSchema } from '@/schemas/resources.schema';
-import { Input } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
 import { InspectorSection, InspectorField } from '@/components';
 
 const ENGINE_OPTIONS: Array<{
@@ -61,8 +61,7 @@ export function ElastiCacheInspector({
         </InspectorField>
 
         <InspectorField label="Engine" error={errors.engine?.message}>
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <Select
             {...register('engine')}
           >
             {ENGINE_OPTIONS.map((option) => (
@@ -70,7 +69,7 @@ export function ElastiCacheInspector({
                 {option.label}
               </option>
             ))}
-          </select>
+          </Select>
         </InspectorField>
 
         <InspectorField

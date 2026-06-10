@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { ServiceInspectorProps } from '../types';
 import type { SesConfig, SesIdentityType } from './types';
 import { sesConfigSchema } from '@/schemas/resources.schema';
-import { Input } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
 import { InspectorSection, InspectorField } from '@/components';
 
 const IDENTITY_TYPE_OPTIONS: Array<{
@@ -64,8 +64,7 @@ export function SesInspector({
           label="Identity Type"
           error={errors.identityType?.message}
         >
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <Select
             {...register('identityType')}
           >
             {IDENTITY_TYPE_OPTIONS.map((option) => (
@@ -73,7 +72,7 @@ export function SesInspector({
                 {option.label}
               </option>
             ))}
-          </select>
+          </Select>
         </InspectorField>
 
         <InspectorField

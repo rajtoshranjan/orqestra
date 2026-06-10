@@ -2,7 +2,7 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import type { ServiceInspectorProps } from '../types';
 import type { KMSConfig, KMSKeyUsage } from './types';
-import { Input } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
 import { InspectorSection, InspectorField } from '@/components';
 
 const KEY_USAGE_OPTIONS: Array<{ value: KMSKeyUsage; label: string }> = [
@@ -66,8 +66,7 @@ export function KMSInspector({
         </InspectorField>
 
         <InspectorField label="Key Usage" error={errors.keyUsage?.message}>
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <Select
             {...register('keyUsage')}
           >
             {KEY_USAGE_OPTIONS.map((option) => (
@@ -75,7 +74,7 @@ export function KMSInspector({
                 {option.label}
               </option>
             ))}
-          </select>
+          </Select>
         </InspectorField>
 
         <div className="flex flex-col gap-2 pt-2">

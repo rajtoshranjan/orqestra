@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { ServiceInspectorProps } from '../types';
 import type { BatchConfig } from './types';
 import { batchConfigSchema } from '@/schemas/resources.schema';
-import { Input } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
 import { InspectorSection, InspectorField } from '@/components';
 
 export function BatchInspector({
@@ -56,14 +56,13 @@ export function BatchInspector({
           label="Compute Type"
           error={errors.computeType?.message}
         >
-          <select
-            className="w-full rounded-md border border-border/80 bg-background/50 px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          <Select
             {...register('computeType')}
           >
             <option value="FARGATE">Fargate</option>
             <option value="EC2">EC2</option>
             <option value="SPOT">Spot</option>
-          </select>
+          </Select>
         </InspectorField>
       </InspectorSection>
     </div>
