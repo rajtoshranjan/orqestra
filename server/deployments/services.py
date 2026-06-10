@@ -3,7 +3,6 @@ import logging
 import requests
 from django.db import transaction
 from django.utils import timezone
-
 from orqestra.env_variables import EnvVariable
 from projects.models import Project
 
@@ -331,7 +330,6 @@ def _build_aws_credentials(deployment: Deployment) -> dict:
         or "us-east-1",
         "endpoint_url": aws_account.endpoint_url,
     }
-
 
 
 def _build_code_bundles(deployment: Deployment) -> dict:

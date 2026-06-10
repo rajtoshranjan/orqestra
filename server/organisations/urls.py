@@ -2,9 +2,9 @@ from rest_framework.routers import DefaultRouter
 
 from .views import (
     AuditLogViewSet,
+    AWSAccountViewSet,
     OrganisationMemberViewSet,
     OrganisationViewSet,
-    AWSAccountViewSet,
 )
 
 router = DefaultRouter()

@@ -41,7 +41,7 @@ Never: `DeploymentPanel.tsx` or `deploymentPanel.tsx`.
 Always use shadcn components from `components/ui` instead of native HTML elements (`<select>`, `<button>`, `<input>`, etc.). If a component is missing from the project design system, add it.
 
 ### Inline constants
-Never repeat the same array/object literal 
+Never repeat the same array/object literal
 ## Design Tokens (Tailwind)
 
 Never use hardcoded Tailwind color classes. Always use semantic design tokens.

@@ -5,13 +5,17 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from .constants import OrganisationMemberRole
 from .helpers import get_active_organisation, log_action
-from .models import Organisation, OrganisationMember, AWSAccount
-from .permissions import CanManageOrganisation, IsOrganisationMember, CanWriteOrganisation
+from .models import AWSAccount, Organisation, OrganisationMember
+from .permissions import (
+    CanManageOrganisation,
+    CanWriteOrganisation,
+    IsOrganisationMember,
+)
 from .serializers import (
     AuditLogSerializer,
+    AWSAccountSerializer,
     OrganisationMemberSerializer,
     OrganisationSerializer,
-    AWSAccountSerializer,
 )
 
 
@@ -154,7 +158,10 @@ class AWSAccountViewSet(ModelViewSet):
             organisation=active_org,
             actor=self.request.user,
             action="aws_account.create",
-            details={"aws_account_id": str(aws_account.id), "aws_account_name": aws_account.name},
+            details={
+                "aws_account_id": str(aws_account.id),
+                "aws_account_name": aws_account.name,
+            },
         )
 
     def perform_update(self, serializer):
@@ -163,7 +170,10 @@ class AWSAccountViewSet(ModelViewSet):
             organisation=aws_account.organisation,
             actor=self.request.user,
             action="aws_account.update",
-            details={"aws_account_id": str(aws_account.id), "aws_account_name": aws_account.name},
+            details={
+                "aws_account_id": str(aws_account.id),
+                "aws_account_name": aws_account.name,
+            },
         )
 
     def perform_destroy(self, instance):
@@ -175,5 +185,8 @@ class AWSAccountViewSet(ModelViewSet):
             organisation=org,
             actor=self.request.user,
             action="aws_account.delete",
-            details={"aws_account_id": aws_account_id, "aws_account_name": aws_account_name},
+            details={
+                "aws_account_id": aws_account_id,
+                "aws_account_name": aws_account_name,
+            },
         )

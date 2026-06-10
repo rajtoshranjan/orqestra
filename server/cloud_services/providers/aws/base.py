@@ -1,9 +1,8 @@
 import logging
 from abc import abstractmethod
 
-from rest_framework import serializers
-
 from cloud_services.base import BaseServiceHandler
+from rest_framework import serializers
 
 logger = logging.getLogger(__name__)
 

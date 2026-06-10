@@ -1,14 +1,13 @@
 import logging
 
+from organisations.helpers import get_active_organisation
+from organisations.permissions import IsOrganisationMember
+from projects.models import Project
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-
-from organisations.helpers import get_active_organisation
-from organisations.permissions import IsOrganisationMember
-from projects.models import Project
 
 from .models import Deployment, ProjectDeploymentState
 from .serializers import (

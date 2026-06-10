@@ -1,7 +1,6 @@
-from rest_framework.test import APITestCase
-
 from accounts.models import User
 from organisations.models import Organisation
+from rest_framework.test import APITestCase
 
 
 class BaseTestCase(APITestCase):

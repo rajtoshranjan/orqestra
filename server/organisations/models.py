@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.db import models
-
 from orqestra.models import BaseModel
 
 from .constants import OrganisationMemberRole
@@ -85,4 +84,3 @@ class AWSAccount(BaseModel):
 
     def __str__(self):
         return f"{self.name} ({self.organisation.name})"
-

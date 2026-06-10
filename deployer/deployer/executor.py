@@ -173,7 +173,9 @@ def _build_aws_env(credentials: dict) -> dict:
     return env
 
 
-def _run_tofu(args: list[str], workspace: str, timeout: int = 300, env: dict | None = None) -> dict:
+def _run_tofu(
+    args: list[str], workspace: str, timeout: int = 300, env: dict | None = None
+) -> dict:
     """Run an OpenTofu command in the workspace directory."""
     cmd = ["tofu"] + args
     logger.info("Running: %s (cwd=%s)", " ".join(cmd), workspace)

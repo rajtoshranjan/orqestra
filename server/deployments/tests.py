@@ -1,10 +1,9 @@
 from unittest.mock import patch
 
 from django.urls import reverse
-from rest_framework import status
-
 from orqestra.tests import BaseTestCase
 from projects.models import Project
+from rest_framework import status
 
 from .models import Deployment, DeploymentStatus, ProjectDeploymentState
 from .services import _generate_callback_token

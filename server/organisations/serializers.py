@@ -1,6 +1,5 @@
-from rest_framework import serializers
-
 from accounts.models import User
+from rest_framework import serializers
 from utils.encryption import decrypt_val, encrypt_val
 
 from .helpers import get_active_organisation
@@ -114,9 +113,13 @@ class AWSAccountSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if not self.instance:
             if not attrs.get("access_key_id"):
-                raise serializers.ValidationError({"access_key_id": "This field is required."})
+                raise serializers.ValidationError(
+                    {"access_key_id": "This field is required."}
+                )
             if not attrs.get("secret_access_key"):
-                raise serializers.ValidationError({"secret_access_key": "This field is required."})
+                raise serializers.ValidationError(
+                    {"secret_access_key": "This field is required."}
+                )
         return attrs
 
     def to_representation(self, instance):
@@ -133,12 +136,18 @@ class AWSAccountSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data["access_key_id"] = encrypt_val(validated_data["access_key_id"])
-        validated_data["secret_access_key"] = encrypt_val(validated_data["secret_access_key"])
+        validated_data["secret_access_key"] = encrypt_val(
+            validated_data["secret_access_key"]
+        )
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
         if "access_key_id" in validated_data:
-            validated_data["access_key_id"] = encrypt_val(validated_data["access_key_id"])
+            validated_data["access_key_id"] = encrypt_val(
+                validated_data["access_key_id"]
+            )
         if "secret_access_key" in validated_data:
-            validated_data["secret_access_key"] = encrypt_val(validated_data["secret_access_key"])
+            validated_data["secret_access_key"] = encrypt_val(
+                validated_data["secret_access_key"]
+            )
         return super().update(instance, validated_data)

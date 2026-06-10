@@ -1,10 +1,9 @@
-from django.urls import reverse
-from rest_framework import status
-
 from accounts.models import User
+from django.urls import reverse
 from organisations.constants import OrganisationMemberRole
 from organisations.models import Organisation, OrganisationMember
 from orqestra.tests import BaseTestCase
+from rest_framework import status
 
 
 class OrganisationsTests(BaseTestCase):

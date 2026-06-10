@@ -1,7 +1,6 @@
 from django.urls import reverse
-from rest_framework import status
-
 from orqestra.tests import BaseTestCase
+from rest_framework import status
 
 
 class AccountsTests(BaseTestCase):

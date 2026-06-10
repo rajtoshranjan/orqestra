@@ -1,7 +1,6 @@
-from rest_framework import viewsets
-
 from organisations.helpers import get_active_organisation
 from organisations.permissions import IsOrganisationMember
+from rest_framework import viewsets
 
 from .models import Project
 from .serializers import ProjectSerializer

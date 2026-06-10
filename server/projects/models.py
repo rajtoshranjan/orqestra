@@ -1,5 +1,4 @@
 from django.db import models
-
 from orqestra.models import BaseModel
 
 
@@ -22,4 +21,3 @@ class Project(BaseModel):
 
     def __str__(self):
         return self.name
-
