@@ -28,7 +28,6 @@ def execute_deployment(payload: dict) -> dict:
     # Enable persistent plugin caching to avoid re-downloading providers.
     os.makedirs(PLUGIN_CACHE_DIR, exist_ok=True)
     os.makedirs(WORKSPACE_PARENT_DIR, exist_ok=True)
-    os.environ["TF_PLUGIN_CACHE_DIR"] = PLUGIN_CACHE_DIR
 
     project_id = payload.get("project_id")
     if project_id:
@@ -41,7 +40,7 @@ def execute_deployment(payload: dict) -> dict:
     logs = []
 
     try:
-        _setup_aws_credentials(payload.get("aws_credentials", {}))
+        aws_env = _build_aws_env(payload.get("aws_credentials", {}))
 
         # Write the OpenTofu configuration.
         tofu_config = payload.get("tofu_config", {})
@@ -68,7 +67,7 @@ def execute_deployment(payload: dict) -> dict:
             logs.append(_log("info", "Restored existing state."))
 
         # Run tofu init.
-        init_result = _run_tofu(["init", "-no-color"], workspace)
+        init_result = _run_tofu(["init", "-no-color"], workspace, env=aws_env)
         logger.info("tofu init stdout:\n%s", init_result.get("stdout"))
         logger.info("tofu init stderr:\n%s", init_result.get("stderr"))
         if init_result["code"] != 0:
@@ -78,7 +77,7 @@ def execute_deployment(payload: dict) -> dict:
 
         # Run tofu plan.
         plan_result = _run_tofu(
-            ["plan", "-no-color", "-input=false", "-out=tfplan"], workspace
+            ["plan", "-no-color", "-input=false", "-out=tfplan"], workspace, env=aws_env
         )
         plan_output = plan_result["stdout"]
         if plan_result["code"] != 0:
@@ -90,6 +89,7 @@ def execute_deployment(payload: dict) -> dict:
         apply_result = _run_tofu(
             ["apply", "-no-color", "tfplan"],
             workspace,
+            env=aws_env,
         )
         if apply_result["code"] != 0:
             logs.append(_log("error", f"tofu apply failed: {apply_result['stderr']}"))
@@ -138,18 +138,42 @@ def execute_deployment(payload: dict) -> dict:
                 shutil.rmtree(bundles_dir, ignore_errors=True)
 
 
-def _setup_aws_credentials(credentials: dict) -> None:
-    """Set AWS credentials as environment variables for the tofu process."""
-    if credentials.get("access_key_id"):
-        os.environ["AWS_ACCESS_KEY_ID"] = credentials["access_key_id"]
-    if credentials.get("secret_access_key"):
-        os.environ["AWS_SECRET_ACCESS_KEY"] = credentials["secret_access_key"]
-    if credentials.get("region"):
-        os.environ["AWS_DEFAULT_REGION"] = credentials["region"]
-        os.environ["AWS_REGION"] = credentials["region"]
+def _build_aws_env(credentials: dict) -> dict:
+    """
+    Build a subprocess environment for OpenTofu sourced entirely from the
+    project's linked AWS account (passed in via `credentials`). Any AWS_*
+    variables inherited from the container environment are stripped so
+    deployments have no dependency on container-level configuration.
+    """
+    env = os.environ.copy()
+
+    for key in list(env):
+        if key.startswith("AWS_"):
+            env.pop(key, None)
+
+    # Always set the plugin cache dir so providers aren't re-downloaded.
+    env["TF_PLUGIN_CACHE_DIR"] = PLUGIN_CACHE_DIR
+
+    access_key_id = credentials.get("access_key_id", "") or ""
+    secret_access_key = credentials.get("secret_access_key", "") or ""
+    region = credentials.get("region", "us-east-1") or "us-east-1"
+    endpoint_url = credentials.get("endpoint_url", "") or ""
+
+    if access_key_id:
+        env["AWS_ACCESS_KEY_ID"] = access_key_id
+    if secret_access_key:
+        env["AWS_SECRET_ACCESS_KEY"] = secret_access_key
+
+    env["AWS_DEFAULT_REGION"] = region
+    env["AWS_REGION"] = region
+
+    if endpoint_url:
+        env["AWS_ENDPOINT_URL"] = endpoint_url
+
+    return env
 
 
-def _run_tofu(args: list[str], workspace: str, timeout: int = 300) -> dict:
+def _run_tofu(args: list[str], workspace: str, timeout: int = 300, env: dict | None = None) -> dict:
     """Run an OpenTofu command in the workspace directory."""
     cmd = ["tofu"] + args
     logger.info("Running: %s (cwd=%s)", " ".join(cmd), workspace)
@@ -161,6 +185,7 @@ def _run_tofu(args: list[str], workspace: str, timeout: int = 300) -> dict:
             capture_output=True,
             text=True,
             timeout=timeout,
+            env=env,
         )
         return {
             "code": result.returncode,

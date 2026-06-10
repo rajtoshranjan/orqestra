@@ -14,12 +14,6 @@ class EnvVariable(Enum):
         "ALLOWED_CORS_DOMAINS", "http://localhost:8080,http://localhost:5173"
     )
 
-    # AWS Config Variables.
-    AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
-    AWS_DEFAULT_REGION = os.environ.get("AWS_DEFAULT_REGION", "us-east-1")
-    AWS_LAMBDA_EXECUTION_ROLE_ARN = os.environ.get("AWS_LAMBDA_EXECUTION_ROLE_ARN", "")
-    AWS_ENDPOINT_URL = os.environ.get("AWS_ENDPOINT_URL", "")
-
     # Server Config Variables.
     HOST = os.environ.get("HOST", "0.0.0.0")
     PORT = os.environ.get("PORT", "3001")

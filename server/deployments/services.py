@@ -35,8 +35,16 @@ def create_deployment(project: Project) -> Deployment:
         "settings": settings,
     }
 
+    # If the linked AWS account points at a local emulator, propagate its
+    # endpoint URL into the tofu config settings so the provider is
+    # configured with custom endpoints and skips STS-based validation.
+    tofu_settings = settings
+    aws_account = project.aws_account
+    if aws_account and aws_account.endpoint_url and not settings.get("endpoint_url"):
+        tofu_settings = {**settings, "endpoint_url": aws_account.endpoint_url}
+
     # Generate OpenTofu configuration.
-    tofu_config = build_tofu_config(nodes, edges, settings)
+    tofu_config = build_tofu_config(nodes, edges, tofu_settings)
 
     # Retrieve existing state if available.
     existing_state = _get_existing_tofu_state(project)
