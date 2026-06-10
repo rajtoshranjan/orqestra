@@ -26,12 +26,34 @@ Never: `DeploymentPanel.tsx` or `deploymentPanel.tsx`.
 - Split responsibilities: components, hooks, utilities, services.
 - Avoid render helper functions — extract a component instead.
 - Use compound components when appropriate.
+- When a component file exceeds ~400 lines, extract by concern:
+  - Pure utility functions/constants → `*-utils.ts`
+  - Heavy memos/derived state → custom hooks (`use-*.ts`)
+  - Grouped side-effect logic (autosave, persistence) → custom hook
+  - Grouped UI logic (keyboard shortcuts) → custom hook (`.tsx` if JSX needed)
+  - Self-contained sub-views → separate component files
+- Files containing JSX must use `.tsx` extension, even if they are hooks.
 
 ---
 
 ## UI Components
 
 Always use shadcn components from `components/ui` instead of native HTML elements (`<select>`, `<button>`, `<input>`, etc.). If a component is missing from the project design system, add it.
+
+### Inline constants
+Never repeat the same array/object literal 
+## Design Tokens (Tailwind)
+
+Never use hardcoded Tailwind color classes. Always use semantic design tokens.
+
+| Use this | Never this |
+|----------|------------|
+| `text-destructive`, `bg-destructive`, `border-destructive` | `text-red-*`, `bg-red-*`, `border-red-*` |
+| `text-warning`, `bg-warning`, `border-warning` | `text-amber-*`, `bg-amber-*`, `border-amber-*` |
+| `text-success`, `bg-success`, `border-success` | `text-emerald-*`, `bg-emerald-*`, `border-emerald-*`, `text-green-*` |
+| `text-primary`, `bg-primary`, `border-primary` | `text-violet-*`, `text-blue-*`, `text-indigo-*`, `bg-violet-*`, etc. |
+
+This applies to **all** usages — badge styles, status dots, icon colors, border highlights, background tints (e.g. `bg-warning/10`), and opacity variants (`/15`, `/30`, `/80`).
 
 ---
 
