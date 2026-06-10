@@ -25,38 +25,38 @@ import {
 // Selects an appropriate icon based on the toast title, description, and variant.
 function getToastIcon(title?: string, description?: string, variant?: string) {
   if (variant === 'destructive') {
-    return <AlertCircle className="size-4 shrink-0 text-red-500" />;
+    return <AlertCircle className="size-4 shrink-0 text-destructive" />;
   }
 
   const text = `${title || ''} ${description || ''}`.toLowerCase();
 
   if (text.includes('locked')) {
-    return <Lock className="size-4 shrink-0 text-violet-500" />;
+    return <Lock className="size-4 shrink-0 text-primary" />;
   }
   if (text.includes('unlocked')) {
-    return <Unlock className="size-4 shrink-0 text-emerald-500" />;
+    return <Unlock className="size-4 shrink-0 text-success" />;
   }
   if (text.includes('grid') || text.includes('snap')) {
-    return <Grid className="size-4 shrink-0 text-blue-500" />;
+    return <Grid className="size-4 shrink-0 text-primary" />;
   }
   if (text.includes('save') || text.includes('saved')) {
-    return <Cloud className="size-4 shrink-0 text-emerald-500" />;
+    return <Cloud className="size-4 shrink-0 text-success" />;
   }
   if (text.includes('deploy') || text.includes('started')) {
-    return <Rocket className="size-4 shrink-0 text-indigo-500" />;
+    return <Rocket className="size-4 shrink-0 text-primary" />;
   }
   if (text.includes('layout')) {
-    return <Sparkles className="size-4 shrink-0 text-violet-500" />;
+    return <Sparkles className="size-4 shrink-0 text-primary" />;
   }
   if (text.includes('copy') || text.includes('clipboard')) {
-    return <Copy className="size-4 shrink-0 text-blue-500" />;
+    return <Copy className="size-4 shrink-0 text-primary" />;
   }
   if (
     text.includes('clear') ||
     text.includes('deleted') ||
     text.includes('removed')
   ) {
-    return <Trash2 className="size-4 shrink-0 text-red-500" />;
+    return <Trash2 className="size-4 shrink-0 text-destructive" />;
   }
   if (
     text.includes('warning') ||
@@ -64,7 +64,7 @@ function getToastIcon(title?: string, description?: string, variant?: string) {
     text.includes('no selection') ||
     text.includes('empty')
   ) {
-    return <AlertTriangle className="size-4 shrink-0 text-amber-500" />;
+    return <AlertTriangle className="size-4 shrink-0 text-warning" />;
   }
   if (
     text.includes('success') ||
@@ -72,10 +72,10 @@ function getToastIcon(title?: string, description?: string, variant?: string) {
     text.includes('added') ||
     text.includes('applied')
   ) {
-    return <CheckCircle2 className="size-4 shrink-0 text-emerald-500" />;
+    return <CheckCircle2 className="size-4 shrink-0 text-success" />;
   }
 
-  return <Info className="size-4 shrink-0 text-blue-400" />;
+  return <Info className="size-4 shrink-0 text-primary" />;
 }
 
 export function Toaster() {

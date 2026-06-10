@@ -40,6 +40,24 @@ import { cn } from '@/lib/utils';
 /**
  * Computes the first letters of the user or organisation name to render custom avatars.
  */
+const ROLE_OPTIONS = [
+  {
+    value: 'admin' as const,
+    label: 'Administrator',
+    desc: 'Full access to manage organisation settings, invite members, and edit projects.',
+  },
+  {
+    value: 'regular' as const,
+    label: 'Regular Member',
+    desc: 'Can view, create and manage projects. Cannot edit settings or invite members.',
+  },
+  {
+    value: 'guest' as const,
+    label: 'Guest / Viewer',
+    desc: 'Read-only access to browse projects. Cannot make edits or trigger deployments.',
+  },
+];
+
 const getInitials = (name?: string): string => {
   if (!name) {
     return 'U';
@@ -67,11 +85,9 @@ export function OrgMembers() {
   const updateRoleMutation = useUpdateOrganisationMember();
 
   const [activeOrgId] = useLocalStorage<string | null>('activeOrgId', null);
-  const activeOrganisationId = activeOrgId;
   const activeOrganisation =
-    organisations?.find(
-      (organisation) => organisation.id === activeOrganisationId,
-    ) || organisations?.[0];
+    organisations?.find((organisation) => organisation.id === activeOrgId) ||
+    organisations?.[0];
 
   // Manage invite field state.
   const [inviteEmail, setInviteEmail] = useState<string>('');
@@ -230,11 +246,11 @@ export function OrgMembers() {
                       className={cn(
                         'h-10 border-border bg-background/50 text-sm focus-visible:ring-primary',
                         !isValidEmail &&
-                          'border-red-500 focus-visible:ring-red-500',
+                          'border-destructive focus-visible:ring-destructive',
                       )}
                     />
                     {!isValidEmail && (
-                      <p className="text-[10px] text-red-500">
+                      <p className="text-[10px] text-destructive">
                         Please enter a valid email address.
                       </p>
                     )}
@@ -261,23 +277,7 @@ export function OrgMembers() {
                     Select Member Role
                   </label>
                   <div className="grid gap-3 sm:grid-cols-3">
-                    {[
-                      {
-                        value: 'admin',
-                        label: 'Administrator',
-                        desc: 'Full access to manage organisation settings, invite members, and edit projects.',
-                      },
-                      {
-                        value: 'regular',
-                        label: 'Regular Member',
-                        desc: 'Can view, create and manage projects. Cannot edit settings or invite members.',
-                      },
-                      {
-                        value: 'guest',
-                        label: 'Guest / Viewer',
-                        desc: 'Read-only access to browse projects. Cannot make edits or trigger deployments.',
-                      },
-                    ].map((roleOption) => {
+                    {ROLE_OPTIONS.map((roleOption) => {
                       const isSelected = inviteRole === roleOption.value;
                       return (
                         <button
@@ -412,14 +412,7 @@ export function OrgMembers() {
                                   className="w-40 border-border bg-[var(--color-bg-surface)] text-foreground"
                                   align="start"
                                 >
-                                  {[
-                                    { value: 'admin', label: 'Administrator' },
-                                    {
-                                      value: 'regular',
-                                      label: 'Regular Member',
-                                    },
-                                    { value: 'guest', label: 'Guest / Viewer' },
-                                  ].map((roleOpt) => (
+                                  {ROLE_OPTIONS.map((roleOpt) => (
                                     <DropdownMenuItem
                                       key={roleOpt.value}
                                       onClick={() =>

@@ -428,7 +428,7 @@ export function LambdaInspector({
                 >
                   <DropdownMenuRadioItem
                     value="NONE"
-                    className="cursor-pointer text-xs text-red-500"
+                    className="cursor-pointer text-xs text-destructive"
                   >
                     NONE (Public unauthenticated)
                   </DropdownMenuRadioItem>

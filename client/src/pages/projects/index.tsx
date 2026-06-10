@@ -30,6 +30,7 @@ import {
   DialogFooter,
   Input,
   Select,
+  Textarea,
 } from '@/components/ui';
 import { PageLayout } from '@/components';
 
@@ -330,7 +331,7 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
               >
                 Description (Optional)
               </label>
-              <textarea
+              <Textarea
                 id="projectDescription"
                 placeholder="Describe your architecture..."
                 value={newProjectForm.projectDescription}
@@ -340,7 +341,6 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
                     projectDescription: event.target.value,
                   })
                 }
-                className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
             <div className="grid gap-2">

@@ -43,7 +43,9 @@ export function Editor({ projectId, onNavigateHome }: EditorProps) {
   if (error || !project) {
     return (
       <div className="flex h-screen w-screen flex-col items-center justify-center gap-4 bg-[var(--color-bg-base)] text-[var(--color-text-primary)]">
-        <div className="text-xl font-bold text-red-500">Project Not Found</div>
+        <div className="text-xl font-bold text-destructive">
+          Project Not Found
+        </div>
         <p className="text-sm text-[var(--color-text-secondary)]">
           Failed to load the cloud diagram from the server.
         </p>

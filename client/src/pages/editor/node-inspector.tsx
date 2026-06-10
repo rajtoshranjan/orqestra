@@ -10,7 +10,7 @@ import {
 import { MarkerType } from 'reactflow';
 import type { DiagramNode, DiagramEdge } from '@/types';
 import { registry } from '@/services';
-import { Badge, EmptyState } from '@/components/ui';
+import { Badge, Button, EmptyState } from '@/components/ui';
 import { deriveGraphConfigurations } from '@/utils/derivation-engine';
 import { createServiceNode, makeId } from '@/utils/diagram';
 
@@ -563,14 +563,15 @@ export function NodeInspector({
             ) : (
               <div className="flex flex-wrap gap-1.5">
                 {dependencies.map((d) => {
-                  const s = registry.find(d.data.serviceId);
+                  const connectedService = registry.find(d.data.serviceId);
                   return (
                     <Badge
                       key={d.id}
                       variant="outline"
                       className="border-border bg-background text-[10px] font-normal"
                     >
-                      {s?.shortName || d.data.label}: {d.data.label}
+                      {connectedService?.shortName || d.data.label}:{' '}
+                      {d.data.label}
                     </Badge>
                   );
                 })}
@@ -592,36 +593,48 @@ export function NodeInspector({
                     <li key={key} className="space-y-1">
                       <div>{msg}</div>
                       {key === 'executionRole' && (
-                        <button
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
                           onClick={() => triggerAutoFix('role')}
-                          className="mt-0.5 block cursor-pointer rounded bg-amber-500 px-1.5 py-0.5 text-left text-[9px] font-semibold text-white transition-colors hover:bg-amber-600"
+                          className="mt-0.5 h-auto w-full justify-start py-0.5 text-[9px] text-warning hover:bg-warning/10 hover:text-warning"
                         >
                           Auto-Fix: Create & Connect Role
-                        </button>
+                        </Button>
                       )}
                       {key === 'network' && (
-                        <button
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
                           onClick={() => triggerAutoFix('network')}
-                          className="mt-0.5 block cursor-pointer rounded bg-emerald-600 px-1.5 py-0.5 text-left text-[9px] font-semibold text-white transition-colors hover:bg-emerald-700"
+                          className="mt-0.5 h-auto w-full justify-start py-0.5 text-[9px] text-success hover:bg-success/10 hover:text-success"
                         >
                           Auto-Fix: Create & Connect VPC Network
-                        </button>
+                        </Button>
                       )}
                       {key === 'vpc' && (
-                        <button
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
                           onClick={() => triggerAutoFix('vpc')}
-                          className="mt-0.5 block cursor-pointer rounded bg-emerald-600 px-1.5 py-0.5 text-left text-[9px] font-semibold text-white transition-colors hover:bg-emerald-700"
+                          className="mt-0.5 h-auto w-full justify-start py-0.5 text-[9px] text-success hover:bg-success/10 hover:text-success"
                         >
                           Auto-Fix: Create & Connect VPC
-                        </button>
+                        </Button>
                       )}
                       {key === 'placement' && (
-                        <button
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
                           onClick={() => triggerMoveToVPC()}
-                          className="mt-0.5 block cursor-pointer rounded bg-emerald-600 px-1.5 py-0.5 text-left text-[9px] font-semibold text-white transition-colors hover:bg-emerald-700"
+                          className="mt-0.5 h-auto w-full justify-start py-0.5 text-[9px] text-success hover:bg-success/10 hover:text-success"
                         >
                           Auto-Fix: Move into VPC Container
-                        </button>
+                        </Button>
                       )}
                       {key === 'relationship' && (
                         <div className="mt-1 flex flex-col gap-1">
@@ -635,15 +648,17 @@ export function NodeInspector({
                               { id: 'sqs', label: 'SQS' },
                               { id: 'step-function', label: 'Step Functions' },
                             ].map((item) => (
-                              <button
+                              <Button
                                 key={item.id}
+                                type="button"
+                                size="sm"
+                                variant="secondary"
                                 onClick={() =>
                                   triggerReplaceConnection(item.id)
                                 }
-                                className="cursor-pointer rounded bg-accent px-1.5 py-0.5 text-[9px] font-semibold text-accent-foreground transition-colors hover:bg-accent/80"
                               >
                                 {item.label}
-                              </button>
+                              </Button>
                             ))}
                           </div>
                         </div>
@@ -668,7 +683,7 @@ export function NodeInspector({
                     <Shield size={10} /> Role
                   </span>
                   <span
-                    className="max-w-[160px] truncate font-mono font-medium text-amber-600"
+                    className="max-w-[160px] truncate font-mono font-medium text-warning"
                     title={derived.executionRole.arn}
                   >
                     {derived.executionRole.name}
@@ -681,7 +696,7 @@ export function NodeInspector({
                     <Network size={10} /> VPC
                   </span>
                   <span
-                    className="max-w-[160px] truncate font-mono font-medium text-emerald-600"
+                    className="max-w-[160px] truncate font-mono font-medium text-success"
                     title={derived.vpc.cidrBlock}
                   >
                     {derived.vpc.name}
@@ -694,7 +709,7 @@ export function NodeInspector({
                     Subnet ({derived.subnets[0].subnetType})
                   </span>
                   <span
-                    className="max-w-[140px] truncate font-mono font-medium text-emerald-600"
+                    className="max-w-[140px] truncate font-mono font-medium text-success"
                     title={derived.subnets[0].cidrBlock}
                   >
                     {derived.subnets[0].name}
@@ -704,7 +719,7 @@ export function NodeInspector({
               {derived.securityGroups.length > 0 && (
                 <div className="flex items-center justify-between rounded border border-border/80 bg-background p-1.5 shadow-sm">
                   <span className="text-muted-foreground">Security Group</span>
-                  <span className="max-w-[140px] truncate font-mono font-medium text-emerald-600">
+                  <span className="max-w-[140px] truncate font-mono font-medium text-success">
                     {derived.securityGroups[0].name}
                   </span>
                 </div>
@@ -713,7 +728,7 @@ export function NodeInspector({
                 <div className="flex items-center justify-between rounded border border-border/80 bg-background p-1.5 shadow-sm">
                   <span className="text-muted-foreground">ECR Repository</span>
                   <span
-                    className="max-w-[160px] truncate font-mono font-medium text-amber-600"
+                    className="max-w-[160px] truncate font-mono font-medium text-warning"
                     title={derived.ecrRepository.repositoryUrl}
                   >
                     {derived.ecrRepository.name}
@@ -725,7 +740,7 @@ export function NodeInspector({
                   <span className="flex items-center gap-1 text-muted-foreground">
                     <HardDrive size={10} /> EFS Volume
                   </span>
-                  <span className="max-w-[160px] truncate font-mono font-medium text-blue-600">
+                  <span className="max-w-[160px] truncate font-mono font-medium text-primary">
                     {derived.efs.name}
                   </span>
                 </div>
@@ -733,8 +748,8 @@ export function NodeInspector({
               {derived.layers.length > 0 && (
                 <div className="flex items-center justify-between rounded border border-border/80 bg-background p-1.5 shadow-sm">
                   <span className="text-muted-foreground">Attached Layers</span>
-                  <span className="max-w-[160px] truncate font-mono font-medium text-blue-600">
-                    {derived.layers.map((l) => l.name).join(', ')}
+                  <span className="max-w-[160px] truncate font-mono font-medium text-primary">
+                    {derived.layers.map((layer) => layer.name).join(', ')}
                   </span>
                 </div>
               )}
@@ -768,14 +783,17 @@ export function NodeInspector({
                             </p>
                           </div>
                         </div>
-                        <button
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
                           onClick={() =>
                             handleSuggestionAction(suggestion.actionType)
                           }
-                          className="w-full cursor-pointer rounded bg-primary/10 py-1 text-center text-[10px] font-semibold text-primary transition-colors hover:bg-primary/20"
+                          className="w-full text-primary hover:bg-primary/10 hover:text-primary"
                         >
                           {suggestion.actionLabel}
-                        </button>
+                        </Button>
                       </div>
                     );
                   })}

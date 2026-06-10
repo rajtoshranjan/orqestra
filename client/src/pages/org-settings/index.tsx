@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocalStorage } from 'usehooks-ts';
 import { Building2, Cloud, History, Search } from 'lucide-react';
 
+import { AWSAccountsTab } from './aws-accounts-tab';
 import {
   Card,
   CardContent,
@@ -21,6 +22,12 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
 } from '@/components/ui';
 import { PageLayout } from '@/components';
 import {
@@ -31,15 +38,16 @@ import {
 } from '@/api';
 import { localStorageManager } from '@/lib/utils/local-storage-manager';
 import { toast } from '@/hooks/use-toast';
-import { AWSAccountsTab } from './aws-accounts-tab';
 
 export function OrgSettings() {
   const isAuthenticated = localStorageManager.hasToken();
 
   const { data: organisations } = useOrganisations(isAuthenticated);
 
-  const [activeOrgId] = useLocalStorage<string | null>('activeOrgId', null);
-  const activeOrganisationId = activeOrgId;
+  const [activeOrganisationId] = useLocalStorage<string | null>(
+    'activeOrgId',
+    null,
+  );
   const activeOrganisation =
     organisations?.find((org) => org.id === activeOrganisationId) ||
     organisations?.[0];
@@ -117,16 +125,19 @@ export function OrgSettings() {
     });
   };
 
-  const getActionBadgeColor = (action: string): string => {
-    if (action.includes('organisation')) return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
-    if (action.includes('project')) return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
-    if (action.includes('deployment')) return 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20';
-    if (action.includes('member')) return 'bg-teal-500/10 text-teal-400 border-teal-500/20';
-    if (action.includes('aws')) return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-    return 'bg-green-500/10 text-green-400 border-green-500/20';
+  const getActionBadgeClass = (action: string): string => {
+    if (action.includes('deployment'))
+      return 'border-success/20 bg-success/10 text-success';
+    if (action.includes('aws'))
+      return 'border-warning/20 bg-warning/10 text-warning';
+    if (action.includes('organisation') || action.includes('project'))
+      return 'border-primary/20 bg-primary/10 text-primary';
+    return 'border-border bg-muted/30 text-muted-foreground';
   };
 
-  const renderLogDetails = (details: Record<string, unknown>): React.ReactNode => {
+  const renderLogDetails = (
+    details: Record<string, unknown>,
+  ): React.ReactNode => {
     if (!details || Object.keys(details).length === 0) {
       return <span className="text-muted-foreground">-</span>;
     }
@@ -138,7 +149,8 @@ export function OrgSettings() {
             variant="outline"
             className="border-border bg-background/50 px-1.5 py-0.5 font-mono text-[9px] font-normal text-muted-foreground"
           >
-            {key}: {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+            {key}:{' '}
+            {typeof value === 'object' ? JSON.stringify(value) : String(value)}
           </Badge>
         ))}
       </div>
@@ -155,7 +167,10 @@ export function OrgSettings() {
     );
   });
 
-  const totalPages = Math.max(1, Math.ceil(filteredLogs.length / ITEMS_PER_PAGE));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredLogs.length / ITEMS_PER_PAGE),
+  );
   const paginatedLogs = filteredLogs.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE,
@@ -243,13 +258,14 @@ export function OrgSettings() {
           </Card>
 
           {/* Danger Zone */}
-          <Card className="max-w-2xl rounded-lg border-red-500/35 bg-red-500/5 shadow-none">
+          <Card className="max-w-2xl rounded-lg border-destructive/35 bg-destructive/5 shadow-none">
             <CardHeader className="p-5">
-              <CardTitle className="text-base font-bold text-red-500">
+              <CardTitle className="text-base font-bold text-destructive">
                 Danger Zone
               </CardTitle>
-              <CardDescription className="text-xs text-red-400">
-                Permanently delete this organisation and all its project designs.
+              <CardDescription className="text-xs text-destructive/70">
+                Permanently delete this organisation and all its project
+                designs.
               </CardDescription>
             </CardHeader>
             <CardContent className="flex items-center justify-between gap-4 p-5 pt-0">
@@ -311,80 +327,75 @@ export function OrgSettings() {
                 />
               </div>
 
-              <div className="overflow-x-auto rounded-lg border border-border">
-                <table className="w-full border-collapse text-left">
-                  <thead>
-                    <tr className="border-b border-border bg-black/10">
-                      <th className="w-1/4 p-3 text-xs font-bold text-muted-foreground">
-                        Action
-                      </th>
-                      <th className="w-1/4 p-3 text-xs font-bold text-muted-foreground">
-                        Actor
-                      </th>
-                      <th className="w-1/3 p-3 text-xs font-bold text-muted-foreground">
-                        Parameters
-                      </th>
-                      <th className="w-1/6 p-3 text-right text-xs font-bold text-muted-foreground">
-                        Time
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border text-xs">
-                    {paginatedLogs.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={4}
-                          className="p-8 text-center text-muted-foreground"
-                        >
-                          No audit logs found.
-                        </td>
-                      </tr>
-                    ) : (
-                      paginatedLogs.map((log) => (
-                        <tr key={log.id} className="hover:bg-accent/5">
-                          <td className="p-3 font-semibold">
-                            <Badge
-                              variant="outline"
-                              className={`border px-1.5 py-0 font-mono text-[9px] ${getActionBadgeColor(log.action)}`}
-                            >
-                              {log.action}
-                            </Badge>
-                          </td>
-                          <td className="p-3">
-                            <div className="font-semibold text-foreground">
-                              {log.actorName || 'System'}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-1/4">Action</TableHead>
+                    <TableHead className="w-1/4">Actor</TableHead>
+                    <TableHead className="w-1/3">Parameters</TableHead>
+                    <TableHead className="w-1/6 text-right">Time</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedLogs.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={4}
+                        className="p-8 text-center text-muted-foreground"
+                      >
+                        No audit logs found.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    paginatedLogs.map((log) => (
+                      <TableRow key={log.id}>
+                        <TableCell className="font-semibold">
+                          <Badge
+                            variant="outline"
+                            className={`border px-1.5 py-0 font-mono text-[9px] ${getActionBadgeClass(log.action)}`}
+                          >
+                            {log.action}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-semibold text-foreground">
+                            {log.actorName || 'System'}
+                          </div>
+                          {log.actorEmail && (
+                            <div className="text-[10px] text-muted-foreground">
+                              {log.actorEmail}
                             </div>
-                            {log.actorEmail && (
-                              <div className="text-[10px] text-muted-foreground">
-                                {log.actorEmail}
-                              </div>
-                            )}
-                          </td>
-                          <td className="p-3">
-                            {renderLogDetails(log.details as Record<string, unknown>)}
-                          </td>
-                          <td className="p-3 text-right text-muted-foreground">
-                            {new Date(log.createdAt).toLocaleString(undefined, {
-                              month: 'short',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {renderLogDetails(
+                            log.details as Record<string, unknown>,
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right text-muted-foreground">
+                          {new Date(log.createdAt).toLocaleString(undefined, {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
 
               {/* Pagination controls */}
               {totalPages > 1 && (
                 <div className="flex items-center justify-between pt-2">
                   <span className="text-[11px] text-muted-foreground">
                     Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to{' '}
-                    {Math.min(currentPage * ITEMS_PER_PAGE, filteredLogs.length)} of{' '}
-                    {filteredLogs.length} entries
+                    {Math.min(
+                      currentPage * ITEMS_PER_PAGE,
+                      filteredLogs.length,
+                    )}{' '}
+                    of {filteredLogs.length} entries
                   </span>
                   <div className="flex items-center gap-1">
                     <Button
@@ -406,9 +417,7 @@ export function OrgSettings() {
                       size="sm"
                       disabled={currentPage === totalPages}
                       onClick={() =>
-                        setCurrentPage((prev) =>
-                          Math.min(prev + 1, totalPages)
-                        )
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                       }
                       className="h-7 px-2 text-xs"
                     >
@@ -426,7 +435,7 @@ export function OrgSettings() {
       <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <DialogContent className="border-border bg-[var(--color-bg-surface)] text-foreground sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-sm font-bold text-red-500">
+            <DialogTitle className="text-sm font-bold text-destructive">
               Delete Organisation
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">

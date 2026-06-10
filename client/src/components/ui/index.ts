@@ -15,5 +15,6 @@ export * from './toaster';
 export * from './empty-state';
 export * from './loading-state';
 export * from './confirm-dialog';
-export * from './page-header';
+export * from './textarea';
+export * from './table';
 export * from './search-bar';

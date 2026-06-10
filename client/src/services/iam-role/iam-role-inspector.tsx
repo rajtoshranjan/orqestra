@@ -5,7 +5,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import type { ServiceInspectorProps } from '../types';
 import type { IAMRoleConfig } from './types';
 import { iamRoleConfigSchema } from '@/schemas/resources.schema';
-import { Input, Button } from '@/components/ui';
+import { Input, Button, Textarea } from '@/components/ui';
 import {
   InspectorSection,
   InspectorField,
@@ -90,15 +90,15 @@ export function IAMRoleInspector({
       />
 
       <InspectorSection title="Managed Policies (one ARN per line)">
-        <textarea
-          className="min-h-[80px] w-full rounded-md border border-border bg-background/50 p-2 font-mono text-xs text-foreground focus:ring-accent"
+        <Textarea
+          className="font-mono text-xs"
           value={managedPolicyInput}
-          onChange={(e) => {
-            const val = e.target.value;
-            setManagedPolicyInput(val);
-            const arns = val
+          onChange={(event) => {
+            const value = event.target.value;
+            setManagedPolicyInput(value);
+            const arns = value
               .split('\n')
-              .map((l) => l.trim())
+              .map((line) => line.trim())
               .filter(Boolean);
             onUpdate((prev) => ({ ...prev, managedPolicyArns: arns }));
           }}
@@ -122,7 +122,7 @@ export function IAMRoleInspector({
                   variant="ghost"
                   size="sm"
                   onClick={() => removeInline(index)}
-                  className="h-6 px-1.5 text-red-500 hover:bg-red-500/10"
+                  className="h-6 px-1.5 text-destructive hover:bg-destructive/10"
                 >
                   <Trash2 className="size-3.5" />
                 </Button>

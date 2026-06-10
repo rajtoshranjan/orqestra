@@ -89,7 +89,9 @@ function EditorToolbarComponent({
       prev.isLocked === next.isLocked,
   );
 
-  const projectSettingsOpen = useAppSelector((state) => state.ui.projectSettingsOpen);
+  const projectSettingsOpen = useAppSelector(
+    (state) => state.ui.projectSettingsOpen,
+  );
 
   const { nodeCount, invalidNodeCount } = useAppSelector(
     (state) => {
@@ -375,7 +377,7 @@ function EditorToolbarComponent({
               <DropdownMenuItem
                 onClick={onClearCanvas}
                 disabled={isLocked}
-                className="cursor-pointer text-xs text-red-500 hover:text-red-600 focus:text-red-600 disabled:opacity-50"
+                className="cursor-pointer text-xs text-destructive hover:text-destructive/80 focus:text-destructive/80 disabled:opacity-50"
               >
                 Clear Canvas
               </DropdownMenuItem>

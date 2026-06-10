@@ -208,7 +208,7 @@ export function EFSInspector({
                   variant="ghost"
                   size="sm"
                   onClick={() => removeAp(index)}
-                  className="h-6 px-1.5 text-red-500 hover:bg-red-500/10"
+                  className="h-6 px-1.5 text-destructive hover:bg-destructive/10"
                 >
                   <Trash2 className="size-3.5" />
                 </Button>

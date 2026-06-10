@@ -140,20 +140,20 @@ export function BaseServiceNode({
         <span
           className={cn(
             'size-1.5 rounded-full',
-            hasErrors && 'pulse-red bg-red-500',
+            hasErrors && 'pulse-red bg-destructive',
             !hasErrors &&
               deploymentStatus === 'deployed' &&
-              'pulse-green bg-emerald-500',
+              'pulse-green bg-success',
             !hasErrors &&
               deploymentStatus === 'dirty' &&
-              'pulse-amber bg-amber-500',
+              'pulse-amber bg-warning',
             !hasErrors &&
               deploymentStatus === 'not_deployed' &&
               'pulse-gray bg-slate-500',
           )}
         />
         {hasErrors && (
-          <span className="text-[6.5px] font-bold uppercase tracking-wide text-red-500">
+          <span className="text-[6.5px] font-bold uppercase tracking-wide text-destructive">
             {errorCount}
           </span>
         )}

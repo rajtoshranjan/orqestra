@@ -15,6 +15,12 @@ import {
   DialogDescription,
   DialogFooter,
   ConfirmDialog,
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
 } from '@/components/ui';
 import {
   useAWSAccounts,
@@ -67,7 +73,11 @@ export function AWSAccountsTab({ canManage }: AWSAccountsTabProps) {
   };
 
   const handleSaveAccount = async (): Promise<void> => {
-    if (!formData.name.trim() || !formData.accessKeyId || !formData.secretAccessKey) {
+    if (
+      !formData.name.trim() ||
+      !formData.accessKeyId ||
+      !formData.secretAccessKey
+    ) {
       toast({
         title: 'Validation Error',
         description: 'Name and credentials are required.',
@@ -98,7 +108,9 @@ export function AWSAccountsTab({ canManage }: AWSAccountsTabProps) {
       toast({
         title: 'Error',
         description:
-          error instanceof Error ? error.message : 'Failed to save AWS account.',
+          error instanceof Error
+            ? error.message
+            : 'Failed to save AWS account.',
         variant: 'destructive',
       });
     }
@@ -118,7 +130,9 @@ export function AWSAccountsTab({ canManage }: AWSAccountsTabProps) {
       toast({
         title: 'Error',
         description:
-          error instanceof Error ? error.message : 'Failed to delete AWS account.',
+          error instanceof Error
+            ? error.message
+            : 'Failed to delete AWS account.',
         variant: 'destructive',
       });
     }
@@ -165,74 +179,62 @@ export function AWSAccountsTab({ canManage }: AWSAccountsTabProps) {
               No AWS accounts configured yet. Add one to get started.
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-lg border border-border">
-              <table className="w-full border-collapse text-left">
-                <thead>
-                  <tr className="border-b border-border bg-black/10">
-                    <th className="p-3 text-xs font-bold text-muted-foreground">
-                      Account Name
-                    </th>
-                    <th className="p-3 text-xs font-bold text-muted-foreground">
-                      Access Key ID
-                    </th>
-                    <th className="p-3 text-xs font-bold text-muted-foreground">
-                      Endpoint URL
-                    </th>
-                    <th className="p-3 text-xs font-bold text-muted-foreground">
-                      Created
-                    </th>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Account Name</TableHead>
+                  <TableHead>Access Key ID</TableHead>
+                  <TableHead>Endpoint URL</TableHead>
+                  <TableHead>Created</TableHead>
+                  {canManage && (
+                    <TableHead className="text-right">Actions</TableHead>
+                  )}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {awsAccounts.map((account) => (
+                  <TableRow key={account.id}>
+                    <TableCell className="font-semibold text-foreground">
+                      {account.name}
+                    </TableCell>
+                    <TableCell className="font-mono text-muted-foreground">
+                      {account.accessKeyId}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {account.endpointUrl || '—'}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {new Date(account.createdAt).toLocaleDateString()}
+                    </TableCell>
                     {canManage && (
-                      <th className="p-3 text-right text-xs font-bold text-muted-foreground">
-                        Actions
-                      </th>
+                      <TableCell className="flex justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEditAccount(account)}
+                          className="size-6"
+                          title="Edit account"
+                        >
+                          <Edit2 className="size-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setAccountToDelete(account.id);
+                            setDeleteConfirmOpen(true);
+                          }}
+                          className="size-6 text-destructive hover:bg-destructive/10"
+                          title="Delete account"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </Button>
+                      </TableCell>
                     )}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border text-xs">
-                  {awsAccounts.map((account) => (
-                    <tr key={account.id} className="hover:bg-accent/5">
-                      <td className="p-3 font-semibold text-foreground">
-                        {account.name}
-                      </td>
-                      <td className="p-3 font-mono text-muted-foreground">
-                        {account.accessKeyId}
-                      </td>
-                      <td className="p-3 text-muted-foreground">
-                        {account.endpointUrl || '—'}
-                      </td>
-                      <td className="p-3 text-muted-foreground">
-                        {new Date(account.createdAt).toLocaleDateString()}
-                      </td>
-                      {canManage && (
-                        <td className="flex justify-end gap-1 p-3">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleEditAccount(account)}
-                            className="size-6"
-                            title="Edit account"
-                          >
-                            <Edit2 className="size-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => {
-                              setAccountToDelete(account.id);
-                              setDeleteConfirmOpen(true);
-                            }}
-                            className="size-6 text-destructive hover:bg-destructive/10"
-                            title="Delete account"
-                          >
-                            <Trash2 className="size-3.5" />
-                          </Button>
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
@@ -323,7 +325,10 @@ export function AWSAccountsTab({ canManage }: AWSAccountsTabProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => handleDialogOpenChange(false)}>
+            <Button
+              variant="outline"
+              onClick={() => handleDialogOpenChange(false)}
+            >
               Cancel
             </Button>
             <Button onClick={handleSaveAccount}>

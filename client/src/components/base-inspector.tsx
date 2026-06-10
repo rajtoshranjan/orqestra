@@ -2,7 +2,7 @@ import React from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import type { UseFormRegister } from 'react-hook-form';
 
-import { Button, Input } from '@/components/ui';
+import { Button, Input, Textarea } from '@/components/ui';
 import { cn } from '@/lib/utils';
 
 /* Field Error Component */
@@ -103,9 +103,9 @@ export function CodeEditorField({
       <label className="input-label font-medium text-foreground/80">
         {label}
       </label>
-      <div className="relative rounded-md border border-border/80 bg-background/50 focus-within:ring-1 focus-within:ring-ring">
-        <textarea
-          className="w-full resize-y bg-transparent px-3 py-2 font-mono text-[11px] text-foreground focus:outline-none"
+      <div className="relative rounded-md focus-within:ring-1 focus-within:ring-ring">
+        <Textarea
+          className="resize-y border-border/80 bg-background/50 font-mono text-[11px] text-foreground focus-visible:ring-0"
           style={{
             minHeight,
             fontFamily: "'JetBrains Mono', 'Fira Code', monospace",

@@ -59,9 +59,12 @@ const mapUpdatePayloadToServer = (
 ): Partial<ServerCreateAWSAccountPayload> => {
   const server: Partial<ServerCreateAWSAccountPayload> = {};
   if (payload.name !== undefined) server.name = payload.name;
-  if (payload.accessKeyId !== undefined) server.access_key_id = payload.accessKeyId;
-  if (payload.secretAccessKey !== undefined) server.secret_access_key = payload.secretAccessKey;
-  if (payload.endpointUrl !== undefined) server.endpoint_url = payload.endpointUrl;
+  if (payload.accessKeyId !== undefined)
+    server.access_key_id = payload.accessKeyId;
+  if (payload.secretAccessKey !== undefined)
+    server.secret_access_key = payload.secretAccessKey;
+  if (payload.endpointUrl !== undefined)
+    server.endpoint_url = payload.endpointUrl;
   return server;
 };
 
