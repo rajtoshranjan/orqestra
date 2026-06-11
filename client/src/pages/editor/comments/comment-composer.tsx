@@ -1,31 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { SendHorizontal } from 'lucide-react';
-import { buildMentionToken } from './comments-utils';
 import { MentionAutocomplete } from './mention-autocomplete';
-import { Button, Textarea } from '@/components/ui';
+import {
+  getMentionQueryAtCaret,
+  insertLineBreakAtCaret,
+  insertMentionChip,
+  placeCaretAtEnd,
+  renderMentionValue,
+  serializeMentionValue,
+} from './mention-editable';
+import type { CaretMentionQuery } from './mention-editable';
+import { Button } from '@/components/ui';
+import { cn } from '@/lib/utils';
 import { useMentionableUsers } from '@/api';
 import type { MentionableUser } from '@/api';
-
-type MentionQuery = {
-  /** Index of the '@' character in the textarea value. */
-  start: number;
-  query: string;
-};
-
-const findMentionQuery = (
-  value: string,
-  caret: number,
-): MentionQuery | null => {
-  const beforeCaret = value.slice(0, caret);
-  const atIndex = beforeCaret.lastIndexOf('@');
-  if (atIndex === -1) return null;
-  // '@' must start a word and the query must not span whitespace or an
-  // already-completed token (which contains '[').
-  if (atIndex > 0 && !/[\s([]/.test(beforeCaret[atIndex - 1])) return null;
-  const query = beforeCaret.slice(atIndex + 1);
-  if (/[\s[\]()]/.test(query)) return null;
-  return { start: atIndex, query };
-};
 
 type CommentComposerProps = {
   placeholder?: string;
@@ -46,14 +34,25 @@ export function CommentComposer({
   onSubmit,
   onCancel,
 }: CommentComposerProps) {
-  const [value, setValue] = useState(initialValue);
-  const [mentionQuery, setMentionQuery] = useState<MentionQuery | null>(null);
+  const editorRef = useRef<HTMLDivElement>(null);
+  const [isEmpty, setIsEmpty] = useState(initialValue.trim().length === 0);
+  const [mentionQuery, setMentionQuery] = useState<CaretMentionQuery | null>(
+    null,
+  );
   const [highlightedIndex, setHighlightedIndex] = useState(0);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    if (focusOnMount) textareaRef.current?.focus();
-  }, [focusOnMount]);
+    const editor = editorRef.current;
+    if (!editor) return;
+    renderMentionValue(editor, initialValue);
+    setIsEmpty(initialValue.trim().length === 0);
+    if (focusOnMount) {
+      editor.focus();
+      placeCaretAtEnd(editor);
+    }
+    // Only re-run when switching to a different draft/comment, not on every keystroke.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const { data: mentionableUsers } = useMentionableUsers(mentionQuery !== null);
 
@@ -69,37 +68,41 @@ export function CommentComposer({
       .slice(0, 6);
   }, [mentionQuery, mentionableUsers]);
 
-  const refreshMentionQuery = (nextValue: string) => {
-    const caret = textareaRef.current?.selectionStart ?? nextValue.length;
-    const next = findMentionQuery(nextValue, caret);
+  const refreshMentionQuery = () => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    const next = getMentionQueryAtCaret(editor);
     setMentionQuery(next);
     if (next) setHighlightedIndex(0);
   };
 
   const insertMention = (user: MentionableUser) => {
-    if (!mentionQuery) return;
-    const caret = textareaRef.current?.selectionStart ?? value.length;
-    const token = `${buildMentionToken(user.name, user.id)} `;
-    const nextValue =
-      value.slice(0, mentionQuery.start) + token + value.slice(caret);
-    setValue(nextValue);
+    const editor = editorRef.current;
+    if (!editor || !mentionQuery) return;
+    insertMentionChip(
+      mentionQuery.node,
+      mentionQuery.start,
+      mentionQuery.end,
+      user.name,
+      user.id,
+    );
     setMentionQuery(null);
-    requestAnimationFrame(() => {
-      const position = mentionQuery.start + token.length;
-      textareaRef.current?.focus();
-      textareaRef.current?.setSelectionRange(position, position);
-    });
+    setIsEmpty(false);
+    editor.focus();
   };
 
   const submit = () => {
-    const trimmed = value.trim();
+    const editor = editorRef.current;
+    if (!editor) return;
+    const trimmed = serializeMentionValue(editor).trim();
     if (!trimmed || isSubmitting) return;
     onSubmit(trimmed);
-    setValue('');
+    editor.innerHTML = '';
+    setIsEmpty(true);
     setMentionQuery(null);
   };
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (mentionQuery && suggestions.length > 0) {
       if (event.key === 'ArrowDown') {
         event.preventDefault();
@@ -128,6 +131,13 @@ export function CommentComposer({
     if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
       event.preventDefault();
       submit();
+      return;
+    }
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      insertLineBreakAtCaret(editorRef.current!);
+      setIsEmpty(false);
+      return;
     }
     if (event.key === 'Escape' && onCancel) {
       event.stopPropagation();
@@ -146,18 +156,28 @@ export function CommentComposer({
         />
       )}
 
-      <Textarea
-        ref={textareaRef}
-        value={value}
-        placeholder={placeholder}
-        rows={2}
-        className="min-h-16 resize-none text-xs"
-        onChange={(event) => {
-          setValue(event.target.value);
-          refreshMentionQuery(event.target.value);
+      <div
+        ref={editorRef}
+        contentEditable
+        role="textbox"
+        tabIndex={0}
+        aria-multiline="true"
+        aria-label={placeholder}
+        data-placeholder={placeholder}
+        className={cn(
+          'mention-input min-h-16 w-full whitespace-pre-wrap break-words rounded-md border border-input bg-transparent px-3 py-2 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
+          isSubmitting && 'pointer-events-none opacity-50',
+        )}
+        onInput={() => {
+          const editor = editorRef.current;
+          const empty = (editor?.textContent?.length ?? 0) === 0;
+          if (empty && editor) editor.innerHTML = '';
+          setIsEmpty(empty);
+          refreshMentionQuery();
         }}
         onKeyDown={handleKeyDown}
-        onClick={() => refreshMentionQuery(value)}
+        onClick={refreshMentionQuery}
+        onKeyUp={refreshMentionQuery}
       />
 
       <div className="mt-1.5 flex items-center justify-end gap-1.5">
@@ -169,7 +189,7 @@ export function CommentComposer({
         <Button
           size="sm"
           type="button"
-          disabled={!value.trim() || isSubmitting}
+          disabled={isEmpty || isSubmitting}
           onClick={submit}
           className="gap-1.5"
         >

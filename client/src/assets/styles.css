@@ -591,3 +591,9 @@
 .pulse-gray {
   animation: pulse-status-gray 2s infinite ease-in-out;
 }
+
+.mention-input:empty::before {
+  content: attr(data-placeholder);
+  color: var(--color-text-muted, hsl(var(--muted-foreground)));
+  pointer-events: none;
+}
