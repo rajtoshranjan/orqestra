@@ -9,7 +9,7 @@ import { createDefaultBatchConfig, getBatchDisplayName } from './defaults';
 import { validateBatchConfig } from './validate';
 import { BatchNode } from './batch-node';
 import { BatchInspector } from './batch-inspector';
-import { BatchIcon } from '@/components/aws-icons';
+import { BatchIcon } from '@/components/icons';
 
 export const batchService: ServiceDefinition<BatchConfig> = {
   id: 'batch',

@@ -9,7 +9,7 @@ import { createDefaultBedrockConfig, getBedrockDisplayName } from './defaults';
 import { validateBedrockConfig } from './validate';
 import { BedrockNode } from './bedrock-node';
 import { BedrockInspector } from './bedrock-inspector';
-import { BedrockIcon } from '@/components/aws-icons';
+import { BedrockIcon } from '@/components/icons';
 
 export const bedrockService: ServiceDefinition<BedrockConfig> = {
   id: 'bedrock',

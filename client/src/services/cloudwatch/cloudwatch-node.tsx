@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { CloudWatchConfig } from './types';
 
-import { CloudWatchIcon } from '@/components/aws-icons';
+import { CloudWatchIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type CloudWatchNodeDataShape = {

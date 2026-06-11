@@ -7,7 +7,7 @@ import {
 import { validateAPIGatewayConfig } from './validate';
 import { APIGatewayNode } from './api-gateway-node';
 import { APIGatewayInspector } from './api-gateway-inspector';
-import { ApiGatewayIcon } from '@/components/aws-icons';
+import { ApiGatewayIcon } from '@/components/icons';
 
 export const apiGatewayService: ServiceDefinition<APIGatewayConfig> = {
   id: 'api-gateway',

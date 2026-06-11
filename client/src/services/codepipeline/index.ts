@@ -12,7 +12,7 @@ import {
 import { validateCodePipelineConfig } from './validate';
 import { CodePipelineNode } from './codepipeline-node';
 import { CodePipelineInspector } from './codepipeline-inspector';
-import { CodePipelineIcon } from '@/components/aws-icons';
+import { CodePipelineIcon } from '@/components/icons';
 
 export const codepipelineService: ServiceDefinition<CodePipelineConfig> = {
   id: 'codepipeline',

@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { OpenSearchConfig } from './types';
 
-import { OpenSearchIcon } from '@/components/aws-icons';
+import { OpenSearchIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type OpenSearchNodeDataShape = {

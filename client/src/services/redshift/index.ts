@@ -12,7 +12,7 @@ import {
 import { validateRedshiftConfig } from './validate';
 import { RedshiftNode } from './redshift-node';
 import { RedshiftInspector } from './redshift-inspector';
-import { RedshiftIcon } from '@/components/aws-icons';
+import { RedshiftIcon } from '@/components/icons';
 
 export const redshiftService: ServiceDefinition<RedshiftConfig> = {
   id: 'redshift',

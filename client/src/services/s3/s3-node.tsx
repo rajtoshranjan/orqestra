@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { S3Config } from './types';
 
-import { S3Icon } from '@/components/aws-icons';
+import { S3Icon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type S3NodeDataShape = {

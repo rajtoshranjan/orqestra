@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { SecretsManagerConfig } from './types';
 
-import { SecretsManagerIcon } from '@/components/aws-icons';
+import { SecretsManagerIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type SecretsManagerNodeDataShape = {

@@ -9,7 +9,7 @@ import { createDefaultKMSConfig, getKMSDisplayName } from './defaults';
 import { validateKMSConfig } from './validate';
 import { KMSNode } from './kms-node';
 import { KMSInspector } from './kms-inspector';
-import { KmsIcon } from '@/components/aws-icons';
+import { KmsIcon } from '@/components/icons';
 
 export const kmsService: ServiceDefinition<KMSConfig> = {
   id: 'kms',

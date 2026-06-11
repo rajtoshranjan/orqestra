@@ -12,7 +12,7 @@ import {
 import { validateAppRunnerConfig } from './validate';
 import { AppRunnerNode } from './app-runner-node';
 import { AppRunnerInspector } from './app-runner-inspector';
-import { AppRunnerIcon } from '@/components/aws-icons';
+import { AppRunnerIcon } from '@/components/icons';
 
 export const appRunnerService: ServiceDefinition<AppRunnerConfig> = {
   id: 'app-runner',

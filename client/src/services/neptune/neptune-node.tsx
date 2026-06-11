@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { NeptuneConfig } from './types';
 
-import { NeptuneIcon } from '@/components/aws-icons';
+import { NeptuneIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type NeptuneNodeDataShape = {

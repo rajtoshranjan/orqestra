@@ -9,7 +9,7 @@ import { createDefaultSubnetConfig, getSubnetDisplayName } from './defaults';
 import { validateSubnetConfig } from './validate';
 import { SubnetNode } from './subnet-node';
 import { SubnetInspector } from './subnet-inspector';
-import { SubnetIcon } from '@/components/aws-icons';
+import { SubnetIcon } from '@/components/icons';
 
 export const subnetService: ServiceDefinition<SubnetConfig> = {
   id: 'subnet',

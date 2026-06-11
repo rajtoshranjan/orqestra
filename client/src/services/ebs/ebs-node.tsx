@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { EBSConfig } from './types';
 
-import { EbsIcon } from '@/components/aws-icons';
+import { EbsIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type EBSNodeDataShape = {

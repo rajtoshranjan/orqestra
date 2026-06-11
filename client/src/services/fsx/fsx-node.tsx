@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { FSxConfig } from './types';
 
-import { FsxIcon } from '@/components/aws-icons';
+import { FsxIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type FSxNodeDataShape = {

@@ -9,7 +9,7 @@ import { createDefaultAcmConfig, getAcmDisplayName } from './defaults';
 import { validateAcmConfig } from './validate';
 import { AcmNode } from './acm-node';
 import { AcmInspector } from './acm-inspector';
-import { AcmIcon } from '@/components/aws-icons';
+import { AcmIcon } from '@/components/icons';
 
 export const acmService: ServiceDefinition<AcmConfig> = {
   id: 'acm',

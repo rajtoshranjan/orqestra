@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { AthenaConfig } from './types';
 
-import { AthenaIcon } from '@/components/aws-icons';
+import { AthenaIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type AthenaNodeDataShape = {

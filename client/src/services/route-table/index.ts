@@ -11,7 +11,7 @@ import {
 import { validateRouteTableConfig } from './validate';
 import { RouteTableNode } from './route-table-node';
 import { RouteTableInspector } from './route-table-inspector';
-import { RouteTableIcon } from '@/components/aws-icons';
+import { RouteTableIcon } from '@/components/icons';
 
 export const routeTableService: ServiceDefinition<RouteTableConfig> = {
   id: 'route-table',

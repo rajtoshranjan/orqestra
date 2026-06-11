@@ -7,7 +7,7 @@ import {
 import { validateDynamoDBConfig } from './validate';
 import { DynamoDBNode } from './dynamodb-node';
 import { DynamoDBInspector } from './dynamodb-inspector';
-import { DynamodbIcon } from '@/components/aws-icons';
+import { DynamodbIcon } from '@/components/icons';
 
 export const dynamodbService: ServiceDefinition<DynamoDBConfig> = {
   id: 'dynamodb',

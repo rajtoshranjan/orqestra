@@ -12,7 +12,7 @@ import {
 import { validateCloudWatchConfig } from './validate';
 import { CloudWatchNode } from './cloudwatch-node';
 import { CloudWatchInspector } from './cloudwatch-inspector';
-import { CloudWatchIcon } from '@/components/aws-icons';
+import { CloudWatchIcon } from '@/components/icons';
 
 export const cloudwatchService: ServiceDefinition<CloudWatchConfig> = {
   id: 'cloudwatch',

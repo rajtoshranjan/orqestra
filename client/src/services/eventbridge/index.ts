@@ -7,7 +7,7 @@ import {
 import { validateEventBridgeConfig } from './validate';
 import { EventBridgeNode } from './eventbridge-node';
 import { EventBridgeInspector } from './eventbridge-inspector';
-import { EventBridgeIcon } from '@/components/aws-icons';
+import { EventBridgeIcon } from '@/components/icons';
 
 export const eventbridgeService: ServiceDefinition<EventBridgeConfig> = {
   id: 'eventbridge',

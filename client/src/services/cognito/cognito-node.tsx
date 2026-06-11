@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { CognitoConfig } from './types';
 
-import { CognitoIcon } from '@/components/aws-icons';
+import { CognitoIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type CognitoNodeDataShape = {

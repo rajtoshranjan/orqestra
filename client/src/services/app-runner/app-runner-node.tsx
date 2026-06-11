@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { AppRunnerConfig } from './types';
 
-import { AppRunnerIcon } from '@/components/aws-icons';
+import { AppRunnerIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type AppRunnerNodeDataShape = {

@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { SubnetConfig } from './types';
 
-import { SubnetIcon } from '@/components/aws-icons';
+import { SubnetIcon } from '@/components/icons';
 import { BaseContainerNode } from '@/components';
 
 type SubnetNodeDataShape = {

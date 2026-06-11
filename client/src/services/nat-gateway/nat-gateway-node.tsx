@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { NatGatewayConfig } from './types';
 
-import { NatGatewayIcon } from '@/components/aws-icons';
+import { NatGatewayIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type NatGatewayNodeDataShape = {

@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { ECRConfig } from './types';
 
-import { EcrIcon } from '@/components/aws-icons';
+import { EcrIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type ECRNodeDataShape = {

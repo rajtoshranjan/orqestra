@@ -9,7 +9,7 @@ import { createDefaultNeptuneConfig, getNeptuneDisplayName } from './defaults';
 import { validateNeptuneConfig } from './validate';
 import { NeptuneNode } from './neptune-node';
 import { NeptuneInspector } from './neptune-inspector';
-import { NeptuneIcon } from '@/components/aws-icons';
+import { NeptuneIcon } from '@/components/icons';
 
 export const neptuneService: ServiceDefinition<NeptuneConfig> = {
   id: 'neptune',

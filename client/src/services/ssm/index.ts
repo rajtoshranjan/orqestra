@@ -9,7 +9,7 @@ import { createDefaultSsmConfig, getSsmDisplayName } from './defaults';
 import { validateSsmConfig } from './validate';
 import { SsmNode } from './ssm-node';
 import { SsmInspector } from './ssm-inspector';
-import { SsmIcon } from '@/components/aws-icons';
+import { SsmIcon } from '@/components/icons';
 
 export const ssmService: ServiceDefinition<SsmConfig> = {
   id: 'ssm',

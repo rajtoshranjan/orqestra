@@ -12,7 +12,7 @@ import {
 import { validateNatGatewayConfig } from './validate';
 import { NatGatewayNode } from './nat-gateway-node';
 import { NatGatewayInspector } from './nat-gateway-inspector';
-import { NatGatewayIcon } from '@/components/aws-icons';
+import { NatGatewayIcon } from '@/components/icons';
 
 export const natGatewayService: ServiceDefinition<NatGatewayConfig> = {
   id: 'nat-gateway',

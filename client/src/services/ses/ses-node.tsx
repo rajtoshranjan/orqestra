@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { SesConfig } from './types';
 
-import { SesIcon } from '@/components/aws-icons';
+import { SesIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type SesNodeDataShape = {

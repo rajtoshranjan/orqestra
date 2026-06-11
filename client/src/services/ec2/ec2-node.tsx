@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { EC2Config } from './types';
 
-import { Ec2Icon } from '@/components/aws-icons';
+import { Ec2Icon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type EC2NodeDataShape = {

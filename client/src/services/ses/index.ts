@@ -9,7 +9,7 @@ import { createDefaultSesConfig, getSesDisplayName } from './defaults';
 import { validateSesConfig } from './validate';
 import { SesNode } from './ses-node';
 import { SesInspector } from './ses-inspector';
-import { SesIcon } from '@/components/aws-icons';
+import { SesIcon } from '@/components/icons';
 
 export const sesService: ServiceDefinition<SesConfig> = {
   id: 'ses',

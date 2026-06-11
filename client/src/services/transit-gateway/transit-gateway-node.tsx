@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { TransitGatewayConfig } from './types';
 
-import { TransitGatewayIcon } from '@/components/aws-icons';
+import { TransitGatewayIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type TransitGatewayNodeDataShape = {

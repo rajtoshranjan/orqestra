@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { GlueConfig } from './types';
 
-import { GlueIcon } from '@/components/aws-icons';
+import { GlueIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type GlueNodeDataShape = {

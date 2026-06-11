@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { SNSConfig } from './types';
 
-import { SnsIcon } from '@/components/aws-icons';
+import { SnsIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type SNSNodeDataShape = {

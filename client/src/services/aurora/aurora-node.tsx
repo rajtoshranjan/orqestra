@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { AuroraConfig } from './types';
 
-import { AuroraIcon } from '@/components/aws-icons';
+import { AuroraIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type AuroraNodeDataShape = {

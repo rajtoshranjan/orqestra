@@ -12,7 +12,7 @@ import {
 import { validateEksClusterConfig } from './validate';
 import { EksClusterNode } from './eks-cluster-node';
 import { EksClusterInspector } from './eks-cluster-inspector';
-import { EksIcon } from '@/components/aws-icons';
+import { EksIcon } from '@/components/icons';
 
 export const eksClusterService: ServiceDefinition<EksClusterConfig> = {
   id: 'eks-cluster',

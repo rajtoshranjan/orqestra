@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { RedshiftConfig } from './types';
 
-import { RedshiftIcon } from '@/components/aws-icons';
+import { RedshiftIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type RedshiftNodeDataShape = {

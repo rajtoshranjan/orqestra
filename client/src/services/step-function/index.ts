@@ -7,7 +7,7 @@ import {
 import { validateStepFunctionConfig } from './validate';
 import { StepFunctionNode } from './step-function-node';
 import { StepFunctionInspector } from './step-function-inspector';
-import { StepFunctionIcon } from '@/components/aws-icons';
+import { StepFunctionIcon } from '@/components/icons';
 
 export const stepFunctionService: ServiceDefinition<StepFunctionConfig> = {
   id: 'step-function',

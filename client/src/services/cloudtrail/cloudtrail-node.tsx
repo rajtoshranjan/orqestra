@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { CloudTrailConfig } from './types';
 
-import { CloudTrailIcon } from '@/components/aws-icons';
+import { CloudTrailIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type CloudTrailNodeDataShape = {

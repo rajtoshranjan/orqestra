@@ -12,7 +12,7 @@ import {
 import { validateSecretsManagerConfig } from './validate';
 import { SecretsManagerNode } from './secrets-manager-node';
 import { SecretsManagerInspector } from './secrets-manager-inspector';
-import { SecretsManagerIcon } from '@/components/aws-icons';
+import { SecretsManagerIcon } from '@/components/icons';
 
 export const secretsManagerService: ServiceDefinition<SecretsManagerConfig> = {
   id: 'secrets-manager',

@@ -12,7 +12,7 @@ import {
 import { validateGuardDutyConfig } from './validate';
 import { GuardDutyNode } from './guardduty-node';
 import { GuardDutyInspector } from './guardduty-inspector';
-import { GuardDutyIcon } from '@/components/aws-icons';
+import { GuardDutyIcon } from '@/components/icons';
 
 export const guardDutyService: ServiceDefinition<GuardDutyConfig> = {
   id: 'guardduty',

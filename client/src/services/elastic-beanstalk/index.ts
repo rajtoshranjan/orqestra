@@ -12,69 +12,69 @@ import {
 import { validateElasticBeanstalkConfig } from './validate';
 import { ElasticBeanstalkNode } from './elastic-beanstalk-node';
 import { ElasticBeanstalkInspector } from './elastic-beanstalk-inspector';
-import { ElasticBeanstalkIcon } from '@/components/aws-icons';
+import { ElasticBeanstalkIcon } from '@/components/icons';
 
 export const elasticBeanstalkService: ServiceDefinition<ElasticBeanstalkConfig> =
-  {
-    id: 'elastic-beanstalk',
-    cloudFormationType: 'AWS::ElasticBeanstalk::Application',
-    name: 'AWS Elastic Beanstalk',
-    shortName: 'Beanstalk',
-    category: 'compute',
-    description:
-      'PaaS for deploying and scaling web applications without managing the underlying infrastructure.',
-    icon: ElasticBeanstalkIcon,
-    accentColor: '#FF9900',
-    capabilities: {
-      provides: ['paas-platform'],
-    },
-    allowedParents: ['account', 'region', 'vpc'],
-    allowedRelationships: [
-      'rds',
-      'elasticache',
-      's3',
-      'cloudwatch',
-      'iam-role',
-      'sns',
+{
+  id: 'elastic-beanstalk',
+  cloudFormationType: 'AWS::ElasticBeanstalk::Application',
+  name: 'AWS Elastic Beanstalk',
+  shortName: 'Beanstalk',
+  category: 'compute',
+  description:
+    'PaaS for deploying and scaling web applications without managing the underlying infrastructure.',
+  icon: ElasticBeanstalkIcon,
+  accentColor: '#FF9900',
+  capabilities: {
+    provides: ['paas-platform'],
+  },
+  allowedParents: ['account', 'region', 'vpc'],
+  allowedRelationships: [
+    'rds',
+    'elasticache',
+    's3',
+    'cloudwatch',
+    'iam-role',
+    'sns',
+  ],
+
+  createDefaultConfig: createDefaultElasticBeanstalkConfig,
+  validate: validateElasticBeanstalkConfig,
+  getDisplayName: getElasticBeanstalkDisplayName,
+
+  NodeComponent: ElasticBeanstalkNode,
+  InspectorComponent: ElasticBeanstalkInspector,
+
+  aiHints: {
+    summary:
+      'PaaS for deploying web applications without managing infrastructure.',
+    role: 'Abstracts infrastructure management for web apps and worker services.',
+    useCases: [
+      'Web application hosting',
+      'Legacy app modernisation',
+      'Quick deployments without DevOps overhead',
     ],
+    keyAttributes: ['applicationName', 'platform', 'environmentTier'],
+  } satisfies AIHints,
 
-    createDefaultConfig: createDefaultElasticBeanstalkConfig,
-    validate: validateElasticBeanstalkConfig,
-    getDisplayName: getElasticBeanstalkDisplayName,
+  deploymentHints: { isDeployable: true } satisfies DeploymentHints,
 
-    NodeComponent: ElasticBeanstalkNode,
-    InspectorComponent: ElasticBeanstalkInspector,
-
-    aiHints: {
-      summary:
-        'PaaS for deploying web applications without managing infrastructure.',
-      role: 'Abstracts infrastructure management for web apps and worker services.',
-      useCases: [
-        'Web application hosting',
-        'Legacy app modernisation',
-        'Quick deployments without DevOps overhead',
+  buildPlanResource: (
+    nodeId: string,
+    config: ElasticBeanstalkConfig,
+    connectionCount: number,
+  ): ServicePlanResource => {
+    return {
+      id: nodeId,
+      cloudFormationType: 'AWS::ElasticBeanstalk::Application',
+      name: getElasticBeanstalkDisplayName(config),
+      connectionCount,
+      details: [
+        { label: 'Platform', value: config.platform },
+        { label: 'Tier', value: config.environmentTier },
       ],
-      keyAttributes: ['applicationName', 'platform', 'environmentTier'],
-    } satisfies AIHints,
-
-    deploymentHints: { isDeployable: true } satisfies DeploymentHints,
-
-    buildPlanResource: (
-      nodeId: string,
-      config: ElasticBeanstalkConfig,
-      connectionCount: number,
-    ): ServicePlanResource => {
-      return {
-        id: nodeId,
-        cloudFormationType: 'AWS::ElasticBeanstalk::Application',
-        name: getElasticBeanstalkDisplayName(config),
-        connectionCount,
-        details: [
-          { label: 'Platform', value: config.platform },
-          { label: 'Tier', value: config.environmentTier },
-        ],
-      };
-    },
-  };
+    };
+  },
+};
 
 export default elasticBeanstalkService;

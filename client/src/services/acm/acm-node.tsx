@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { AcmConfig } from './types';
 
-import { AcmIcon } from '@/components/aws-icons';
+import { AcmIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type AcmNodeDataShape = {

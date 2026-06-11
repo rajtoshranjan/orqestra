@@ -12,7 +12,7 @@ import {
 import { validateOpenSearchConfig } from './validate';
 import { OpenSearchNode } from './opensearch-node';
 import { OpenSearchInspector } from './opensearch-inspector';
-import { OpenSearchIcon } from '@/components/aws-icons';
+import { OpenSearchIcon } from '@/components/icons';
 
 export const openSearchService: ServiceDefinition<OpenSearchConfig> = {
   id: 'opensearch',

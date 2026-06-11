@@ -12,7 +12,7 @@ import {
 import { validateEcsClusterConfig } from './validate';
 import { EcsClusterNode } from './ecs-cluster-node';
 import { EcsClusterInspector } from './ecs-cluster-inspector';
-import { EcsIcon } from '@/components/aws-icons';
+import { EcsIcon } from '@/components/icons';
 
 export const ecsClusterService: ServiceDefinition<EcsClusterConfig> = {
   id: 'ecs-cluster',

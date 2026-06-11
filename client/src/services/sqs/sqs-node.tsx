@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { SQSConfig } from './types';
 
-import { SqsIcon } from '@/components/aws-icons';
+import { SqsIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type SQSNodeDataShape = {

@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { KinesisConfig } from './types';
 
-import { KinesisIcon } from '@/components/aws-icons';
+import { KinesisIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type KinesisNodeDataShape = {

@@ -9,7 +9,7 @@ import { createDefaultEBSConfig, getEBSDisplayName } from './defaults';
 import { validateEBSConfig } from './validate';
 import { EBSNode } from './ebs-node';
 import { EBSInspector } from './ebs-inspector';
-import { EbsIcon } from '@/components/aws-icons';
+import { EbsIcon } from '@/components/icons';
 
 export const ebsService: ServiceDefinition<EBSConfig> = {
   id: 'ebs',

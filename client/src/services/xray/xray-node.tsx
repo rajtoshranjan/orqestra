@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { XRayConfig } from './types';
 
-import { XRayIcon } from '@/components/aws-icons';
+import { XRayIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type XRayNodeDataShape = {

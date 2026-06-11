@@ -12,7 +12,7 @@ import {
 import { validateTransitGatewayConfig } from './validate';
 import { TransitGatewayNode } from './transit-gateway-node';
 import { TransitGatewayInspector } from './transit-gateway-inspector';
-import { TransitGatewayIcon } from '@/components/aws-icons';
+import { TransitGatewayIcon } from '@/components/icons';
 
 export const transitGatewayService: ServiceDefinition<TransitGatewayConfig> = {
   id: 'transit-gateway',

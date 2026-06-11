@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { EksClusterConfig } from './types';
 
-import { EksIcon } from '@/components/aws-icons';
+import { EksIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type EksClusterNodeDataShape = {

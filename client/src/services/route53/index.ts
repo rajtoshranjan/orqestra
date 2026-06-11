@@ -9,7 +9,7 @@ import { createDefaultRoute53Config, getRoute53DisplayName } from './defaults';
 import { validateRoute53Config } from './validate';
 import { Route53Node } from './route53-node';
 import { Route53Inspector } from './route53-inspector';
-import { Route53Icon } from '@/components/aws-icons';
+import { Route53Icon } from '@/components/icons';
 
 export const route53Service: ServiceDefinition<Route53Config> = {
   id: 'route53',

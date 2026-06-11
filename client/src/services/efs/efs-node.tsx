@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { EFSConfig } from './types';
 
-import { EfsIcon } from '@/components/aws-icons';
+import { EfsIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type EFSNodeDataShape = {

@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { BatchConfig } from './types';
 
-import { BatchIcon } from '@/components/aws-icons';
+import { BatchIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type BatchNodeDataShape = {

@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { Route53Config } from './types';
 
-import { Route53Icon } from '@/components/aws-icons';
+import { Route53Icon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type Route53NodeDataShape = {

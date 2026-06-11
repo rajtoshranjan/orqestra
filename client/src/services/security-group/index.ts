@@ -13,7 +13,7 @@ import {
 import { validateSecurityGroupConfig } from './validate';
 import { SecurityGroupNode } from './security-group-node';
 import { SecurityGroupInspector } from './security-group-inspector';
-import { SecurityGroupIcon } from '@/components/aws-icons';
+import { SecurityGroupIcon } from '@/components/icons';
 
 export const securityGroupService: ServiceDefinition<SecurityGroupConfig> = {
   id: 'security-group',

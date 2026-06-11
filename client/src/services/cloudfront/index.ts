@@ -12,7 +12,7 @@ import {
 import { validateCloudFrontConfig } from './validate';
 import { CloudFrontNode } from './cloudfront-node';
 import { CloudFrontInspector } from './cloudfront-inspector';
-import { CloudFrontIcon } from '@/components/aws-icons';
+import { CloudFrontIcon } from '@/components/icons';
 
 export const cloudFrontService: ServiceDefinition<CloudFrontConfig> = {
   id: 'cloudfront',

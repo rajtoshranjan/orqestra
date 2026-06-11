@@ -4,7 +4,7 @@ import { createDefaultKinesisConfig, getKinesisDisplayName } from './defaults';
 import { validateKinesisConfig } from './validate';
 import { KinesisNode } from './kinesis-node';
 import { KinesisInspector } from './kinesis-inspector';
-import { KinesisIcon } from '@/components/aws-icons';
+import { KinesisIcon } from '@/components/icons';
 
 export const kinesisService: ServiceDefinition<KinesisConfig> = {
   id: 'kinesis',

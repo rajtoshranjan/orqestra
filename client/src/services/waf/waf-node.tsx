@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { WafConfig } from './types';
 
-import { WafIcon } from '@/components/aws-icons';
+import { WafIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type WafNodeDataShape = {

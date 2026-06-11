@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { CloudFrontConfig } from './types';
 
-import { CloudFrontIcon } from '@/components/aws-icons';
+import { CloudFrontIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type CloudFrontNodeDataShape = {

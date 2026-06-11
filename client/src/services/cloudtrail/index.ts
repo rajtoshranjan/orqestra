@@ -12,7 +12,7 @@ import {
 import { validateCloudTrailConfig } from './validate';
 import { CloudTrailNode } from './cloudtrail-node';
 import { CloudTrailInspector } from './cloudtrail-inspector';
-import { CloudTrailIcon } from '@/components/aws-icons';
+import { CloudTrailIcon } from '@/components/icons';
 
 export const cloudTrailService: ServiceDefinition<CloudTrailConfig> = {
   id: 'cloudtrail',

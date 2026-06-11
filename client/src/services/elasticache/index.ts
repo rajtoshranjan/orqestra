@@ -12,7 +12,7 @@ import {
 import { validateElastiCacheConfig } from './validate';
 import { ElastiCacheNode } from './elasticache-node';
 import { ElastiCacheInspector } from './elasticache-inspector';
-import { ElastiCacheIcon } from '@/components/aws-icons';
+import { ElastiCacheIcon } from '@/components/icons';
 
 export const elasticacheService: ServiceDefinition<ElastiCacheConfig> = {
   id: 'elasticache',

@@ -12,7 +12,7 @@ import {
 import { validateVpcEndpointConfig } from './validate';
 import { VpcEndpointNode } from './vpc-endpoint-node';
 import { VpcEndpointInspector } from './vpc-endpoint-inspector';
-import { VpcEndpointIcon } from '@/components/aws-icons';
+import { VpcEndpointIcon } from '@/components/icons';
 
 export const vpcEndpointService: ServiceDefinition<VpcEndpointConfig> = {
   id: 'vpc-endpoint',

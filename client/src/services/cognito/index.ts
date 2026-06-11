@@ -9,7 +9,7 @@ import { createDefaultCognitoConfig, getCognitoDisplayName } from './defaults';
 import { validateCognitoConfig } from './validate';
 import { CognitoNode } from './cognito-node';
 import { CognitoInspector } from './cognito-inspector';
-import { CognitoIcon } from '@/components/aws-icons';
+import { CognitoIcon } from '@/components/icons';
 
 export const cognitoService: ServiceDefinition<CognitoConfig> = {
   id: 'cognito',

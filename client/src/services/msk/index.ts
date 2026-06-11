@@ -9,7 +9,7 @@ import { createDefaultMskConfig, getMskDisplayName } from './defaults';
 import { validateMskConfig } from './validate';
 import { MskNode } from './msk-node';
 import { MskInspector } from './msk-inspector';
-import { MskIcon } from '@/components/aws-icons';
+import { MskIcon } from '@/components/icons';
 
 export const mskService: ServiceDefinition<MskConfig> = {
   id: 'msk',

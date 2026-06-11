@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { AlbConfig } from './types';
 
-import { AlbIcon } from '@/components/aws-icons';
+import { AlbIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type AlbNodeDataShape = {

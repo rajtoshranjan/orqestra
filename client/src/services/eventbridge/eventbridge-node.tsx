@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { EventBridgeConfig } from './types';
 
-import { EventBridgeIcon } from '@/components/aws-icons';
+import { EventBridgeIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type EventBridgeNodeDataShape = {

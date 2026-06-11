@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { VpcEndpointConfig } from './types';
 
-import { VpcEndpointIcon } from '@/components/aws-icons';
+import { VpcEndpointIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type VpcEndpointNodeDataShape = {

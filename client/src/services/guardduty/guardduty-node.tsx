@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { GuardDutyConfig } from './types';
 
-import { GuardDutyIcon } from '@/components/aws-icons';
+import { GuardDutyIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type GuardDutyNodeDataShape = {

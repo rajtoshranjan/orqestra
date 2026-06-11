@@ -12,7 +12,7 @@ import {
 import { validateCodeBuildConfig } from './validate';
 import { CodeBuildNode } from './codebuild-node';
 import { CodeBuildInspector } from './codebuild-inspector';
-import { CodeBuildIcon } from '@/components/aws-icons';
+import { CodeBuildIcon } from '@/components/icons';
 
 export const codebuildService: ServiceDefinition<CodeBuildConfig> = {
   id: 'codebuild',

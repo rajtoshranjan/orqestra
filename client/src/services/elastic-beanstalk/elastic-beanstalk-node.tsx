@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { ElasticBeanstalkConfig } from './types';
 
-import { ElasticBeanstalkIcon } from '@/components/aws-icons';
+import { ElasticBeanstalkIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type ElasticBeanstalkNodeDataShape = {

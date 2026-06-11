@@ -4,7 +4,7 @@ import { createDefaultECRConfig, getECRDisplayName } from './defaults';
 import { validateECRConfig } from './validate';
 import { ECRNode } from './ecr-node';
 import { ECRInspector } from './ecr-inspector';
-import { EcrIcon } from '@/components/aws-icons';
+import { EcrIcon } from '@/components/icons';
 
 export const ecrService: ServiceDefinition<ECRConfig> = {
   id: 'ecr',

@@ -9,7 +9,7 @@ import { createDefaultIAMRoleConfig, getIAMRoleDisplayName } from './defaults';
 import { validateIAMRoleConfig } from './validate';
 import { IAMRoleNode } from './iam-role-node';
 import { IAMRoleInspector } from './iam-role-inspector';
-import { IamRoleIcon } from '@/components/aws-icons';
+import { IamRoleIcon } from '@/components/icons';
 
 export const iamRoleService: ServiceDefinition<IAMRoleConfig> = {
   id: 'iam-role',

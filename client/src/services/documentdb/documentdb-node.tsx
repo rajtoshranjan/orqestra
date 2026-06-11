@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { DocumentDbConfig } from './types';
 
-import { DocumentDbIcon } from '@/components/aws-icons';
+import { DocumentDbIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type DocumentDbNodeDataShape = {

@@ -10,7 +10,7 @@ import { createDefaultEC2Config, getEC2DisplayName } from './defaults';
 import { validateEC2Config } from './validate';
 import { EC2Node } from './ec2-node';
 import { EC2Inspector } from './ec2-inspector';
-import { Ec2Icon } from '@/components/aws-icons';
+import { Ec2Icon } from '@/components/icons';
 
 export const ec2Service: ServiceDefinition<EC2Config> = {
   id: 'ec2',

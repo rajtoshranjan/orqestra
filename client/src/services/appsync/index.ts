@@ -9,7 +9,7 @@ import { createDefaultAppSyncConfig, getAppSyncDisplayName } from './defaults';
 import { validateAppSyncConfig } from './validate';
 import { AppSyncNode } from './appsync-node';
 import { AppSyncInspector } from './appsync-inspector';
-import { AppSyncIcon } from '@/components/aws-icons';
+import { AppSyncIcon } from '@/components/icons';
 
 export const appSyncService: ServiceDefinition<AppSyncConfig> = {
   id: 'appsync',

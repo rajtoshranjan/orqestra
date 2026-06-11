@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { AppSyncConfig } from './types';
 
-import { AppSyncIcon } from '@/components/aws-icons';
+import { AppSyncIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type AppSyncNodeDataShape = {

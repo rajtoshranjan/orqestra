@@ -12,7 +12,7 @@ import {
 import { validateCodeDeployConfig } from './validate';
 import { CodeDeployNode } from './codedeploy-node';
 import { CodeDeployInspector } from './codedeploy-inspector';
-import { CodeDeployIcon } from '@/components/aws-icons';
+import { CodeDeployIcon } from '@/components/icons';
 
 export const codedeployService: ServiceDefinition<CodeDeployConfig> = {
   id: 'codedeploy',

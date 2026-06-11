@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { APIGatewayConfig } from './types';
 
-import { ApiGatewayIcon } from '@/components/aws-icons';
+import { ApiGatewayIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type APIGatewayNodeDataShape = {

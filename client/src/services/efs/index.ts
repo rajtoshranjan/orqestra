@@ -4,7 +4,7 @@ import { createDefaultEFSConfig, getEFSDisplayName } from './defaults';
 import { validateEFSConfig } from './validate';
 import { EFSNode } from './efs-node';
 import { EFSInspector } from './efs-inspector';
-import { EfsIcon } from '@/components/aws-icons';
+import { EfsIcon } from '@/components/icons';
 
 export const efsService: ServiceDefinition<EFSConfig> = {
   id: 'efs',

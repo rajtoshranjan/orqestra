@@ -9,7 +9,7 @@ import { createDefaultNlbConfig, getNlbDisplayName } from './defaults';
 import { validateNlbConfig } from './validate';
 import { NlbNode } from './nlb-node';
 import { NlbInspector } from './nlb-inspector';
-import { NlbIcon } from '@/components/aws-icons';
+import { NlbIcon } from '@/components/icons';
 
 export const nlbService: ServiceDefinition<NlbConfig> = {
   id: 'nlb',

@@ -12,7 +12,7 @@ import {
 import { validateAmazonMqConfig } from './validate';
 import { AmazonMqNode } from './amazon-mq-node';
 import { AmazonMqInspector } from './amazon-mq-inspector';
-import { AmazonMqIcon } from '@/components/aws-icons';
+import { AmazonMqIcon } from '@/components/icons';
 
 export const amazonMqService: ServiceDefinition<AmazonMqConfig> = {
   id: 'amazon-mq',

@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { NlbConfig } from './types';
 
-import { NlbIcon } from '@/components/aws-icons';
+import { NlbIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type NlbNodeDataShape = {

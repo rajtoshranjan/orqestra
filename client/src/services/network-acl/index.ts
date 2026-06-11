@@ -12,7 +12,7 @@ import {
 import { validateNetworkAclConfig } from './validate';
 import { NetworkAclNode } from './network-acl-node';
 import { NetworkAclInspector } from './network-acl-inspector';
-import { NetworkAclIcon } from '@/components/aws-icons';
+import { NetworkAclIcon } from '@/components/icons';
 
 export const networkAclService: ServiceDefinition<NetworkAclConfig> = {
   id: 'network-acl',

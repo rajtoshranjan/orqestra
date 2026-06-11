@@ -4,7 +4,7 @@ import { createDefaultSNSConfig, getSNSDisplayName } from './defaults';
 import { validateSNSConfig } from './validate';
 import { SNSNode } from './sns-node';
 import { SNSInspector } from './sns-inspector';
-import { SnsIcon } from '@/components/aws-icons';
+import { SnsIcon } from '@/components/icons';
 
 export const snsService: ServiceDefinition<SNSConfig> = {
   id: 'sns',

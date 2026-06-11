@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { KMSConfig } from './types';
 
-import { KmsIcon } from '@/components/aws-icons';
+import { KmsIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type KMSNodeDataShape = {

@@ -9,7 +9,7 @@ import { createDefaultXRayConfig, getXRayDisplayName } from './defaults';
 import { validateXRayConfig } from './validate';
 import { XRayNode } from './xray-node';
 import { XRayInspector } from './xray-inspector';
-import { XRayIcon } from '@/components/aws-icons';
+import { XRayIcon } from '@/components/icons';
 
 export const xrayService: ServiceDefinition<XRayConfig> = {
   id: 'xray',

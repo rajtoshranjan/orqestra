@@ -9,7 +9,7 @@ import { createDefaultWafConfig, getWafDisplayName } from './defaults';
 import { validateWafConfig } from './validate';
 import { WafNode } from './waf-node';
 import { WafInspector } from './waf-inspector';
-import { WafIcon } from '@/components/aws-icons';
+import { WafIcon } from '@/components/icons';
 
 export const wafService: ServiceDefinition<WafConfig> = {
   id: 'waf',

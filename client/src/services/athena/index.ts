@@ -9,7 +9,7 @@ import { createDefaultAthenaConfig, getAthenaDisplayName } from './defaults';
 import { validateAthenaConfig } from './validate';
 import { AthenaNode } from './athena-node';
 import { AthenaInspector } from './athena-inspector';
-import { AthenaIcon } from '@/components/aws-icons';
+import { AthenaIcon } from '@/components/icons';
 
 export const athenaService: ServiceDefinition<AthenaConfig> = {
   id: 'athena',

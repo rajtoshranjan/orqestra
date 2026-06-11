@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { RouteTableConfig } from './types';
 
-import { RouteTableIcon } from '@/components/aws-icons';
+import { RouteTableIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type RouteTableNodeDataShape = {

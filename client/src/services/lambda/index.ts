@@ -11,7 +11,7 @@ import { createDefaultLambdaConfig, getLambdaDisplayName } from './defaults';
 import { validateLambdaConfig } from './validate';
 import { LambdaNode } from './lambda-node';
 import { LambdaInspector } from './lambda-inspector';
-import { LambdaIcon } from '@/components/aws-icons';
+import { LambdaIcon } from '@/components/icons';
 
 export const lambdaService: ServiceDefinition<LambdaConfig> = {
   /* Identity. */

@@ -4,7 +4,7 @@ import { createDefaultSQSConfig, getSQSDisplayName } from './defaults';
 import { validateSQSConfig } from './validate';
 import { SQSNode } from './sqs-node';
 import { SQSInspector } from './sqs-inspector';
-import { SqsIcon } from '@/components/aws-icons';
+import { SqsIcon } from '@/components/icons';
 
 export const sqsService: ServiceDefinition<SQSConfig> = {
   id: 'sqs',

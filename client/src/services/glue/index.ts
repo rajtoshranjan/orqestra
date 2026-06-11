@@ -9,7 +9,7 @@ import { createDefaultGlueConfig, getGlueDisplayName } from './defaults';
 import { validateGlueConfig } from './validate';
 import { GlueNode } from './glue-node';
 import { GlueInspector } from './glue-inspector';
-import { GlueIcon } from '@/components/aws-icons';
+import { GlueIcon } from '@/components/icons';
 
 export const glueService: ServiceDefinition<GlueConfig> = {
   id: 'glue',

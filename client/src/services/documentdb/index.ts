@@ -12,7 +12,7 @@ import {
 import { validateDocumentDbConfig } from './validate';
 import { DocumentDbNode } from './documentdb-node';
 import { DocumentDbInspector } from './documentdb-inspector';
-import { DocumentDbIcon } from '@/components/aws-icons';
+import { DocumentDbIcon } from '@/components/icons';
 
 export const documentDbService: ServiceDefinition<DocumentDbConfig> = {
   id: 'documentdb',

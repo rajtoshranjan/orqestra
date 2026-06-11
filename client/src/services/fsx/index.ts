@@ -9,7 +9,7 @@ import { createDefaultFSxConfig, getFSxDisplayName } from './defaults';
 import { validateFSxConfig } from './validate';
 import { FSxNode } from './fsx-node';
 import { FSxInspector } from './fsx-inspector';
-import { FsxIcon } from '@/components/aws-icons';
+import { FsxIcon } from '@/components/icons';
 
 export const fsxService: ServiceDefinition<FSxConfig> = {
   id: 'fsx',

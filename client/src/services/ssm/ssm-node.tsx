@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { SsmConfig } from './types';
 
-import { SsmIcon } from '@/components/aws-icons';
+import { SsmIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type SsmNodeDataShape = {

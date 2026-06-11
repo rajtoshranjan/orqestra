@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { StepFunctionConfig } from './types';
 
-import { StepFunctionIcon } from '@/components/aws-icons';
+import { StepFunctionIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type StepFunctionNodeDataShape = {

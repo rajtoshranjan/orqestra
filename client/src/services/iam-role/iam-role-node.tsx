@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { IAMRoleConfig } from './types';
 
-import { IamRoleIcon } from '@/components/aws-icons';
+import { IamRoleIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type IAMRoleNodeDataShape = {

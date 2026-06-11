@@ -4,7 +4,7 @@ import { createDefaultS3Config, getS3DisplayName } from './defaults';
 import { validateS3Config } from './validate';
 import { S3Node } from './s3-node';
 import { S3Inspector } from './s3-inspector';
-import { S3Icon } from '@/components/aws-icons';
+import { S3Icon } from '@/components/icons';
 
 export const s3Service: ServiceDefinition<S3Config> = {
   id: 's3',

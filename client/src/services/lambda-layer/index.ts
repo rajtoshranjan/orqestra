@@ -7,7 +7,7 @@ import {
 import { validateLambdaLayerConfig } from './validate';
 import { LambdaLayerNode } from './lambda-layer-node';
 import { LambdaLayerInspector } from './lambda-layer-inspector';
-import { LambdaLayerIcon } from '@/components/aws-icons';
+import { LambdaLayerIcon } from '@/components/icons';
 
 export const lambdaLayerService: ServiceDefinition<LambdaLayerConfig> = {
   id: 'lambda-layer',

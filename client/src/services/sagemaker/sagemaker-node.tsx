@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { SageMakerConfig } from './types';
 
-import { SageMakerIcon } from '@/components/aws-icons';
+import { SageMakerIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type SageMakerNodeDataShape = {

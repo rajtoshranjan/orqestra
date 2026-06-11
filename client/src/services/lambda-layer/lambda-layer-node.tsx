@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { LambdaLayerConfig } from './types';
 
-import { LambdaLayerIcon } from '@/components/aws-icons';
+import { LambdaLayerIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type LambdaLayerNodeDataShape = {

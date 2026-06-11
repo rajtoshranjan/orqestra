@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { NetworkAclConfig } from './types';
 
-import { NetworkAclIcon } from '@/components/aws-icons';
+import { NetworkAclIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type NetworkAclNodeDataShape = {

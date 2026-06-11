@@ -4,7 +4,7 @@ import { createDefaultVPCConfig, getVPCDisplayName } from './defaults';
 import { validateVPCConfig } from './validate';
 import { VPCNode } from './vpc-node';
 import { VPCInspector } from './vpc-inspector';
-import { VpcIcon } from '@/components/aws-icons';
+import { VpcIcon } from '@/components/icons';
 
 export const vpcService: ServiceDefinition<VPCConfig> = {
   id: 'vpc',

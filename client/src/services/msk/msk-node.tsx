@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { MskConfig } from './types';
 
-import { MskIcon } from '@/components/aws-icons';
+import { MskIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type MskNodeDataShape = {

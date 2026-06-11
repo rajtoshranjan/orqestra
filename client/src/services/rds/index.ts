@@ -9,7 +9,7 @@ import { createDefaultRDSConfig, getRDSDisplayName } from './defaults';
 import { validateRDSConfig } from './validate';
 import { RDSNode } from './rds-node';
 import { RDSInspector } from './rds-inspector';
-import { RdsIcon } from '@/components/aws-icons';
+import { RdsIcon } from '@/components/icons';
 
 export const rdsService: ServiceDefinition<RDSConfig> = {
   id: 'rds',

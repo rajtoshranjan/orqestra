@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { CodeBuildConfig } from './types';
 
-import { CodeBuildIcon } from '@/components/aws-icons';
+import { CodeBuildIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type CodeBuildNodeDataShape = {

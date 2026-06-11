@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { DynamoDBConfig } from './types';
 
-import { DynamodbIcon } from '@/components/aws-icons';
+import { DynamodbIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type DynamoDBNodeDataShape = {

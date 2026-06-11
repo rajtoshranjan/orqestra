@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { InternetGatewayConfig } from './types';
 
-import { InternetGatewayIcon } from '@/components/aws-icons';
+import { InternetGatewayIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type InternetGatewayNodeDataShape = {

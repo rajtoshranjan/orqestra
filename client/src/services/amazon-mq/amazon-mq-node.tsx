@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { AmazonMqConfig } from './types';
 
-import { AmazonMqIcon } from '@/components/aws-icons';
+import { AmazonMqIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type AmazonMqNodeDataShape = {

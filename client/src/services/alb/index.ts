@@ -9,7 +9,7 @@ import { createDefaultAlbConfig, getAlbDisplayName } from './defaults';
 import { validateAlbConfig } from './validate';
 import { AlbNode } from './alb-node';
 import { AlbInspector } from './alb-inspector';
-import { AlbIcon } from '@/components/aws-icons';
+import { AlbIcon } from '@/components/icons';
 
 export const albService: ServiceDefinition<AlbConfig> = {
   id: 'alb',

@@ -4,7 +4,7 @@ import type { NodeProps } from 'reactflow';
 import type { ServiceValidationErrors } from '../types';
 import type { SecurityGroupConfig } from './types';
 
-import { SecurityGroupIcon } from '@/components/aws-icons';
+import { SecurityGroupIcon } from '@/components/icons';
 import { BaseServiceNode } from '@/components';
 
 type SecurityGroupNodeDataShape = {
