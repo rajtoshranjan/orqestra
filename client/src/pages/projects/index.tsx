@@ -216,7 +216,14 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
                 </Button>
               </div>
             </div>
-
+            {/* No projects for applied filters */}
+            {filteredProjects.length === 0 && (
+              <EmptyState
+                title="No projects found"
+                description="Try changing your filters or search terms."
+                icon={LayoutDashboard}
+              />
+            )}
             <div className="stagger-children grid grid-cols-[repeat(auto-fill,minmax(340px,1fr))] gap-5">
               {filteredProjects.map((project) => {
                 return (
