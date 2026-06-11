@@ -394,6 +394,17 @@ function EditorToolbarComponent({
               >
                 Clear Canvas
               </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onClick={onHelp}
+                className="flex cursor-pointer items-center justify-between text-xs"
+              >
+                <span>Keyboard Shortcuts</span>
+                <kbd className="rounded border border-border/60 bg-muted px-1.5 text-[9px] opacity-65">
+                  ?
+                </kbd>
+              </DropdownMenuItem>
+
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -401,25 +412,6 @@ function EditorToolbarComponent({
           {onOpenAnnotation && (
             <ProjectNotificationsBell onOpenAnnotation={onOpenAnnotation} />
           )}
-
-          {/* Help Shortcuts Button */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onHelp}
-                aria-label="Show Keyboard Shortcuts"
-                className="size-8 text-muted-foreground transition-all duration-200 hover:bg-accent/20 hover:text-primary"
-                title="Show Keyboard Shortcuts (?)"
-              >
-                <HelpCircle size={15} />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="text-xs">
-              Show Keyboard Shortcuts (?)
-            </TooltipContent>
-          </Tooltip>
 
           {/* Divider */}
           <div className="mx-1 h-4 w-px shrink-0 bg-border" />
