@@ -1,43 +1,43 @@
 import {
   ArrowLeft,
-  Grid3x3,
-  Loader2,
-  Lock,
-  MessageSquare,
-  PencilLine,
-  Rocket,
-  Unlock,
   ChevronDown,
   Cloud,
   CloudOff,
+  Grid3x3,
+  Loader2,
+  Lock,
+  PencilLine,
+  Rocket,
+  Unlock,
 } from 'lucide-react';
 import React from 'react';
 
+import { CommentMarker } from '@/components/icons';
 import {
   Badge,
   Button,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
 } from '@/components/ui';
-import { ProjectSettingsModal } from '@/pages/editor/project-settings-modal';
-import { ProjectNotificationsBell } from '@/pages/editor/comments/notifications-bell';
 import { cn } from '@/lib/utils';
+import { ProjectNotificationsBell } from '@/pages/editor/comments/notifications-bell';
+import { ProjectSettingsModal } from '@/pages/editor/project-settings-modal';
+import { registry } from '@/services';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setIsLocked, setSnapToGrid } from '@/store/editor-slice';
 import { setProjectSettingsOpen } from '@/store/ui-slice';
-import { DeploymentStatus } from '@/types';
 import type { DiagramNode } from '@/types';
+import { DeploymentStatus } from '@/types';
 import { formatRelativeTime, hasValidationErrors } from '@/utils';
-import { registry } from '@/services';
 
 /**
  * Derives toolbar-relevant node counts from the Redux nodes array.
@@ -297,7 +297,7 @@ function EditorToolbarComponent({
                 className={cn(
                   'h-8 w-8 text-muted-foreground transition-all duration-200',
                   isLocked &&
-                    'bg-warning/20 text-warning hover:bg-warning/30 hover:text-warning',
+                  'bg-warning/20 text-warning hover:bg-warning/30 hover:text-warning',
                 )}
                 title={
                   isLocked
@@ -324,7 +324,7 @@ function EditorToolbarComponent({
                 className={cn(
                   'h-8 w-8 text-muted-foreground transition-all duration-200',
                   snapToGrid &&
-                    'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
+                  'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
                 )}
                 title="Toggle Snap to Grid (⌥G)"
               >
@@ -348,11 +348,11 @@ function EditorToolbarComponent({
                 className={cn(
                   'h-8 w-8 text-muted-foreground transition-all duration-200',
                   commentMode &&
-                    'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
+                  'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
                 )}
                 title="Toggle Comments Panel"
               >
-                <MessageSquare size={15} />
+                <CommentMarker size={15} />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-xs">
