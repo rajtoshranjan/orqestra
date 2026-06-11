@@ -1,13 +1,8 @@
 from django.db import transaction
+from organisations.helpers import get_active_organisation
 from rest_framework import serializers
 
-from organisations.helpers import get_active_organisation
-
-from .constants import (
-    MAX_COMMENT_LENGTH,
-    AnnotationEventType,
-    AnnotationTargetType,
-)
+from .constants import MAX_COMMENT_LENGTH, AnnotationEventType, AnnotationTargetType
 from .mentions import sync_mentions
 from .models import Annotation, AnnotationEvent, Comment, Notification, Reaction
 
@@ -22,8 +17,12 @@ class ReactionSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    author_name = serializers.CharField(source="author.name", read_only=True, default="")
-    author_email = serializers.CharField(source="author.email", read_only=True, default="")
+    author_name = serializers.CharField(
+        source="author.name", read_only=True, default=""
+    )
+    author_email = serializers.CharField(
+        source="author.email", read_only=True, default=""
+    )
     reactions = ReactionSerializer(many=True, read_only=True)
     mention_user_ids = serializers.SerializerMethodField()
 
@@ -67,7 +66,9 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class AnnotationSerializer(serializers.ModelSerializer):
-    author_name = serializers.CharField(source="author.name", read_only=True, default="")
+    author_name = serializers.CharField(
+        source="author.name", read_only=True, default=""
+    )
     resolved_by_name = serializers.CharField(
         source="resolved_by.name", read_only=True, default=""
     )
@@ -127,13 +128,13 @@ class AnnotationCreateSerializer(serializers.ModelSerializer):
             x = position.get("x")
             y = position.get("y")
             if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
-                errors["position"] = (
-                    "Canvas annotations require a position with numeric x and y."
-                )
+                errors[
+                    "position"
+                ] = "Canvas annotations require a position with numeric x and y."
         elif not target_id:
-            errors["target_id"] = (
-                f"Annotations targeting a {target_type} require a target_id."
-            )
+            errors[
+                "target_id"
+            ] = f"Annotations targeting a {target_type} require a target_id."
 
         if errors:
             raise serializers.ValidationError(errors)
@@ -171,13 +172,23 @@ class AnnotationEventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AnnotationEvent
-        fields = ["id", "annotation", "actor", "actor_name", "event_type", "details", "created_at"]
+        fields = [
+            "id",
+            "annotation",
+            "actor",
+            "actor_name",
+            "event_type",
+            "details",
+            "created_at",
+        ]
         read_only_fields = fields
 
 
 class NotificationSerializer(serializers.ModelSerializer):
     actor_name = serializers.CharField(source="actor.name", read_only=True, default="")
-    project_id = serializers.CharField(source="annotation.project_id", read_only=True, default="")
+    project_id = serializers.CharField(
+        source="annotation.project_id", read_only=True, default=""
+    )
     preview = serializers.SerializerMethodField()
 
     class Meta:

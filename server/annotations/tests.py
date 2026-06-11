@@ -5,7 +5,14 @@ from orqestra.tests import BaseTestCase
 from projects.models import Project
 
 from .constants import AnnotationEventType, AnnotationStatus, NotificationVerb
-from .models import Annotation, AnnotationEvent, Comment, Mention, Notification, Reaction
+from .models import (
+    Annotation,
+    AnnotationEvent,
+    Comment,
+    Mention,
+    Notification,
+    Reaction,
+)
 
 
 class AnnotationBaseTestCase(BaseTestCase):
@@ -150,9 +157,7 @@ class AnnotationListTests(AnnotationBaseTestCase):
         mention_annotation = self._create_annotation(
             body=f"Ping {self._mention_token(member)}"
         )
-        Mention.objects.create(
-            comment=mention_annotation.comments.first(), user=member
-        )
+        Mention.objects.create(comment=mention_annotation.comments.first(), user=member)
 
         response = self.client.get(
             f"/annotations/?project={self.project.id}&status=resolved"
@@ -346,9 +351,7 @@ class AnnotationWorkflowTests(AnnotationBaseTestCase):
                 annotation=annotation,
             ).exists()
         )
-        self.assertTrue(
-            AuditLog.objects.filter(action="annotation.resolve").exists()
-        )
+        self.assertTrue(AuditLog.objects.filter(action="annotation.resolve").exists())
 
     def test_reopen_clears_resolution(self):
         annotation = self._create_annotation()

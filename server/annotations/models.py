@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.db import models
-
 from orqestra.models import BaseModel
 
 from .constants import (
@@ -151,9 +150,7 @@ class AnnotationEvent(BaseModel):
         null=True,
         related_name="annotation_events",
     )
-    event_type = models.CharField(
-        max_length=20, choices=AnnotationEventType.choices()
-    )
+    event_type = models.CharField(max_length=20, choices=AnnotationEventType.choices())
     details = models.JSONField(default=dict, blank=True)
 
     class Meta(BaseModel.Meta):

@@ -153,11 +153,12 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [(EnvVariable.REDIS_HOST.value, int(EnvVariable.REDIS_PORT.value))],
+            "hosts": [
+                (EnvVariable.REDIS_HOST.value, int(EnvVariable.REDIS_PORT.value))
+            ],
         },
     },
 }
-
 
 
 # Logging

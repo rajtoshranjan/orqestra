@@ -19,14 +19,16 @@ def sync_mentions(comment, organisation, actor):
     user_model = get_user_model()
     mentioned_ids = extract_mention_user_ids(comment.body)
 
-    mentioned_users = user_model.objects.filter(id__in=mentioned_ids).filter(
-        Q(owned_organisations=organisation)
-        | Q(organisation_memberships__organisation=organisation)
-    ).distinct()
-
-    existing_user_ids = set(
-        comment.mentions.values_list("user_id", flat=True)
+    mentioned_users = (
+        user_model.objects.filter(id__in=mentioned_ids)
+        .filter(
+            Q(owned_organisations=organisation)
+            | Q(organisation_memberships__organisation=organisation)
+        )
+        .distinct()
     )
+
+    existing_user_ids = set(comment.mentions.values_list("user_id", flat=True))
     next_user_ids = {user.id for user in mentioned_users}
 
     stale_user_ids = existing_user_ids - next_user_ids

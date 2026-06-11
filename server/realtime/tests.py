@@ -1,14 +1,13 @@
 import asyncio
+
 from channels.db import database_sync_to_async
 from channels.testing import WebsocketCommunicator
 from django.contrib.auth import get_user_model
-from rest_framework_simplejwt.tokens import AccessToken
 from django.test import TransactionTestCase, override_settings
-from organisations.models import Organisation, OrganisationMember
-from projects.models import Project
-from realtime.events import emit_event
+from organisations.models import Organisation
 from orqestra.asgi import application
-
+from realtime.events import emit_event
+from rest_framework_simplejwt.tokens import AccessToken
 
 User = get_user_model()
 
@@ -40,7 +39,9 @@ class WebSocketConsumerTests(TransactionTestCase):
 
     async def test_auth_success(self):
         # Generate token for the test user
-        token = await database_sync_to_async(lambda: str(AccessToken.for_user(self.user)))()
+        token = await database_sync_to_async(
+            lambda: str(AccessToken.for_user(self.user))
+        )()
 
         # Connect to the communicator
         communicator = WebsocketCommunicator(application, "ws/")
@@ -60,7 +61,9 @@ class WebSocketConsumerTests(TransactionTestCase):
         self.assertTrue(connected)
 
         # Send invalid token
-        await communicator.send_json_to({"action": "authenticate", "token": "invalid-token"})
+        await communicator.send_json_to(
+            {"action": "authenticate", "token": "invalid-token"}
+        )
         response = await communicator.receive_json_from()
         self.assertEqual(response["type"], "error")
         self.assertIn("Invalid or expired token", response["message"])
@@ -85,9 +88,10 @@ class WebSocketConsumerTests(TransactionTestCase):
         self.assertEqual(close_event["type"], "websocket.close")
         self.assertEqual(close_event["code"], 4001)
 
-
     async def test_subscription_and_broadcast(self):
-        token = await database_sync_to_async(lambda: str(AccessToken.for_user(self.user)))()
+        token = await database_sync_to_async(
+            lambda: str(AccessToken.for_user(self.user))
+        )()
         org_id = str(self.organisation.id)
 
         # Connect and authenticate
@@ -121,7 +125,9 @@ class WebSocketConsumerTests(TransactionTestCase):
         await communicator.disconnect()
 
     async def test_subscription_unauthorized(self):
-        token = await database_sync_to_async(lambda: str(AccessToken.for_user(self.user)))()
+        token = await database_sync_to_async(
+            lambda: str(AccessToken.for_user(self.user))
+        )()
 
         # Create another organization owned by a different user
         other_user = await database_sync_to_async(

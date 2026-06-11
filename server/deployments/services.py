@@ -81,6 +81,7 @@ def create_deployment(project: Project) -> Deployment:
 
     try:
         from realtime.events import send_deployment_event
+
         send_deployment_event(
             deployment_id=str(deployment.id),
             event_type="status_changed",
@@ -94,7 +95,6 @@ def create_deployment(project: Project) -> Deployment:
         logger.error(f"Failed to emit deployment event: {e}")
 
     return deployment
-
 
 
 def _generate_callback_token(deployment_id: str) -> str:
@@ -207,6 +207,7 @@ def process_deployment_callback(deployment_id: str, results: dict) -> Deployment
 
     try:
         from realtime.events import send_deployment_event
+
         send_deployment_event(
             deployment_id=str(deployment.id),
             event_type="status_changed",
@@ -220,7 +221,6 @@ def process_deployment_callback(deployment_id: str, results: dict) -> Deployment
         logger.error(f"Failed to emit deployment event from callback: {e}")
 
     return deployment
-
 
 
 def _update_project_state(

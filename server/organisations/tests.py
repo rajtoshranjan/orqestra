@@ -61,9 +61,7 @@ class MentionableUsersTests(BaseTestCase):
         response = self.client.get("/organisations/mentionable-users/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         users = {entry["id"]: entry for entry in response.json()["data"]}
-        self.assertEqual(
-            set(users), {str(self.user.id), str(member_user.id)}
-        )
+        self.assertEqual(set(users), {str(self.user.id), str(member_user.id)})
         self.assertEqual(users[str(self.user.id)]["role"], "owner")
         self.assertEqual(users[str(member_user.id)]["role"], "regular")
 

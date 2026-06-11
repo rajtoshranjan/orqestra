@@ -1,12 +1,13 @@
 import asyncio
 import logging
-from channels.generic.websocket import AsyncJsonWebsocketConsumer
+
 from channels.db import database_sync_to_async
-from rest_framework_simplejwt.tokens import AccessToken
+from channels.generic.websocket import AsyncJsonWebsocketConsumer
+from deployments.models import Deployment
 from django.contrib.auth import get_user_model
 from organisations.models import Organisation, OrganisationMember
 from projects.models import Project
-from deployments.models import Deployment
+from rest_framework_simplejwt.tokens import AccessToken
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -28,7 +29,9 @@ def verify_org_access(user, org_id):
     try:
         return (
             Organisation.objects.filter(id=org_id, owner=user).exists()
-            or OrganisationMember.objects.filter(organisation_id=org_id, user=user).exists()
+            or OrganisationMember.objects.filter(
+                organisation_id=org_id, user=user
+            ).exists()
         )
     except Exception as e:
         logger.error(f"Error verifying org access: {e}")
@@ -52,7 +55,9 @@ def verify_project_access(user, project_id):
 @database_sync_to_async
 def verify_deployment_access(user, deployment_id):
     try:
-        deployment = Deployment.objects.select_related("project__organisation").get(id=deployment_id)
+        deployment = Deployment.objects.select_related("project__organisation").get(
+            id=deployment_id
+        )
         org = deployment.project.organisation
         return (
             org.owner == user
@@ -84,17 +89,21 @@ class OrqestraConsumer(AsyncJsonWebsocketConsumer):
             if not self.authenticated:
                 self.timing_out = True
                 logger.warning("WebSocket authentication timeout. Closing connection.")
-                await self.send_json({"type": "error", "message": "Authentication timeout"})
+                await self.send_json(
+                    {"type": "error", "message": "Authentication timeout"}
+                )
                 await self.close(code=4001)
         except asyncio.CancelledError:
             pass
 
     async def disconnect(self, close_code):
         # Cancel the timeout task if it's still running and we didn't time out
-        if self.auth_timeout_task and not self.timing_out and not self.auth_timeout_task.done():
+        if (
+            self.auth_timeout_task
+            and not self.timing_out
+            and not self.auth_timeout_task.done()
+        ):
             self.auth_timeout_task.cancel()
-
-
 
         # Clean up and discard all groups
         for group_name in list(self.joined_groups):
@@ -111,7 +120,9 @@ class OrqestraConsumer(AsyncJsonWebsocketConsumer):
             if action == "authenticate":
                 token = content.get("token")
                 if not token:
-                    await self.send_json({"type": "error", "message": "Token is required"})
+                    await self.send_json(
+                        {"type": "error", "message": "Token is required"}
+                    )
                     await self.close(code=4001)
                     return
 
@@ -123,11 +134,15 @@ class OrqestraConsumer(AsyncJsonWebsocketConsumer):
                         self.auth_timeout_task.cancel()
                     await self.send_json({"type": "authenticated"})
                 else:
-                    await self.send_json({"type": "error", "message": "Invalid or expired token"})
+                    await self.send_json(
+                        {"type": "error", "message": "Invalid or expired token"}
+                    )
                     await self.close(code=4001)
             else:
                 # Reject any other message if not authenticated
-                await self.send_json({"type": "error", "message": "Authentication required"})
+                await self.send_json(
+                    {"type": "error", "message": "Authentication required"}
+                )
                 await self.close(code=4001)
             return
 
@@ -137,11 +152,21 @@ class OrqestraConsumer(AsyncJsonWebsocketConsumer):
             group_id = content.get("id")
 
             if not group_type or not group_id:
-                await self.send_json({"type": "error", "message": "group and id are required for subscription"})
+                await self.send_json(
+                    {
+                        "type": "error",
+                        "message": "group and id are required for subscription",
+                    }
+                )
                 return
 
             if group_type not in ["org", "project", "deployment"]:
-                await self.send_json({"type": "error", "message": f"Invalid subscription group: {group_type}"})
+                await self.send_json(
+                    {
+                        "type": "error",
+                        "message": f"Invalid subscription group: {group_type}",
+                    }
+                )
                 return
 
             # Perform permission checks
@@ -158,9 +183,13 @@ class OrqestraConsumer(AsyncJsonWebsocketConsumer):
                 await self.channel_layer.group_add(group_name, self.channel_name)
                 self.joined_groups.add(group_name)
                 logger.info(f"User {self.user.email} subscribed to {group_name}")
-                await self.send_json({"type": "subscribed", "group": group_type, "id": group_id})
+                await self.send_json(
+                    {"type": "subscribed", "group": group_type, "id": group_id}
+                )
             else:
-                logger.warning(f"Unauthorized subscription attempt by {self.user.email} to {group_type}:{group_id}")
+                logger.warning(
+                    f"Unauthorized subscription attempt by {self.user.email} to {group_type}:{group_id}"
+                )
                 await self.send_json({"type": "error", "message": "Permission denied"})
 
         elif action == "unsubscribe":
@@ -168,19 +197,30 @@ class OrqestraConsumer(AsyncJsonWebsocketConsumer):
             group_id = content.get("id")
 
             if not group_type or not group_id:
-                await self.send_json({"type": "error", "message": "group and id are required for unsubscription"})
+                await self.send_json(
+                    {
+                        "type": "error",
+                        "message": "group and id are required for unsubscription",
+                    }
+                )
                 return
 
             group_name = f"{group_type}_{group_id}"
             if group_name in self.joined_groups:
                 await self.channel_layer.group_discard(group_name, self.channel_name)
                 self.joined_groups.remove(group_name)
-                await self.send_json({"type": "unsubscribed", "group": group_type, "id": group_id})
+                await self.send_json(
+                    {"type": "unsubscribed", "group": group_type, "id": group_id}
+                )
             else:
-                await self.send_json({"type": "error", "message": "Not subscribed to this group"})
+                await self.send_json(
+                    {"type": "error", "message": "Not subscribed to this group"}
+                )
 
         else:
-            await self.send_json({"type": "error", "message": f"Unknown action: {action}"})
+            await self.send_json(
+                {"type": "error", "message": f"Unknown action: {action}"}
+            )
 
     async def broadcast_event(self, event):
         """
@@ -192,7 +232,9 @@ class OrqestraConsumer(AsyncJsonWebsocketConsumer):
             "payload": {...}
         }
         """
-        logger.info(f"Consumer sending broadcast_event to user {self.user.email if self.user else 'anonymous'}: {event}")
+        logger.info(
+            f"Consumer sending broadcast_event to user {self.user.email if self.user else 'anonymous'}: {event}"
+        )
         if self.authenticated:
             event_type = event.get("event_type")
             payload = event.get("payload") or {}
@@ -201,10 +243,9 @@ class OrqestraConsumer(AsyncJsonWebsocketConsumer):
             if event_type == "notification.created" and "recipient_id" in payload:
                 recipient_id = payload["recipient_id"]
                 if recipient_id and str(recipient_id) != str(self.user.id):
-                    logger.debug(f"Filtering out notification event for recipient {recipient_id} from user {self.user.id}")
+                    logger.debug(
+                        f"Filtering out notification event for recipient {recipient_id} from user {self.user.id}"
+                    )
                     return
 
-            await self.send_json({
-                "type": event_type,
-                "payload": payload
-            })
+            await self.send_json({"type": event_type, "payload": payload})

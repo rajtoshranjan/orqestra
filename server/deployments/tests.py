@@ -1,14 +1,14 @@
 from unittest.mock import patch
 
 from django.urls import reverse
+from organisations.models import AWSAccount
 from orqestra.tests import BaseTestCase
 from projects.models import Project
 from rest_framework import status
+from utils.encryption import encrypt_val
 
 from .models import Deployment, DeploymentStatus, ProjectDeploymentState
 from .services import _generate_callback_token
-from organisations.models import AWSAccount
-from utils.encryption import encrypt_val
 
 
 class DeploymentTests(BaseTestCase):
