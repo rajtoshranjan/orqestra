@@ -72,9 +72,7 @@ export function BedrockInspector({
           label="Guardrail Mode"
           error={errors.guardrailMode?.message}
         >
-          <Select
-            {...register('guardrailMode')}
-          >
+          <Select {...register('guardrailMode')}>
             {GUARDRAIL_MODE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}

@@ -61,9 +61,7 @@ export function CognitoInspector({
           label="MFA Configuration"
           error={errors.mfaConfiguration?.message}
         >
-          <Select
-            {...register('mfaConfiguration')}
-          >
+          <Select {...register('mfaConfiguration')}>
             {MFA_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}

@@ -75,9 +75,7 @@ export function CloudFrontInspector({
         </InspectorField>
 
         <InspectorField label="Price Class" error={errors.priceClass?.message}>
-          <Select
-            {...register('priceClass')}
-          >
+          <Select {...register('priceClass')}>
             {PRICE_CLASS_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -90,9 +88,7 @@ export function CloudFrontInspector({
           label="Viewer Protocol Policy"
           error={errors.viewerProtocolPolicy?.message}
         >
-          <Select
-            {...register('viewerProtocolPolicy')}
-          >
+          <Select {...register('viewerProtocolPolicy')}>
             {VIEWER_PROTOCOL_POLICY_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}

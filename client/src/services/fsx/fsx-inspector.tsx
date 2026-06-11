@@ -66,9 +66,7 @@ export function FSxInspector({
           label="File System Type"
           error={errors.fileSystemType?.message}
         >
-          <Select
-            {...register('fileSystemType')}
-          >
+          <Select {...register('fileSystemType')}>
             {FILE_SYSTEM_TYPE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}

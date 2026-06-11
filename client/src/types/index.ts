@@ -98,7 +98,19 @@ export type ClipboardSelection = {
 };
 
 export type ContextMenuState = {
-  nodeId: string;
+  kind: 'node' | 'pane';
+  nodeId?: string;
   x: number;
   y: number;
+  flowPosition?: { x: number; y: number };
+};
+
+/* Annotations */
+
+export type AnnotationStatusFilter = 'open' | 'resolved' | 'all';
+
+export type AnnotationFilters = {
+  status: AnnotationStatusFilter;
+  onlyMine: boolean;
+  onlyMentions: boolean;
 };

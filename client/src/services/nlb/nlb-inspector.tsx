@@ -66,9 +66,7 @@ export function NlbInspector({
         </InspectorField>
 
         <InspectorField label="Scheme" error={errors.scheme?.message}>
-          <Select
-            {...register('scheme')}
-          >
+          <Select {...register('scheme')}>
             {SCHEME_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -81,9 +79,7 @@ export function NlbInspector({
           label="IP Address Type"
           error={errors.ipAddressType?.message}
         >
-          <Select
-            {...register('ipAddressType')}
-          >
+          <Select {...register('ipAddressType')}>
             {IP_ADDRESS_TYPE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}

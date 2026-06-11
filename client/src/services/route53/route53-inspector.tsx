@@ -53,9 +53,7 @@ export function Route53Inspector({
         </InspectorField>
 
         <InspectorField label="Zone Type" error={errors.zoneType?.message}>
-          <Select
-            {...register('zoneType')}
-          >
+          <Select {...register('zoneType')}>
             <option value="public">Public</option>
             <option value="private">Private</option>
           </Select>

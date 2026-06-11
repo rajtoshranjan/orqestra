@@ -121,6 +121,20 @@ export const deleteOrganisation = async (
   await api.delete(`/organisations/${organisationId}/`);
 };
 
+export type MentionableUser = {
+  id: string;
+  name: string;
+  email: string;
+  role: 'owner' | 'admin' | 'regular' | 'guest';
+};
+
+export const fetchMentionableUsers = async (): Promise<MentionableUser[]> => {
+  const response = await api.get<ServerResponse<MentionableUser[]>>(
+    '/organisations/mentionable-users/',
+  );
+  return response.data.data;
+};
+
 export const fetchOrganisationMembers = async (): Promise<
   OrganisationMemberInfo[]
 > => {
@@ -266,6 +280,13 @@ export const useOrganisationMembers = (enabled = true) =>
   useQuery({
     queryKey: ['organisationMembers'],
     queryFn: fetchOrganisationMembers,
+    enabled,
+  });
+
+export const useMentionableUsers = (enabled = true) =>
+  useQuery({
+    queryKey: ['mentionableUsers'],
+    queryFn: fetchMentionableUsers,
     enabled,
   });
 

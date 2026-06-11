@@ -50,9 +50,7 @@ export function AmazonMqInspector({
         </InspectorField>
 
         <InspectorField label="Engine Type" error={errors.engineType?.message}>
-          <Select
-            {...register('engineType')}
-          >
+          <Select {...register('engineType')}>
             <option value="RABBITMQ">RabbitMQ</option>
             <option value="ACTIVEMQ">ActiveMQ</option>
           </Select>
@@ -73,9 +71,7 @@ export function AmazonMqInspector({
           label="Deployment Mode"
           error={errors.deploymentMode?.message}
         >
-          <Select
-            {...register('deploymentMode')}
-          >
+          <Select {...register('deploymentMode')}>
             <option value="SINGLE_INSTANCE">Single Instance</option>
             <option value="ACTIVE_STANDBY_MULTI_AZ">
               Active/Standby Multi-AZ

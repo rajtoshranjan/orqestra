@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "cloud_services",
     "deployments",
     "projects",
+    "annotations",
 ]
 
 MIDDLEWARE = [

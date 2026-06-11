@@ -72,9 +72,7 @@ export function AcmInspector({
           label="Validation Method"
           error={errors.validationMethod?.message}
         >
-          <Select
-            {...register('validationMethod')}
-          >
+          <Select {...register('validationMethod')}>
             {VALIDATION_METHOD_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}

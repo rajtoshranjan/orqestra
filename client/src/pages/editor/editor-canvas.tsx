@@ -32,6 +32,9 @@ import { useEnrichedNodes } from './use-enriched-nodes';
 import { useEnrichedEdges } from './use-enriched-edges';
 import { useCanvasPersistence } from './use-canvas-persistence';
 import { useCanvasShortcuts } from './use-canvas-shortcuts';
+import { useComments } from './comments/use-comments';
+import { CommentLayer } from './comments/comment-layer';
+import { CommentsSidebar } from './comments/comments-sidebar';
 import {
   PRO_OPTIONS,
   CONTAINER_CHILD_PADDING,
@@ -40,6 +43,7 @@ import {
   findBestParentForDraggedNode,
 } from './canvas-utils';
 import type { OriginalProjectSnapshot } from './use-canvas-persistence';
+import type { EnrichedServiceNodeData } from './canvas-utils';
 import { ConfirmDialog } from '@/components/ui';
 
 import type {
@@ -87,15 +91,19 @@ import {
   setDeployDrawerOpen,
   setProjectSettingsOpen,
   setContextMenu,
+  setCommentMode,
+  setCommentsSidebarOpen,
 } from '@/store/ui-slice';
-import type { EnrichedServiceNodeData } from './canvas-utils';
 
 type CanvasEditorProps = {
   initialProject: PersistedDiagram;
   onNavigateHome: () => void;
 };
 
-export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorProps) {
+export function CanvasEditor({
+  initialProject,
+  onNavigateHome,
+}: CanvasEditorProps) {
   const dispatch = useAppDispatch();
 
   const {
@@ -111,10 +119,17 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
   const { settings: deploymentSettings, activeDeploymentId } = useAppSelector(
     (state) => state.deployment,
   );
-  const { deployDrawerOpen, contextMenu, theme } = useAppSelector((state) => state.ui);
+  const {
+    deployDrawerOpen,
+    contextMenu,
+    theme,
+    commentMode,
+    commentsSidebarOpen,
+  } = useAppSelector((state) => state.ui);
 
   const createDeploymentMutation = useCreateDeployment();
-  const { data: projectDeploymentState } = useProjectDeploymentState(currentProjectId);
+  const { data: projectDeploymentState } =
+    useProjectDeploymentState(currentProjectId);
 
   const [localValidationResult, setLocalValidationResult] =
     React.useState<DeploymentResult | null>(null);
@@ -123,9 +138,16 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
     y: number;
     flowPosition: { x: number; y: number };
   } | null>(null);
-  const [connectingSource, setConnectingSource] = React.useState<string | null>(null);
-  const [dragOverNodeId, setDragOverNodeId] = React.useState<string | null>(null);
-  const [sidebarCollapsed, setSidebarCollapsed] = useLocalStorage('sidebarCollapsed', false);
+  const [connectingSource, setConnectingSource] = React.useState<string | null>(
+    null,
+  );
+  const [dragOverNodeId, setDragOverNodeId] = React.useState<string | null>(
+    null,
+  );
+  const [sidebarCollapsed, setSidebarCollapsed] = useLocalStorage(
+    'sidebarCollapsed',
+    false,
+  );
   const [helpOpen, setHelpOpen] = React.useState(false);
   const [clearConfirmOpen, setClearConfirmOpen] = React.useState(false);
   const [reactFlowInstance, setReactFlowInstance] =
@@ -160,7 +182,10 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
     awsAccountId: initialProject.awsAccountId,
   });
 
-  const mouseRef = React.useRef({ clientX: window.innerWidth / 2, clientY: window.innerHeight / 2 });
+  const mouseRef = React.useRef({
+    clientX: window.innerWidth / 2,
+    clientY: window.innerHeight / 2,
+  });
   React.useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
       mouseRef.current = { clientX: event.clientX, clientY: event.clientY };
@@ -184,6 +209,34 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
   /* Edge enrichment (labels, colors, animations) */
   const { enrichedEdges } = useEnrichedEdges({ edges, nodes });
 
+  /* Collaboration & annotations */
+  const comments = useComments({
+    projectId: currentProjectId,
+    nodes,
+    edges,
+    reactFlowInstance,
+  });
+
+  const toggleCommentMode = React.useCallback(() => {
+    dispatch(setCommentMode(!commentMode));
+    dispatch(setContextMenu(null));
+  }, [dispatch, commentMode]);
+
+  const handleOpenAnnotation = React.useCallback(
+    (annotationId: string, projectId: string) => {
+      if (projectId !== currentProjectId) {
+        toast({
+          title: 'Comment in another project',
+          description: 'Open that project to view this discussion.',
+        });
+        return;
+      }
+      dispatch(setCommentsSidebarOpen(true));
+      comments.jumpToAnnotation(annotationId);
+    },
+    [currentProjectId, dispatch, comments],
+  );
+
   /* Plan */
   const [planSummary, setPlanSummary] = React.useState<PlanSummary>(() =>
     buildPlan(initialProject.nodes, initialProject.edges),
@@ -195,7 +248,9 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
       deployedGraphNodes ?? null,
       enrichedNodes,
     );
-    const enrichedNodesMap = new Map(enrichedNodes.map((node) => [node.id, node]));
+    const enrichedNodesMap = new Map(
+      enrichedNodes.map((node) => [node.id, node]),
+    );
     return {
       ...diffPlan,
       resources: diffPlan.resources.map((resource) => {
@@ -223,8 +278,12 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
   });
 
   /* Sync nodes/edges to Redux */
-  React.useEffect(() => { dispatch(setReduxNodes(nodes)); }, [nodes, dispatch]);
-  React.useEffect(() => { dispatch(setReduxEdges(edges)); }, [edges, dispatch]);
+  React.useEffect(() => {
+    dispatch(setReduxNodes(nodes));
+  }, [nodes, dispatch]);
+  React.useEffect(() => {
+    dispatch(setReduxEdges(edges));
+  }, [edges, dispatch]);
 
   /* Validation on every diagram change */
   React.useEffect(() => {
@@ -255,7 +314,9 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
       return false;
     };
     const nextEdges = edges.filter(
-      (edge) => !isAncestor(edge.source, edge.target) && !isAncestor(edge.target, edge.source),
+      (edge) =>
+        !isAncestor(edge.source, edge.target) &&
+        !isAncestor(edge.target, edge.source),
     );
     if (nextEdges.length !== edges.length) setEdges(nextEdges);
   }, [nodes, edges, setEdges]);
@@ -294,7 +355,9 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
             data: {
               ...node.data,
               config: nextConfig,
-              label: service ? service.getDisplayName(nextConfig) : node.data.label,
+              label: service
+                ? service.getDisplayName(nextConfig)
+                : node.data.label,
             },
           };
         }),
@@ -305,71 +368,99 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
 
   const saveCurrentDiagram = React.useCallback(() => {
     persistDiagram(
-      currentProjectId, projectName, projectDescription, awsAccountId,
-      nodes, edges, deploymentSettings,
+      currentProjectId,
+      projectName,
+      projectDescription,
+      awsAccountId,
+      nodes,
+      edges,
+      deploymentSettings,
     );
-  }, [awsAccountId, currentProjectId, deploymentSettings, edges, nodes, persistDiagram, projectDescription, projectName]);
+  }, [
+    awsAccountId,
+    currentProjectId,
+    deploymentSettings,
+    edges,
+    nodes,
+    persistDiagram,
+    projectDescription,
+    projectName,
+  ]);
 
   /* Node drag handlers */
   const onNodeDrag = React.useCallback<NodeDragHandler>((_event, node) => {
     const draggedNode = node as DiagramNode;
-    const { bestParent } = findBestParentForDraggedNode(draggedNode, nodesRef.current);
+    const { bestParent } = findBestParentForDraggedNode(
+      draggedNode,
+      nodesRef.current,
+    );
     const nextDragOverNodeId = bestParent?.id ?? null;
-    setDragOverNodeId((cur) => (cur === nextDragOverNodeId ? cur : nextDragOverNodeId));
+    setDragOverNodeId((cur) =>
+      cur === nextDragOverNodeId ? cur : nextDragOverNodeId,
+    );
   }, []);
 
-  const onNodeDragStop = React.useCallback<NodeDragHandler>((_event, node) => {
-    const draggedNode = node as DiagramNode;
-    const { bestParent, absoluteDraggedPosition, nodesWithDraggedNode } =
-      findBestParentForDraggedNode(draggedNode, nodesRef.current);
+  const onNodeDragStop = React.useCallback<NodeDragHandler>(
+    (_event, node) => {
+      const draggedNode = node as DiagramNode;
+      const { bestParent, absoluteDraggedPosition, nodesWithDraggedNode } =
+        findBestParentForDraggedNode(draggedNode, nodesRef.current);
 
-    setDragOverNodeId(null);
+      setDragOverNodeId(null);
 
-    if (bestParent) {
-      const parentPosition = getNodeAbsolutePosition(bestParent, nodesWithDraggedNode);
-      const relativeX = Math.max(
-        absoluteDraggedPosition.x - parentPosition.x,
-        CONTAINER_CHILD_PADDING,
-      );
-      const relativeY = Math.max(
-        absoluteDraggedPosition.y - parentPosition.y,
-        CONTAINER_HEADER_HEIGHT + CONTAINER_CHILD_PADDING,
-      );
-      setNodes((previousNodes) => {
-        const nextNodes = previousNodes.map((previousNode) => {
+      if (bestParent) {
+        const parentPosition = getNodeAbsolutePosition(
+          bestParent,
+          nodesWithDraggedNode,
+        );
+        const relativeX = Math.max(
+          absoluteDraggedPosition.x - parentPosition.x,
+          CONTAINER_CHILD_PADDING,
+        );
+        const relativeY = Math.max(
+          absoluteDraggedPosition.y - parentPosition.y,
+          CONTAINER_HEADER_HEIGHT + CONTAINER_CHILD_PADDING,
+        );
+        setNodes((previousNodes) => {
+          const nextNodes = previousNodes.map((previousNode) => {
+            if (previousNode.id !== draggedNode.id) return previousNode;
+            return {
+              ...previousNode,
+              parentNode: bestParent.id,
+              position: { x: relativeX, y: relativeY },
+              data: {
+                ...previousNode.data,
+                config: {
+                  ...previousNode.data.config,
+                  parentId: bestParent.id,
+                },
+              },
+            };
+          });
+          return adjustParentSizes(nextNodes);
+        });
+        return;
+      }
+
+      if (!draggedNode.parentNode) return;
+
+      setNodes((previousNodes) =>
+        previousNodes.map((previousNode) => {
           if (previousNode.id !== draggedNode.id) return previousNode;
           return {
             ...previousNode,
-            parentNode: bestParent.id,
-            position: { x: relativeX, y: relativeY },
+            parentNode: undefined,
+            position: absoluteDraggedPosition,
             data: {
               ...previousNode.data,
-              config: { ...previousNode.data.config, parentId: bestParent.id },
+              config: { ...previousNode.data.config, parentId: undefined },
             },
           };
-        });
-        return adjustParentSizes(nextNodes);
-      });
-      return;
-    }
-
-    if (!draggedNode.parentNode) return;
-
-    setNodes((previousNodes) =>
-      previousNodes.map((previousNode) => {
-        if (previousNode.id !== draggedNode.id) return previousNode;
-        return {
-          ...previousNode,
-          parentNode: undefined,
-          position: absoluteDraggedPosition,
-          data: {
-            ...previousNode.data,
-            config: { ...previousNode.data.config, parentId: undefined },
-          },
-        };
-      }),
-    );
-  }, [setNodes]);
+        }),
+      );
+    },
+    [setNodes],
+  );
 
   /* Connection handlers */
   const onConnectStart = React.useCallback<OnConnectStart>((_event, params) => {
@@ -385,10 +476,17 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
       if (!connection.source || !connection.target) return;
 
       const currentNodes = nodesRef.current;
-      const sourceNode = currentNodes.find((node) => node.id === connection.source);
-      const targetNode = currentNodes.find((node) => node.id === connection.target);
+      const sourceNode = currentNodes.find(
+        (node) => node.id === connection.source,
+      );
+      const targetNode = currentNodes.find(
+        (node) => node.id === connection.target,
+      );
 
-      const isAncestor = (ancestorId: string, descendantId: string): boolean => {
+      const isAncestor = (
+        ancestorId: string,
+        descendantId: string,
+      ): boolean => {
         let current = currentNodes.find((n) => n.id === descendantId);
         while (current && current.parentNode) {
           if (current.parentNode === ancestorId) return true;
@@ -428,7 +526,8 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
         const sourceService = registry.find(sourceNode.data.serviceId);
         if (sourceService) {
           const targetServiceId = targetNode?.data.serviceId || '';
-          const isForbidden = sourceService.forbiddenRelationships?.includes(targetServiceId);
+          const isForbidden =
+            sourceService.forbiddenRelationships?.includes(targetServiceId);
           const isAllowed =
             !sourceService.allowedRelationships ||
             sourceService.allowedRelationships.includes(targetServiceId);
@@ -448,7 +547,12 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
           {
             ...connection,
             animated: false,
-            markerEnd: { type: MarkerType.ArrowClosed, width: 18, height: 18, color: '#3b82f6' },
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+              width: 18,
+              height: 18,
+              color: '#3b82f6',
+            },
             style: { stroke: '#3b82f6', strokeWidth: 2 },
             type: 'smoothstep',
           },
@@ -476,12 +580,19 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
       setLocalValidationResult({
         status: DeploymentStatus.Failed,
         lastRunAt: new Date().toISOString(),
-        logs: [createLog('error', 'Add at least one resource node before planning or deploying.')],
+        logs: [
+          createLog(
+            'error',
+            'Add at least one resource node before planning or deploying.',
+          ),
+        ],
       });
       return { valid: false, plan: nextPlan, nodes: nextNodes };
     }
 
-    if (nextNodes.some((node) => hasValidationErrors(node.data.validationErrors))) {
+    if (
+      nextNodes.some((node) => hasValidationErrors(node.data.validationErrors))
+    ) {
       setLocalValidationResult({
         status: DeploymentStatus.Failed,
         lastRunAt: new Date().toISOString(),
@@ -561,7 +672,10 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
   const handleCopySelection = React.useCallback(() => {
     const selection = cloneSelection(nodes, edges);
     if (!selection) {
-      toast({ title: 'Nothing selected', description: 'Select one or more nodes before copying.' });
+      toast({
+        title: 'Nothing selected',
+        description: 'Select one or more nodes before copying.',
+      });
       return;
     }
     dispatch(setClipboard(selection));
@@ -574,7 +688,10 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
   const handlePasteSelection = React.useCallback(() => {
     if (isLocked) return;
     if (!clipboard) {
-      toast({ title: 'Clipboard is empty', description: 'Copy a selection first to paste it into the canvas.' });
+      toast({
+        title: 'Clipboard is empty',
+        description: 'Copy a selection first to paste it into the canvas.',
+      });
       return;
     }
     pasteSelection(clipboard, setNodes, setEdges);
@@ -582,8 +699,12 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
 
   const deleteSelection = React.useCallback(() => {
     if (isLocked) return;
-    const selectedNodeIds = new Set(nodes.filter((n) => n.selected).map((n) => n.id));
-    const selectedEdgeIds = new Set(edges.filter((e) => e.selected).map((e) => e.id));
+    const selectedNodeIds = new Set(
+      nodes.filter((n) => n.selected).map((n) => n.id),
+    );
+    const selectedEdgeIds = new Set(
+      edges.filter((e) => e.selected).map((e) => e.id),
+    );
     if (selectedNodeIds.size === 0 && selectedEdgeIds.size === 0) return;
     setNodes((current) => current.filter((n) => !selectedNodeIds.has(n.id)));
     setEdges((current) =>
@@ -606,7 +727,12 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
         ...current.map((n) => ({ ...n, selected: false })),
         {
           ...withValidatedData(
-            { ...node, id: makeId(), position: { x: node.position.x + 56, y: node.position.y + 56 }, selected: true },
+            {
+              ...node,
+              id: makeId(),
+              position: { x: node.position.x + 56, y: node.position.y + 56 },
+              selected: true,
+            },
             current,
             edges,
           ),
@@ -621,7 +747,8 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
     if (!awsAccountId) {
       toast({
         title: 'AWS account required',
-        description: 'Select an AWS account in Project Settings before deploying.',
+        description:
+          'Select an AWS account in Project Settings before deploying.',
         variant: 'destructive',
       });
       dispatch(setProjectSettingsOpen(true));
@@ -639,34 +766,63 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
     }
 
     await persistDiagram(
-      currentProjectId, projectName, projectDescription, awsAccountId,
-      validatedNodes, edges, deploymentSettings, true,
+      currentProjectId,
+      projectName,
+      projectDescription,
+      awsAccountId,
+      validatedNodes,
+      edges,
+      deploymentSettings,
+      true,
     );
 
     try {
-      const deployment = await createDeploymentMutation.mutateAsync(currentProjectId);
+      const deployment =
+        await createDeploymentMutation.mutateAsync(currentProjectId);
       setLocalValidationResult(null);
       dispatch(setActiveDeploymentId(deployment.id));
-      toast({ title: 'Deployment started', description: 'The deployment process has been initiated asynchronously.' });
+      toast({
+        title: 'Deployment started',
+        description:
+          'The deployment process has been initiated asynchronously.',
+      });
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'The deployment service could not be reached.';
+        error instanceof Error
+          ? error.message
+          : 'The deployment service could not be reached.';
       setLocalValidationResult({
         status: DeploymentStatus.Failed,
         lastRunAt: new Date().toISOString(),
         logs: [createLog('error', message)],
       });
-      toast({ title: 'Deployment failed', description: message, variant: 'destructive' });
+      toast({
+        title: 'Deployment failed',
+        description: message,
+        variant: 'destructive',
+      });
     }
   }, [
-    awsAccountId, currentProjectId, projectName, projectDescription,
-    edges, deploymentSettings, validateAndPlan, persistDiagram,
-    createDeploymentMutation, dispatch,
+    awsAccountId,
+    currentProjectId,
+    projectName,
+    projectDescription,
+    edges,
+    deploymentSettings,
+    validateAndPlan,
+    persistDiagram,
+    createDeploymentMutation,
+    dispatch,
   ]);
 
   const handleTriggerAutoLayout = React.useCallback(() => {
-    updateNodesWithValidation((current) => autoLayoutDiagram(current, edgesRef.current));
-    toast({ title: 'Auto Layout Applied', description: 'Arranged nodes into clean grids and containers.' });
+    updateNodesWithValidation((current) =>
+      autoLayoutDiagram(current, edgesRef.current),
+    );
+    toast({
+      title: 'Auto Layout Applied',
+      description: 'Arranged nodes into clean grids and containers.',
+    });
   }, [updateNodesWithValidation]);
 
   const handlePlan = React.useCallback(() => {
@@ -679,19 +835,31 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
 
   const handleApplyStarter = React.useCallback(
     (starter: { nodes: DiagramNode[]; edges: DiagramEdge[] }) => {
-      updateNodesWithValidation(() => autoLayoutDiagram(starter.nodes, starter.edges));
+      updateNodesWithValidation(() =>
+        autoLayoutDiagram(starter.nodes, starter.edges),
+      );
       setEdges(starter.edges);
-      toast({ title: 'Starter Template Applied', description: 'Arranged template resources into clean grids and boundaries.' });
+      toast({
+        title: 'Starter Template Applied',
+        description:
+          'Arranged template resources into clean grids and boundaries.',
+      });
     },
     [updateNodesWithValidation, setEdges],
   );
 
   const handleSelectNode = React.useCallback(
     (nodeId: string) => {
-      setNodes((prevNodes) => prevNodes.map((node) => ({ ...node, selected: node.id === nodeId })));
+      setNodes((prevNodes) =>
+        prevNodes.map((node) => ({ ...node, selected: node.id === nodeId })),
+      );
       const targetNode = nodesRef.current.find((node) => node.id === nodeId);
       if (targetNode && reactFlowInstance) {
-        reactFlowInstance.fitView({ nodes: [targetNode], duration: 400, maxZoom: 1.2 });
+        reactFlowInstance.fitView({
+          nodes: [targetNode],
+          duration: 400,
+          maxZoom: 1.2,
+        });
       }
     },
     [setNodes, reactFlowInstance],
@@ -705,7 +873,10 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
   const confirmClearCanvas = React.useCallback(() => {
     setNodes([]);
     setEdges([]);
-    toast({ title: 'Canvas Cleared', description: 'All nodes and connections have been removed.' });
+    toast({
+      title: 'Canvas Cleared',
+      description: 'All nodes and connections have been removed.',
+    });
     setClearConfirmOpen(false);
   }, [setNodes, setEdges]);
 
@@ -725,6 +896,7 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
     handleCopySelection,
     handlePasteSelection,
     deleteSelection,
+    toggleCommentMode,
   });
 
   /* Drop from ServiceCatalog */
@@ -742,7 +914,11 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
       });
 
       updateNodesWithValidation((current) => {
-        const bestParent = findBestParentForPosition(position, serviceId, current);
+        const bestParent = findBestParentForPosition(
+          position,
+          serviceId,
+          current,
+        );
         let newNode: any;
 
         if (bestParent) {
@@ -752,8 +928,13 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
           let relativeX = position.x - parentPos.x;
           let relativeY = position.y - parentPos.y;
           if (relativeX < PADDING) relativeX = PADDING;
-          if (relativeY < HEADER_HEIGHT + PADDING) relativeY = HEADER_HEIGHT + PADDING;
-          newNode = createServiceNode(serviceId, { x: relativeX, y: relativeY }, current.length + 1);
+          if (relativeY < HEADER_HEIGHT + PADDING)
+            relativeY = HEADER_HEIGHT + PADDING;
+          newNode = createServiceNode(
+            serviceId,
+            { x: relativeX, y: relativeY },
+            current.length + 1,
+          );
           newNode.parentNode = bestParent.id;
           newNode.data.config.parentId = bestParent.id;
         } else {
@@ -779,7 +960,14 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
     (event, node) => {
       event.preventDefault();
       if (isLocked) return;
-      dispatch(setContextMenu({ nodeId: node.id, x: event.clientX, y: event.clientY }));
+      dispatch(
+        setContextMenu({
+          kind: 'node',
+          nodeId: node.id,
+          x: event.clientX,
+          y: event.clientY,
+        }),
+      );
     },
     [dispatch, isLocked],
   );
@@ -788,6 +976,26 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
     dispatch(setContextMenu(null));
     setQuickAdd(null);
   }, [dispatch]);
+
+  const handlePaneContextMenu = React.useCallback(
+    (event: React.MouseEvent | MouseEvent) => {
+      event.preventDefault();
+      if (commentMode) return;
+      const flowPosition = reactFlowInstance?.screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+      dispatch(
+        setContextMenu({
+          kind: 'pane',
+          x: event.clientX,
+          y: event.clientY,
+          flowPosition,
+        }),
+      );
+    },
+    [dispatch, reactFlowInstance, commentMode],
+  );
 
   const handleReactFlowError = React.useCallback<OnError>((id, message) => {
     if (id === '008') return;
@@ -812,6 +1020,12 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
         onSelectNode={handleSelectNode}
         onHelp={() => setHelpOpen(true)}
         onClearCanvas={handleClearCanvas}
+        commentsSidebarOpen={commentsSidebarOpen}
+        onToggleCommentsSidebar={() =>
+          dispatch(setCommentsSidebarOpen(!commentsSidebarOpen))
+        }
+        commentMode={commentMode}
+        onOpenAnnotation={handleOpenAnnotation}
       />
 
       <div className="flex flex-1 overflow-hidden">
@@ -821,7 +1035,11 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
           onAddNode={handleAddNode}
         />
 
-        <div className="relative flex-1" onDrop={handleDrop} onDragOver={handleDragOver}>
+        <div
+          className="relative flex-1"
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+        >
           <ReactFlow
             connectionMode={ConnectionMode.Loose}
             deleteKeyCode={null}
@@ -846,6 +1064,7 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
             onConnectEnd={onConnectEnd}
             onConnect={handleConnect}
             onNodeContextMenu={handleNodeContextMenu}
+            onPaneContextMenu={handlePaneContextMenu}
             onPaneClick={handlePaneClick}
             onDoubleClick={handlePaneDoubleClick}
             proOptions={PRO_OPTIONS}
@@ -854,7 +1073,9 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
               <Background
                 variant={BackgroundVariant.Dots}
                 color={
-                  theme === 'light' ? 'rgba(0, 0, 0, 0.15)' : 'rgba(255, 255, 255, 0.15)'
+                  theme === 'light'
+                    ? 'rgba(0, 0, 0, 0.15)'
+                    : 'rgba(255, 255, 255, 0.15)'
                 }
                 gap={GRID[0]}
                 size={1.1}
@@ -875,22 +1096,41 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
 
           {contextMenu && (
             <ContextMenu
+              kind={contextMenu.kind}
               x={contextMenu.x}
               y={contextMenu.y}
-              onDuplicate={() => handleDuplicateNode(contextMenu.nodeId)}
-              onDelete={() => {
-                setNodes((current) =>
-                  current.filter((node) => node.id !== contextMenu.nodeId),
-                );
-                setEdges((current) =>
-                  current.filter(
-                    (edge) =>
-                      edge.source !== contextMenu.nodeId &&
-                      edge.target !== contextMenu.nodeId,
-                  ),
-                );
+              onAddComment={() => {
+                if (contextMenu.kind === 'node' && contextMenu.nodeId) {
+                  comments.startDraftForNode(contextMenu.nodeId);
+                } else if (contextMenu.flowPosition) {
+                  comments.startDraftAtFlowPosition(contextMenu.flowPosition);
+                }
                 dispatch(setContextMenu(null));
               }}
+              onDuplicate={
+                contextMenu.kind === 'node'
+                  ? () => handleDuplicateNode(contextMenu.nodeId!)
+                  : undefined
+              }
+              onDelete={
+                contextMenu.kind === 'node'
+                  ? () => {
+                      setNodes((current) =>
+                        current.filter(
+                          (node) => node.id !== contextMenu.nodeId,
+                        ),
+                      );
+                      setEdges((current) =>
+                        current.filter(
+                          (edge) =>
+                            edge.source !== contextMenu.nodeId &&
+                            edge.target !== contextMenu.nodeId,
+                        ),
+                      );
+                      dispatch(setContextMenu(null));
+                    }
+                  : undefined
+              }
             />
           )}
 
@@ -902,7 +1142,16 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
               onClose={() => setQuickAdd(null)}
             />
           )}
+
+          <CommentLayer
+            comments={comments}
+            commentMode={commentMode}
+            nodes={nodes}
+            edges={edges}
+          />
         </div>
+
+        {commentsSidebarOpen && <CommentsSidebar comments={comments} />}
 
         {selectedNode && (
           <NodeInspector
@@ -920,10 +1169,14 @@ export function CanvasEditor({ initialProject, onNavigateHome }: CanvasEditorPro
         open={deployDrawerOpen}
         onClose={() => dispatch(setDeployDrawerOpen(false))}
         deploymentSettings={deploymentSettings}
-        onSettingsChange={(settings) => dispatch(setDeploymentSettings(settings))}
+        onSettingsChange={(settings) =>
+          dispatch(setDeploymentSettings(settings))
+        }
         deploymentResult={deploymentResult}
         planSummary={enrichedPlanSummary}
-        onDeploy={() => { void handleDeploy(); }}
+        onDeploy={() => {
+          void handleDeploy();
+        }}
         onPlan={validateAndPlan}
         onOpenProjectSettings={() => dispatch(setProjectSettingsOpen(true))}
         awsAccountId={awsAccountId}

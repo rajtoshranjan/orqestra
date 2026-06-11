@@ -53,9 +53,7 @@ export function EcsClusterInspector({
         </InspectorField>
 
         <InspectorField label="Launch Type" error={errors.launchType?.message}>
-          <Select
-            {...register('launchType')}
-          >
+          <Select {...register('launchType')}>
             <option value="FARGATE">Fargate</option>
             <option value="EC2">EC2</option>
             <option value="EXTERNAL">External</option>

@@ -27,7 +27,15 @@ export function useEnrichedEdges({ edges, nodes }: UseEnrichedEdgesOptions) {
       let strokeDasharray: string | undefined = undefined;
 
       if (targetSvc === 'lambda') {
-        const triggers = ['api-gateway', 'sqs', 'sns', 'dynamodb', 's3', 'eventbridge', 'kinesis'];
+        const triggers = [
+          'api-gateway',
+          'sqs',
+          'sns',
+          'dynamodb',
+          's3',
+          'eventbridge',
+          'kinesis',
+        ];
         if (triggers.includes(sourceSvc)) {
           label = 'Triggers';
           animated = true;
@@ -51,7 +59,9 @@ export function useEnrichedEdges({ edges, nodes }: UseEnrichedEdgesOptions) {
         } else if (['vpc', 'subnet', 'security-group'].includes(targetSvc)) {
           label = 'Hosted In';
           stroke = '#10b981';
-        } else if (['sqs', 'sns', 'eventbridge', 'lambda'].includes(targetSvc)) {
+        } else if (
+          ['sqs', 'sns', 'eventbridge', 'lambda'].includes(targetSvc)
+        ) {
           label = 'Routes To';
           animated = true;
           stroke = '#8b5cf6';

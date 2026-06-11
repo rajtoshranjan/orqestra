@@ -64,9 +64,7 @@ export function ElasticBeanstalkInspector({
           label="Environment Tier"
           error={errors.environmentTier?.message}
         >
-          <Select
-            {...register('environmentTier')}
-          >
+          <Select {...register('environmentTier')}>
             <option value="WebServer">WebServer</option>
             <option value="Worker">Worker</option>
           </Select>

@@ -9,7 +9,10 @@ import {
 } from '@/utils';
 
 type CanvasEmptyStateProps = {
-  onApplyStarter: (starter: { nodes: DiagramNode[]; edges: DiagramEdge[] }) => void;
+  onApplyStarter: (starter: {
+    nodes: DiagramNode[];
+    edges: DiagramEdge[];
+  }) => void;
 };
 
 export function CanvasEmptyState({ onApplyStarter }: CanvasEmptyStateProps) {
@@ -26,28 +29,32 @@ export function CanvasEmptyState({ onApplyStarter }: CanvasEmptyStateProps) {
   const starters = [
     {
       title: 'Serverless REST API',
-      description: 'API Gateway, Lambda, and DynamoDB for serverless workloads.',
+      description:
+        'API Gateway, Lambda, and DynamoDB for serverless workloads.',
       Icon: LambdaIcon,
       color: lambdaSvc?.accentColor || '#3b82f6',
       create: createServerlessApiTemplate,
     },
     {
       title: 'Event-Driven Processor',
-      description: 'Asynchronous processing using S3 events, SNS topics, and SQS queues.',
+      description:
+        'Asynchronous processing using S3 events, SNS topics, and SQS queues.',
       Icon: S3Icon,
       color: s3Svc?.accentColor || '#f59e0b',
       create: createEventDrivenTemplate,
     },
     {
       title: 'Secure VPC Network',
-      description: 'Standard multi-tier layout with Public and Private Subnets in a VPC.',
+      description:
+        'Standard multi-tier layout with Public and Private Subnets in a VPC.',
       Icon: VpcIcon,
       color: vpcSvc?.accentColor || '#10b981',
       create: createSecureVpcTemplate,
     },
     {
       title: 'Microservices Pipeline',
-      description: 'API Proxy routing to private Lambda workers orchestrated via Step Functions.',
+      description:
+        'API Proxy routing to private Lambda workers orchestrated via Step Functions.',
       Icon: SfIcon,
       color: sfSvc?.accentColor || '#8b5cf6',
       create: createMicroservicesTemplate,
@@ -62,7 +69,8 @@ export function CanvasEmptyState({ onApplyStarter }: CanvasEmptyStateProps) {
             Design Your Cloud Infrastructure
           </h1>
           <p className="mx-auto mt-2 max-w-lg text-sm text-muted-foreground">
-            Choose a production-grade starter template below to begin designing your architecture.
+            Choose a production-grade starter template below to begin designing
+            your architecture.
           </p>
         </div>
 

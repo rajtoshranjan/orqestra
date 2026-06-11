@@ -1,11 +1,11 @@
 import React from 'react';
+import { isDiagramStructureEqual } from './canvas-utils';
 import type { DiagramNode, DiagramEdge, DeploymentSettings } from '@/types';
 import { serializeDiagram } from '@/utils';
 import { setLastSavedAt } from '@/store/editor-slice';
 import { useAppDispatch } from '@/store';
 import { useUpdateProject } from '@/api';
 import { toast } from '@/hooks/use-toast';
-import { isDiagramStructureEqual } from './canvas-utils';
 
 export type OriginalProjectSnapshot = {
   nodes: DiagramNode[];
@@ -64,7 +64,10 @@ export function useCanvasPersistence({
       });
 
       try {
-        await updateProjectMutation.mutateAsync({ projectId: nextProjectId, data: payload });
+        await updateProjectMutation.mutateAsync({
+          projectId: nextProjectId,
+          data: payload,
+        });
         dispatch(setLastSavedAt(timestamp));
 
         originalProjectRef.current = {
@@ -79,7 +82,8 @@ export function useCanvasPersistence({
         if (!silent) {
           toast({
             title: 'Project saved',
-            description: 'The current architecture project has been saved to the server.',
+            description:
+              'The current architecture project has been saved to the server.',
           });
         }
       } catch (err) {

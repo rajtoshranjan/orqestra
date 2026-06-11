@@ -53,9 +53,7 @@ export function NetworkAclInspector({
           label="Default Action"
           error={errors.defaultAction?.message}
         >
-          <Select
-            {...register('defaultAction')}
-          >
+          <Select {...register('defaultAction')}>
             <option value="deny">Deny</option>
             <option value="allow">Allow</option>
           </Select>

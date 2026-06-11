@@ -64,9 +64,7 @@ export function CodeBuildInspector({
           label="Compute Type"
           error={errors.computeType?.message}
         >
-          <Select
-            {...register('computeType')}
-          >
+          <Select {...register('computeType')}>
             <option value="BUILD_GENERAL1_SMALL">Small</option>
             <option value="BUILD_GENERAL1_MEDIUM">Medium</option>
             <option value="BUILD_GENERAL1_LARGE">Large</option>

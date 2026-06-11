@@ -1,6 +1,10 @@
 import type { Node } from 'reactflow';
 import type { ServiceNodeData, DiagramNode, DiagramEdge } from '@/types';
-import { countNodeErrors, getNodeAbsolutePosition, getNodeDimensions } from '@/utils';
+import {
+  countNodeErrors,
+  getNodeAbsolutePosition,
+  getNodeDimensions,
+} from '@/utils';
 import { registry } from '@/services';
 
 export const PRO_OPTIONS = { hideAttribution: true };
@@ -64,8 +68,14 @@ export const findBestParentForDraggedNode = (
   draggedNode: DiagramNode,
   currentNodes: DiagramNode[],
 ): DragParentLookupResult => {
-  const nodesWithDraggedNode = getNodesWithDraggedNode(draggedNode, currentNodes);
-  const absoluteDraggedPosition = getNodeAbsolutePosition(draggedNode, nodesWithDraggedNode);
+  const nodesWithDraggedNode = getNodesWithDraggedNode(
+    draggedNode,
+    currentNodes,
+  );
+  const absoluteDraggedPosition = getNodeAbsolutePosition(
+    draggedNode,
+    nodesWithDraggedNode,
+  );
   const draggedDimensions = getNodeDimensions(draggedNode);
   const center = {
     x: absoluteDraggedPosition.x + draggedDimensions.width / 2,
@@ -80,9 +90,13 @@ export const findBestParentForDraggedNode = (
 
     const service = registry.find(candidateNode.data.serviceId);
     if (!service || !service.isContainer) continue;
-    if (!childService?.allowedParents?.includes(candidateNode.data.serviceId)) continue;
+    if (!childService?.allowedParents?.includes(candidateNode.data.serviceId))
+      continue;
 
-    const parentPosition = getNodeAbsolutePosition(candidateNode, nodesWithDraggedNode);
+    const parentPosition = getNodeAbsolutePosition(
+      candidateNode,
+      nodesWithDraggedNode,
+    );
     const parentDimensions = getNodeDimensions(candidateNode);
 
     const isWithinParent =
@@ -98,7 +112,10 @@ export const findBestParentForDraggedNode = (
       continue;
     }
 
-    const bestParentPosition = getNodeAbsolutePosition(bestParent, nodesWithDraggedNode);
+    const bestParentPosition = getNodeAbsolutePosition(
+      bestParent,
+      nodesWithDraggedNode,
+    );
     if (
       parentPosition.x > bestParentPosition.x ||
       parentPosition.y > bestParentPosition.y
@@ -124,9 +141,11 @@ export const isDiagramStructureEqual = (
     const nB = nodesB.find((n) => n.id === nA.id);
     if (!nB) return false;
     if (nA.parentNode !== nB.parentNode) return false;
-    if (nA.position.x !== nB.position.x || nA.position.y !== nB.position.y) return false;
+    if (nA.position.x !== nB.position.x || nA.position.y !== nB.position.y)
+      return false;
     if (nA.width !== nB.width || nA.height !== nB.height) return false;
-    if (JSON.stringify(nA.data.config) !== JSON.stringify(nB.data.config)) return false;
+    if (JSON.stringify(nA.data.config) !== JSON.stringify(nB.data.config))
+      return false;
   }
 
   for (let i = 0; i < edgesA.length; i++) {

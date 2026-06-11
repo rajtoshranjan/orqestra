@@ -63,9 +63,7 @@ export function WafInspector({
         </InspectorField>
 
         <InspectorField label="Scope" error={errors.scope?.message}>
-          <Select
-            {...register('scope')}
-          >
+          <Select {...register('scope')}>
             {SCOPE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -78,9 +76,7 @@ export function WafInspector({
           label="Default Action"
           error={errors.defaultAction?.message}
         >
-          <Select
-            {...register('defaultAction')}
-          >
+          <Select {...register('defaultAction')}>
             {DEFAULT_ACTION_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}

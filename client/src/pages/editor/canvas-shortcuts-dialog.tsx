@@ -1,5 +1,10 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui';
 import type { CanvasShortcut } from './canvas-utils';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui';
 
 type CanvasShortcutsDialogProps = {
   open: boolean;
@@ -45,7 +50,9 @@ export function CanvasShortcutsDialog({
                     if (shortcut.meta) displayKeys.push('⌘');
                     if (shortcut.alt) displayKeys.push('⌥');
                     if (shortcut.shift) displayKeys.push('⇧');
-                    displayKeys.push(shortcut.key === ' ' ? 'Space' : shortcut.key);
+                    displayKeys.push(
+                      shortcut.key === ' ' ? 'Space' : shortcut.key,
+                    );
 
                     return (
                       <div

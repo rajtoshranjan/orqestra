@@ -70,9 +70,7 @@ export function AppSyncInspector({
         </InspectorField>
 
         <InspectorField label="API Type" error={errors.apiType?.message}>
-          <Select
-            {...register('apiType')}
-          >
+          <Select {...register('apiType')}>
             {API_TYPE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -85,9 +83,7 @@ export function AppSyncInspector({
           label="Authentication"
           error={errors.authenticationType?.message}
         >
-          <Select
-            {...register('authenticationType')}
-          >
+          <Select {...register('authenticationType')}>
             {AUTHENTICATION_TYPE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}

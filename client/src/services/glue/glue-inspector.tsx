@@ -77,9 +77,7 @@ export function GlueInspector({
           label="Data Source Type"
           error={errors.dataSourceType?.message}
         >
-          <Select
-            {...register('dataSourceType')}
-          >
+          <Select {...register('dataSourceType')}>
             {DATA_SOURCE_TYPE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}

@@ -3,6 +3,7 @@ import {
   Grid3x3,
   Loader2,
   Lock,
+  MessageSquare,
   PencilLine,
   Rocket,
   Sparkles,
@@ -30,6 +31,7 @@ import {
   DropdownMenuItem,
 } from '@/components/ui';
 import { ProjectSettingsModal } from '@/pages/editor/project-settings-modal';
+import { ProjectNotificationsBell } from '@/pages/editor/comments/notifications-bell';
 import { cn } from '@/lib/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setIsLocked, setSnapToGrid } from '@/store/editor-slice';
@@ -61,6 +63,10 @@ export type EditorToolbarProps = {
   onSelectNode?: (nodeId: string) => void;
   onHelp?: () => void;
   onClearCanvas?: () => void;
+  commentsSidebarOpen?: boolean;
+  onToggleCommentsSidebar?: () => void;
+  commentMode?: boolean;
+  onOpenAnnotation?: (annotationId: string, projectId: string) => void;
 };
 
 function EditorToolbarComponent({
@@ -72,6 +78,10 @@ function EditorToolbarComponent({
   onSelectNode,
   onHelp,
   onClearCanvas,
+  commentsSidebarOpen = false,
+  onToggleCommentsSidebar,
+  commentMode = false,
+  onOpenAnnotation,
 }: EditorToolbarProps) {
   const dispatch = useAppDispatch();
 
@@ -349,6 +359,34 @@ function EditorToolbarComponent({
             </TooltipContent>
           </Tooltip>
 
+          {/* Comments Sidebar */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onToggleCommentsSidebar}
+                aria-label={
+                  commentsSidebarOpen ? 'Hide comments' : 'Show comments'
+                }
+                aria-pressed={commentsSidebarOpen || commentMode}
+                className={cn(
+                  'h-8 w-8 text-muted-foreground transition-all duration-200',
+                  (commentsSidebarOpen || commentMode) &&
+                    'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
+                )}
+                title="Toggle Comments Panel"
+              >
+                <MessageSquare size={15} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">
+              {commentsSidebarOpen
+                ? 'Hide Comments Panel'
+                : 'Show Comments Panel'}
+            </TooltipContent>
+          </Tooltip>
+
           {/* Canvas Actions Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -383,6 +421,11 @@ function EditorToolbarComponent({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {/* Notifications */}
+          {onOpenAnnotation && (
+            <ProjectNotificationsBell onOpenAnnotation={onOpenAnnotation} />
+          )}
 
           {/* Help Shortcuts Button */}
           <Tooltip>

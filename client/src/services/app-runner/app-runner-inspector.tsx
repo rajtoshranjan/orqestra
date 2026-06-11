@@ -53,9 +53,7 @@ export function AppRunnerInspector({
         </InspectorField>
 
         <InspectorField label="CPU" error={errors.cpu?.message}>
-          <Select
-            {...register('cpu')}
-          >
+          <Select {...register('cpu')}>
             <option value="0.25 vCPU">0.25 vCPU</option>
             <option value="0.5 vCPU">0.5 vCPU</option>
             <option value="1 vCPU">1 vCPU</option>
@@ -64,9 +62,7 @@ export function AppRunnerInspector({
         </InspectorField>
 
         <InspectorField label="Memory" error={errors.memory?.message}>
-          <Select
-            {...register('memory')}
-          >
+          <Select {...register('memory')}>
             <option value="0.5 GB">0.5 GB</option>
             <option value="1 GB">1 GB</option>
             <option value="2 GB">2 GB</option>

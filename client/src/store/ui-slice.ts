@@ -1,12 +1,17 @@
 import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import type { ContextMenuState } from '@/types';
+import type { AnnotationFilters, ContextMenuState } from '@/types';
 
 type UiState = {
   deployDrawerOpen: boolean;
   projectSettingsOpen: boolean;
   contextMenu: ContextMenuState | null;
   theme: 'dark' | 'light';
+  commentMode: boolean;
+  reviewMode: boolean;
+  commentsSidebarOpen: boolean;
+  activeAnnotationId: string | null;
+  annotationFilters: AnnotationFilters;
 };
 
 const getInitialTheme = (): 'dark' | 'light' => {
@@ -21,6 +26,11 @@ const initialState: UiState = {
   projectSettingsOpen: false,
   contextMenu: null,
   theme: getInitialTheme(),
+  commentMode: false,
+  reviewMode: false,
+  commentsSidebarOpen: false,
+  activeAnnotationId: null,
+  annotationFilters: { status: 'open', onlyMine: false, onlyMentions: false },
 };
 
 export const uiSlice = createSlice({
@@ -49,6 +59,36 @@ export const uiSlice = createSlice({
         localStorage.setItem('theme', nextTheme);
       }
     },
+    setCommentMode: (state, action: PayloadAction<boolean>) => {
+      state.commentMode = action.payload;
+    },
+    toggleReviewMode: (state) => {
+      state.reviewMode = !state.reviewMode;
+      if (state.reviewMode) {
+        state.commentsSidebarOpen = true;
+        state.annotationFilters.status = 'all';
+      } else if (state.annotationFilters.status === 'all') {
+        state.annotationFilters.status = 'open';
+      }
+    },
+    setCommentsSidebarOpen: (state, action: PayloadAction<boolean>) => {
+      state.commentsSidebarOpen = action.payload;
+      if (!action.payload) {
+        state.reviewMode = false;
+      }
+    },
+    setActiveAnnotationId: (state, action: PayloadAction<string | null>) => {
+      state.activeAnnotationId = action.payload;
+    },
+    setAnnotationFilters: (
+      state,
+      action: PayloadAction<Partial<AnnotationFilters>>,
+    ) => {
+      state.annotationFilters = {
+        ...state.annotationFilters,
+        ...action.payload,
+      };
+    },
   },
 });
 
@@ -58,6 +98,11 @@ export const {
   setContextMenu,
   setTheme,
   toggleTheme,
+  setCommentMode,
+  toggleReviewMode,
+  setCommentsSidebarOpen,
+  setActiveAnnotationId,
+  setAnnotationFilters,
 } = uiSlice.actions;
 
 export default uiSlice.reducer;

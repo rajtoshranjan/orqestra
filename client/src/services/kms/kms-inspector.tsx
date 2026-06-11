@@ -66,9 +66,7 @@ export function KMSInspector({
         </InspectorField>
 
         <InspectorField label="Key Usage" error={errors.keyUsage?.message}>
-          <Select
-            {...register('keyUsage')}
-          >
+          <Select {...register('keyUsage')}>
             {KEY_USAGE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}

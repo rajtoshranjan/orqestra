@@ -62,9 +62,7 @@ export function EBSInspector({
         </InspectorField>
 
         <InspectorField label="Volume Type" error={errors.volumeType?.message}>
-          <Select
-            {...register('volumeType')}
-          >
+          <Select {...register('volumeType')}>
             {VOLUME_TYPE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}

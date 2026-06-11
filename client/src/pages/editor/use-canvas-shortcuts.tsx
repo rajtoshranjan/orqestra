@@ -1,14 +1,18 @@
 import React from 'react';
 import { Lock, Unlock, Grid } from 'lucide-react';
 import type { ReactFlowInstance } from 'reactflow';
+import type { CanvasShortcut } from './canvas-utils';
 import type { ServiceNodeData, DiagramNode } from '@/types';
 import { useKeyboardShortcuts } from '@/hooks';
 import { useAppDispatch } from '@/store';
 import { setIsLocked, setSnapToGrid } from '@/store/editor-slice';
 import { toast } from '@/hooks/use-toast';
-import type { CanvasShortcut } from './canvas-utils';
 
-type QuickAddState = { x: number; y: number; flowPosition: { x: number; y: number } };
+type QuickAddState = {
+  x: number;
+  y: number;
+  flowPosition: { x: number; y: number };
+};
 
 type UseCanvasShortcutsOptions = {
   isLocked: boolean;
@@ -25,6 +29,7 @@ type UseCanvasShortcutsOptions = {
   handleCopySelection: () => void;
   handlePasteSelection: () => void;
   deleteSelection: () => void;
+  toggleCommentMode: () => void;
 };
 
 export function useCanvasShortcuts({
@@ -42,6 +47,7 @@ export function useCanvasShortcuts({
   handleCopySelection,
   handlePasteSelection,
   deleteSelection,
+  toggleCommentMode,
 }: UseCanvasShortcutsOptions): CanvasShortcut[] {
   const dispatch = useAppDispatch();
 
@@ -126,7 +132,9 @@ export function useCanvasShortcuts({
         description: 'Select all resource nodes on the canvas',
         category: 'edit',
         handler: () => {
-          setNodes((prevNodes) => prevNodes.map((node) => ({ ...node, selected: true })));
+          setNodes((prevNodes) =>
+            prevNodes.map((node) => ({ ...node, selected: true })),
+          );
         },
         disabled: isLocked,
       },
@@ -146,6 +154,12 @@ export function useCanvasShortcuts({
         disabled: isLocked,
       },
       {
+        key: 'c',
+        description: 'Toggle comment mode (click anywhere to comment)',
+        category: 'canvas',
+        handler: toggleCommentMode,
+      },
+      {
         key: '1',
         description: 'Zoom to fit entire architecture in the view',
         category: 'view',
@@ -158,7 +172,9 @@ export function useCanvasShortcuts({
         description: 'Zoom to fit currently selected resources',
         category: 'view',
         handler: () => {
-          const selected = (nodesRef.current ?? []).filter((node) => node.selected);
+          const selected = (nodesRef.current ?? []).filter(
+            (node) => node.selected,
+          );
           if (selected.length > 0) {
             reactFlowInstance?.fitView({ nodes: selected, duration: 400 });
           } else {
@@ -189,7 +205,9 @@ export function useCanvasShortcuts({
         category: 'general',
         handler: () => {
           setQuickAdd(null);
-          setNodes((prevNodes) => prevNodes.map((node) => ({ ...node, selected: false })));
+          setNodes((prevNodes) =>
+            prevNodes.map((node) => ({ ...node, selected: false })),
+          );
         },
       },
       {
@@ -211,6 +229,7 @@ export function useCanvasShortcuts({
       handleCopySelection,
       handlePasteSelection,
       deleteSelection,
+      toggleCommentMode,
       dispatch,
       setNodes,
       setQuickAdd,

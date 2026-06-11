@@ -56,9 +56,7 @@ export function BatchInspector({
           label="Compute Type"
           error={errors.computeType?.message}
         >
-          <Select
-            {...register('computeType')}
-          >
+          <Select {...register('computeType')}>
             <option value="FARGATE">Fargate</option>
             <option value="EC2">EC2</option>
             <option value="SPOT">Spot</option>

@@ -56,9 +56,7 @@ export function CodeDeployInspector({
           label="Compute Platform"
           error={errors.computePlatform?.message}
         >
-          <Select
-            {...register('computePlatform')}
-          >
+          <Select {...register('computePlatform')}>
             <option value="ECS">ECS</option>
             <option value="Lambda">Lambda</option>
             <option value="Server">Server</option>

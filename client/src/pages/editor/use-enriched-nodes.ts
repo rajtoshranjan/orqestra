@@ -1,9 +1,9 @@
 import React from 'react';
+import type { DeploymentNodeStatus } from './canvas-utils';
 import type { DiagramNode } from '@/types';
 import { getDescendants } from '@/utils';
 import { registry } from '@/services';
 import { cn } from '@/lib/utils';
-import type { DeploymentNodeStatus } from './canvas-utils';
 
 type UseEnrichedNodesOptions = {
   nodes: DiagramNode[];
@@ -67,8 +67,11 @@ export function useEnrichedNodes({
       let deploymentStatus: DeploymentNodeStatus = 'not_deployed';
       if (lastDeployedNode) {
         const currentConfigStr = JSON.stringify(node.data?.config || {});
-        const deployedConfigStr = JSON.stringify(lastDeployedNode.data?.config || {});
-        deploymentStatus = currentConfigStr === deployedConfigStr ? 'deployed' : 'dirty';
+        const deployedConfigStr = JSON.stringify(
+          lastDeployedNode.data?.config || {},
+        );
+        deploymentStatus =
+          currentConfigStr === deployedConfigStr ? 'deployed' : 'dirty';
       }
 
       let isValidTarget = true;
@@ -77,7 +80,8 @@ export function useEnrichedNodes({
           isValidTarget = false;
         } else if (sourceService) {
           const targetServiceId = node.data.serviceId;
-          const isForbidden = sourceService.forbiddenRelationships?.includes(targetServiceId);
+          const isForbidden =
+            sourceService.forbiddenRelationships?.includes(targetServiceId);
           const isAllowed =
             !sourceService.allowedRelationships ||
             sourceService.allowedRelationships.includes(targetServiceId);
@@ -87,7 +91,9 @@ export function useEnrichedNodes({
 
       const isDragOver = dragOverNodeId === node.id;
       const connectionClass =
-        connectingSource && !isValidTarget ? 'opacity-30 pointer-events-none' : '';
+        connectingSource && !isValidTarget
+          ? 'opacity-30 pointer-events-none'
+          : '';
 
       return {
         ...node,
@@ -131,7 +137,13 @@ export function useEnrichedNodes({
     return layeredNodes.sort(
       (a, b) => (depths.get(a.id) || 0) - (depths.get(b.id) || 0),
     );
-  }, [nodes, deployedGraphNodes, connectingSource, dragOverNodeId, handleToggleCollapse]);
+  }, [
+    nodes,
+    deployedGraphNodes,
+    connectingSource,
+    dragOverNodeId,
+    handleToggleCollapse,
+  ]);
 
   return { enrichedNodes, handleToggleCollapse };
 }

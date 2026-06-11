@@ -75,9 +75,7 @@ export function AthenaInspector({
           label="Engine Version"
           error={errors.engineVersion?.message}
         >
-          <Select
-            {...register('engineVersion')}
-          >
+          <Select {...register('engineVersion')}>
             {ENGINE_VERSION_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}

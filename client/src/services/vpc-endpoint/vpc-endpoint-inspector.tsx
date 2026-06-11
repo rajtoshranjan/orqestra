@@ -65,9 +65,7 @@ export function VpcEndpointInspector({
           label="Endpoint Type"
           error={errors.endpointType?.message}
         >
-          <Select
-            {...register('endpointType')}
-          >
+          <Select {...register('endpointType')}>
             {ENDPOINT_TYPE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}

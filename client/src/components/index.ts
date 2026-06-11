@@ -6,3 +6,4 @@ export * from './base-container-node';
 export * from './base-inspector';
 export * from './app-sidebar';
 export * from './app-header';
+export * from './notifications-bell';

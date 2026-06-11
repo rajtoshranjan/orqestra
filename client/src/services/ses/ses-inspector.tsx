@@ -64,9 +64,7 @@ export function SesInspector({
           label="Identity Type"
           error={errors.identityType?.message}
         >
-          <Select
-            {...register('identityType')}
-          >
+          <Select {...register('identityType')}>
             {IDENTITY_TYPE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}

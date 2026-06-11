@@ -1,6 +1,8 @@
 from django.db.models import Q
+from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from .constants import OrganisationMemberRole
@@ -68,6 +70,35 @@ class OrganisationViewSet(ModelViewSet):
         if instance.owner != self.request.user:
             raise PermissionDenied("Only the owner can delete this organisation.")
         instance.delete()
+
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="mentionable-users",
+        permission_classes=[IsOrganisationMember],
+    )
+    def mentionable_users(self, request):
+        """Users who can be @mentioned in the active organisation: owner + members."""
+        org = get_active_organisation(request)
+        users = [
+            {
+                "id": str(org.owner_id),
+                "name": org.owner.name,
+                "email": org.owner.email,
+                "role": "owner",
+            }
+        ]
+        members = org.members.select_related("user").exclude(user=org.owner)
+        users.extend(
+            {
+                "id": str(member.user_id),
+                "name": member.user.name,
+                "email": member.user.email,
+                "role": member.role,
+            }
+            for member in members
+        )
+        return Response(users)
 
 
 class OrganisationMemberViewSet(ModelViewSet):

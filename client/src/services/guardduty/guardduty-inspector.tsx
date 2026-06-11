@@ -68,9 +68,7 @@ export function GuardDutyInspector({
           label="Finding Publishing Frequency"
           error={errors.findingPublishingFrequency?.message}
         >
-          <Select
-            {...register('findingPublishingFrequency')}
-          >
+          <Select {...register('findingPublishingFrequency')}>
             {FINDING_PUBLISHING_FREQUENCY_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}

@@ -73,9 +73,7 @@ export function CloudTrailInspector({
           label="Management Events"
           error={errors.managementEvents?.message}
         >
-          <Select
-            {...register('managementEvents')}
-          >
+          <Select {...register('managementEvents')}>
             {MANAGEMENT_EVENTS_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}

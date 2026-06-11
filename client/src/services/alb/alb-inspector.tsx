@@ -60,18 +60,14 @@ export function AlbInspector({
         </InspectorField>
 
         <InspectorField label="Scheme" error={errors.scheme?.message}>
-          <Select
-            {...register('scheme')}
-          >
+          <Select {...register('scheme')}>
             <option value="internet-facing">Internet-Facing</option>
             <option value="internal">Internal</option>
           </Select>
         </InspectorField>
 
         <InspectorField label="Type" error={errors.lbType?.message}>
-          <Select
-            {...register('lbType')}
-          >
+          <Select {...register('lbType')}>
             <option value="application">Application</option>
             <option value="network">Network</option>
           </Select>

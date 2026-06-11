@@ -60,9 +60,7 @@ export function RDSInspector({
         </InspectorField>
 
         <InspectorField label="Engine" error={errors.engine?.message}>
-          <Select
-            {...register('engine')}
-          >
+          <Select {...register('engine')}>
             {ENGINE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}

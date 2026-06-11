@@ -56,9 +56,7 @@ export function CodePipelineInspector({
           label="Pipeline Type"
           error={errors.pipelineType?.message}
         >
-          <Select
-            {...register('pipelineType')}
-          >
+          <Select {...register('pipelineType')}>
             <option value="V2">V2</option>
             <option value="V1">V1</option>
           </Select>

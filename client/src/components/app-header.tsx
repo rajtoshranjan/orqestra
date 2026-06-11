@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 
+import { NotificationsBell } from './notifications-bell';
 import { useGetUserInfo, useOrganisations } from '@/api/auth';
 import { logout } from '@/api/client';
 import { history } from '@/lib/utils';
@@ -86,55 +87,58 @@ export function AppHeader() {
         </span>
       </div>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            className="group flex h-8 items-center gap-2 rounded-full border border-border bg-[var(--color-bg-surface)] pl-1.5 pr-3 text-xs font-semibold text-muted-foreground shadow-sm transition-all hover:bg-accent/50 hover:text-foreground"
+      <div className="flex items-center gap-2">
+        <NotificationsBell />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="group flex h-8 items-center gap-2 rounded-full border border-border bg-[var(--color-bg-surface)] pl-1.5 pr-3 text-xs font-semibold text-muted-foreground shadow-sm transition-all hover:bg-accent/50 hover:text-foreground"
+            >
+              <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-[10px] font-bold text-primary">
+                {getInitials(user?.name)}
+              </span>
+              <span className="hidden max-w-[100px] truncate text-left font-medium text-foreground sm:inline">
+                {user ? user.name : 'Profile'}
+              </span>
+              <ChevronDown className="size-3 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-y-0.5" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            className="w-48 border-border bg-[var(--color-bg-surface)] text-foreground"
+            align="end"
           >
-            <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-[10px] font-bold text-primary">
-              {getInitials(user?.name)}
-            </span>
-            <span className="hidden max-w-[100px] truncate text-left font-medium text-foreground sm:inline">
-              {user ? user.name : 'Profile'}
-            </span>
-            <ChevronDown className="size-3 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-y-0.5" />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
-          className="w-48 border-border bg-[var(--color-bg-surface)] text-foreground"
-          align="end"
-        >
-          {user && (
-            <>
-              <div className="px-2.5 py-2">
-                <p className="truncate text-xs font-bold text-foreground">
-                  {user.name}
-                </p>
-                <p className="mt-0.5 truncate text-[10px] text-muted-foreground">
-                  {user.email}
-                </p>
-              </div>
-              <DropdownMenuSeparator className="bg-border" />
-            </>
-          )}
-          <DropdownMenuItem
-            onClick={() => history.push('/preferences')}
-            className="flex cursor-pointer items-center gap-2 px-2.5 py-2 text-xs text-foreground hover:bg-accent/50 focus:bg-accent/50"
-          >
-            <SettingsIcon className="size-3.5" />
-            Preferences
-          </DropdownMenuItem>
-          <DropdownMenuSeparator className="bg-border" />
-          <DropdownMenuItem
-            onClick={logout}
-            className="flex cursor-pointer items-center gap-2 px-2.5 py-2 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive focus:bg-destructive/10 focus:text-destructive"
-          >
-            <LogOut className="size-3.5" />
-            Log Out
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+            {user && (
+              <>
+                <div className="px-2.5 py-2">
+                  <p className="truncate text-xs font-bold text-foreground">
+                    {user.name}
+                  </p>
+                  <p className="mt-0.5 truncate text-[10px] text-muted-foreground">
+                    {user.email}
+                  </p>
+                </div>
+                <DropdownMenuSeparator className="bg-border" />
+              </>
+            )}
+            <DropdownMenuItem
+              onClick={() => history.push('/preferences')}
+              className="flex cursor-pointer items-center gap-2 px-2.5 py-2 text-xs text-foreground hover:bg-accent/50 focus:bg-accent/50"
+            >
+              <SettingsIcon className="size-3.5" />
+              Preferences
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-border" />
+            <DropdownMenuItem
+              onClick={logout}
+              className="flex cursor-pointer items-center gap-2 px-2.5 py-2 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive focus:bg-destructive/10 focus:text-destructive"
+            >
+              <LogOut className="size-3.5" />
+              Log Out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </header>
   );
 }

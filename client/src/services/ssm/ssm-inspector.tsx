@@ -71,9 +71,7 @@ export function SsmInspector({
           label="Parameter Type"
           error={errors.parameterType?.message}
         >
-          <Select
-            {...register('parameterType')}
-          >
+          <Select {...register('parameterType')}>
             {PARAMETER_TYPE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -83,9 +81,7 @@ export function SsmInspector({
         </InspectorField>
 
         <InspectorField label="Tier" error={errors.tier?.message}>
-          <Select
-            {...register('tier')}
-          >
+          <Select {...register('tier')}>
             {TIER_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}

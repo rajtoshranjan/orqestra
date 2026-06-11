@@ -11,3 +11,4 @@ export * from './cloud';
 export * from './validation-engine';
 export * from './starters';
 export * from './graph-context';
+export * from './comment-text';

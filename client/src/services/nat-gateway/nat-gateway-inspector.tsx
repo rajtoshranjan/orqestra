@@ -62,9 +62,7 @@ export function NatGatewayInspector({
           label="Connectivity Type"
           error={errors.connectivityType?.message}
         >
-          <Select
-            {...register('connectivityType')}
-          >
+          <Select {...register('connectivityType')}>
             <option value="public">Public</option>
             <option value="private">Private</option>
           </Select>
