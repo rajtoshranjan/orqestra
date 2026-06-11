@@ -222,7 +222,7 @@ export function CommentsSidebar({ comments }: CommentsSidebarProps) {
             icon={MessageSquare}
             title="No comments"
             description="Press C and click anywhere on the canvas to start a discussion."
-            size='sm'
+            size="sm"
           />
         ) : (
           sorted.map((annotation) => (
