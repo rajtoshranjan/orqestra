@@ -299,7 +299,7 @@ function EditorToolbarComponent({
                 className={cn(
                   'h-8 w-8 text-muted-foreground transition-all duration-200',
                   isLocked &&
-                    'bg-warning/20 text-warning hover:bg-warning/30 hover:text-warning',
+                  'bg-warning/20 text-warning hover:bg-warning/30 hover:text-warning',
                 )}
                 title={
                   isLocked
@@ -326,7 +326,7 @@ function EditorToolbarComponent({
                 className={cn(
                   'h-8 w-8 text-muted-foreground transition-all duration-200',
                   snapToGrid &&
-                    'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
+                  'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
                 )}
                 title="Toggle Snap to Grid (⌥G)"
               >
@@ -335,25 +335,6 @@ function EditorToolbarComponent({
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-xs">
               Toggle Snap to Grid (⌥G)
-            </TooltipContent>
-          </Tooltip>
-
-          {/* Auto Layout */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onAutoLayout}
-                aria-label="Auto layout diagram"
-                className="size-8 text-muted-foreground transition-all duration-200 hover:bg-accent/20 hover:text-primary"
-                title="Auto Layout Canvas (⌥L)"
-              >
-                <Sparkles size={15} />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="text-xs">
-              Auto Layout Canvas (⌥L)
             </TooltipContent>
           </Tooltip>
 
@@ -369,7 +350,7 @@ function EditorToolbarComponent({
                 className={cn(
                   'h-8 w-8 text-muted-foreground transition-all duration-200',
                   commentMode &&
-                    'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
+                  'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
                 )}
                 title="Toggle Comments Panel"
               >

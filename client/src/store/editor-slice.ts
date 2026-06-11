@@ -28,7 +28,7 @@ const initialState: EditorState = {
   nodes: [],
   edges: [],
   lastSavedAt: null,
-  snapToGrid: true,
+  snapToGrid: false,
   isLocked: false,
   clipboard: null,
 };
