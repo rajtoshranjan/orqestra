@@ -4,6 +4,7 @@ import { registry } from '@/services';
 import { NODE_DRAG_TYPE } from '@/utils';
 import { SERVICE_CATEGORY_LABELS } from '@/services/types';
 import type { ServiceCategory, ServiceDefinition } from '@/services/types';
+import { EmptyState } from '@/components/ui';
 
 interface CustomCSSProperties extends React.CSSProperties {
   '--hover-border'?: string;
@@ -183,18 +184,12 @@ export function ServiceCatalog({
 
         {/* Empty State for Search */}
         {!collapsed && filteredServicesByCategory.size === 0 && (
-          <div className="mt-8 flex flex-col items-center justify-center px-4 text-center">
-            <div className="mb-3 flex size-10 items-center justify-center rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-base)] text-[var(--color-text-muted)]">
-              <Search className="size-5" />
-            </div>
-            <h3 className="mb-1 text-xs font-semibold text-[var(--color-text-primary)]">
-              No services found
-            </h3>
-            <p className="text-[10px] leading-relaxed text-[var(--color-text-muted)]">
-              We couldn&apos;t find any services matching &quot;{searchTerm}
-              &quot;.
-            </p>
-          </div>
+          <EmptyState
+            icon={Search}
+            title=" No services found"
+            description={`We couldn't find any services matching "${searchTerm}"`}
+            size="sm"
+          />
         )}
       </div>
     </aside>
