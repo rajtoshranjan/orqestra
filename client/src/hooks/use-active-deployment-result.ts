@@ -7,6 +7,7 @@ import { DeploymentStatus } from '@/types';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setActiveDeploymentId } from '@/store/deployment-slice';
 import { toast } from '@/hooks/use-toast';
+import { useDeploymentSubscription } from '@/hooks/use-deployment-subscription';
 
 const ACTIVE_SERVER_STATUSES = new Set([
   'pending',
@@ -94,7 +95,8 @@ export const useActiveDeploymentResult = (
   );
 
   const { data: deploymentState } = useProjectDeploymentState(projectId);
-  const { data: activeDeployment } = useDeployment(activeDeploymentId, true);
+  useDeploymentSubscription(activeDeploymentId);
+  const { data: activeDeployment } = useDeployment(activeDeploymentId);
 
   // Resume polling if the last deployment is still running on page load.
   const hasResumedRef = React.useRef(false);

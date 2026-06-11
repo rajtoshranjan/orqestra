@@ -18,11 +18,19 @@ services:
     depends_on:
       - db
       - ministack
+      - redis
     volumes:
       - ./server:/app
     ports:
       - "3001:3001"
     restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    restart: unless-stopped
+
 
   client:
     build:

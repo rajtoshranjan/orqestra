@@ -24,6 +24,7 @@ import type {
   AnnotationTargetType,
   ClientAnnotation,
 } from '@/api';
+import { useProjectSubscription } from '@/hooks/use-project-subscription';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
@@ -63,6 +64,7 @@ export const useComments = ({
   const [draft, setDraft] = useState<CommentDraft | null>(null);
 
   const { data: userInfo } = useGetUserInfo();
+  useProjectSubscription(projectId);
   const { data: annotations = [] } = useProjectAnnotations(projectId);
 
   const createAnnotationMutation = useCreateAnnotation(projectId);

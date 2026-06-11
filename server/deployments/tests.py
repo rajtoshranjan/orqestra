@@ -7,6 +7,8 @@ from rest_framework import status
 
 from .models import Deployment, DeploymentStatus, ProjectDeploymentState
 from .services import _generate_callback_token
+from organisations.models import AWSAccount
+from utils.encryption import encrypt_val
 
 
 class DeploymentTests(BaseTestCase):
@@ -14,6 +16,12 @@ class DeploymentTests(BaseTestCase):
 
     def setUp(self):
         super().setUp()
+        self.aws_account = AWSAccount.objects.create(
+            organisation=self.organisation,
+            name="Test AWS Account",
+            access_key_id=encrypt_val("test-key"),
+            secret_access_key=encrypt_val("test-secret"),
+        )
         self.project = Project.objects.create(
             organisation=self.organisation,
             name="Test Project",
@@ -21,6 +29,7 @@ class DeploymentTests(BaseTestCase):
             nodes=[self._make_valid_lambda_node("lambda-1", "test-function")],
             edges=[],
             deployment_settings={"region": "us-west-2"},
+            aws_account=self.aws_account,
         )
 
     @patch("deployments.services.requests.post")

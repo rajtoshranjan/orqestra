@@ -50,8 +50,6 @@ export function CommentComposer({
       editor.focus();
       placeCaretAtEnd(editor);
     }
-    // Only re-run when switching to a different draft/comment, not on every keystroke.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const { data: mentionableUsers } = useMentionableUsers(mentionQuery !== null);

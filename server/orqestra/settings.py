@@ -17,6 +17,7 @@ ALLOWED_HOSTS = unwrap_list(EnvVariable.ALLOWED_HOSTS.value)
 
 # Application definition
 INSTALLED_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -27,6 +28,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
+    "channels",
     # Apps.
     "accounts",
     "organisations",
@@ -34,6 +36,7 @@ INSTALLED_APPS = [
     "deployments",
     "projects",
     "annotations",
+    "realtime",
 ]
 
 MIDDLEWARE = [
@@ -66,6 +69,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "orqestra.wsgi.application"
+ASGI_APPLICATION = "orqestra.asgi.application"
 
 
 DATABASES = {
@@ -144,6 +148,16 @@ CORS_ALLOW_ALL_ORIGINS = DEBUG
 CORS_ALLOW_HEADERS = list(default_headers) + [
     "x-active-org-id",
 ]
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [(EnvVariable.REDIS_HOST.value, int(EnvVariable.REDIS_PORT.value))],
+        },
+    },
+}
+
 
 
 # Logging

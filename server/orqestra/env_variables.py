@@ -32,3 +32,8 @@ class EnvVariable(Enum):
         "DEPLOYER_LAMBDA_FUNCTION_NAME", "orqestra-deployer"
     )
     SERVER_BASE_URL = os.environ.get("SERVER_BASE_URL", "http://server:3001")
+
+    # Redis Variables
+    REDIS_HOST = os.environ.get("REDIS_HOST", "redis")
+    REDIS_PORT = os.environ.get("REDIS_PORT", "6379")
+

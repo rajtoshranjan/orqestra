@@ -61,11 +61,13 @@ export const uiSlice = createSlice({
     },
     setCommentMode: (state, action: PayloadAction<boolean>) => {
       state.commentMode = action.payload;
+      state.commentsSidebarOpen = action.payload;
     },
     toggleReviewMode: (state) => {
       state.reviewMode = !state.reviewMode;
       if (state.reviewMode) {
         state.commentsSidebarOpen = true;
+        state.commentMode = true;
         state.annotationFilters.status = 'all';
       } else if (state.annotationFilters.status === 'all') {
         state.annotationFilters.status = 'open';
@@ -73,6 +75,7 @@ export const uiSlice = createSlice({
     },
     setCommentsSidebarOpen: (state, action: PayloadAction<boolean>) => {
       state.commentsSidebarOpen = action.payload;
+      state.commentMode = action.payload;
       if (!action.payload) {
         state.reviewMode = false;
       }

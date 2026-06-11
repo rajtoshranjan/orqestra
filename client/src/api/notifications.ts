@@ -69,15 +69,11 @@ export const markNotificationsRead = async (
 
 /* React Query Hooks. */
 
-const NOTIFICATION_POLL_INTERVAL_MS = 30000;
-
 export const useNotifications = (enabled = true) => {
   return useQuery({
     queryKey: ['notifications'],
     queryFn: fetchNotifications,
     enabled,
-    refetchInterval: NOTIFICATION_POLL_INTERVAL_MS,
-    refetchIntervalInBackground: false,
   });
 };
 
@@ -85,8 +81,6 @@ export const useUnreadNotificationCount = () => {
   return useQuery({
     queryKey: ['notificationUnreadCount'],
     queryFn: fetchUnreadNotificationCount,
-    refetchInterval: NOTIFICATION_POLL_INTERVAL_MS,
-    refetchIntervalInBackground: false,
   });
 };
 

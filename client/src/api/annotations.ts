@@ -242,8 +242,6 @@ export const toggleReaction = async (input: {
 
 /* React Query Hooks. */
 
-const ANNOTATION_POLL_INTERVAL_MS = 4000;
-
 export const annotationsQueryKey = (projectId: string) =>
   ['annotations', projectId] as const;
 
@@ -258,15 +256,12 @@ export const annotationsQueryKey = (projectId: string) =>
  */
 export const useProjectAnnotations = (
   projectId: string | null,
-  options: { poll?: boolean } = {},
+  _options: { poll?: boolean } = {},
 ) => {
-  const { poll = true } = options;
   return useQuery({
     queryKey: annotationsQueryKey(projectId ?? ''),
     queryFn: () => fetchProjectAnnotations(projectId!),
     enabled: !!projectId,
-    refetchInterval: poll ? ANNOTATION_POLL_INTERVAL_MS : false,
-    refetchIntervalInBackground: false,
   });
 };
 

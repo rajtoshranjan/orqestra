@@ -4,6 +4,11 @@ django-cors-headers==4.6.0
 django-filter==24.3
 uvicorn[standard]==0.27.1
 djangorestframework-simplejwt==5.4.0
+channels==4.2.0
+channels-redis==4.2.1
+daphne==4.1.2
+redis>=5.0.0,<5.1.0
+
 
 # DB
 psycopg==3.2.4

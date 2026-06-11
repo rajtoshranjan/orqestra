@@ -176,8 +176,6 @@ export const fetchProjectDeploymentState = async (
 
 /* React Query Hooks. */
 
-const TERMINAL_STATUSES = new Set(['succeeded', 'failed']);
-
 export const useCreateDeployment = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -192,18 +190,13 @@ export const useCreateDeployment = () => {
 
 export const useDeployment = (
   deploymentId: string | null,
-  enablePolling = false,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _enablePolling = false,
 ) => {
   return useQuery({
     queryKey: ['deployment', deploymentId],
     queryFn: () => fetchDeployment(deploymentId!),
     enabled: !!deploymentId,
-    refetchInterval: (query) => {
-      if (!enablePolling) return false;
-      const status = query.state.data?.status;
-      if (status && TERMINAL_STATUSES.has(status)) return false;
-      return 2000;
-    },
   });
 };
 

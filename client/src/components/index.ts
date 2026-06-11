@@ -7,3 +7,4 @@ export * from './base-inspector';
 export * from './app-sidebar';
 export * from './app-header';
 export * from './notifications-bell';
+export * from './websocket-provider';

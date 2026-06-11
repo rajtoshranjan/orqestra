@@ -72,6 +72,16 @@ class AnnotationViewSet(viewsets.ModelViewSet):
                 "target_type": annotation.target_type,
             },
         )
+        try:
+            from realtime.events import send_annotation_event
+            send_annotation_event(
+                project_id=str(annotation.project_id),
+                event_type="updated",
+                payload={"annotation_id": str(annotation.id), "action": "create"},
+            )
+        except Exception as e:
+            logger.error(f"Failed to emit annotation event on create: {e}")
+
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -96,6 +106,16 @@ class AnnotationViewSet(viewsets.ModelViewSet):
                 actor=self.request.user,
                 event_type=AnnotationEventType.MOVED.value,
             )
+        try:
+            from realtime.events import send_annotation_event
+            send_annotation_event(
+                project_id=str(annotation.project_id),
+                event_type="updated",
+                payload={"annotation_id": str(annotation.id), "action": "update"},
+            )
+        except Exception as e:
+            logger.error(f"Failed to emit annotation event on update: {e}")
+
 
     def perform_destroy(self, instance):
         _, role = self._role()
@@ -106,6 +126,8 @@ class AnnotationViewSet(viewsets.ModelViewSet):
             "annotation_id": str(instance.id),
             "project_id": str(instance.project_id),
         }
+        project_id = str(instance.project_id)
+        annotation_id = str(instance.id)
         instance.delete()
         log_action(
             organisation=organisation,
@@ -113,6 +135,16 @@ class AnnotationViewSet(viewsets.ModelViewSet):
             action="annotation.delete",
             details=details,
         )
+        try:
+            from realtime.events import send_annotation_event
+            send_annotation_event(
+                project_id=project_id,
+                event_type="updated",
+                payload={"annotation_id": annotation_id, "action": "delete"},
+            )
+        except Exception as e:
+            logger.error(f"Failed to emit annotation event on delete: {e}")
+
 
     def _transition(self, annotation, *, status_value, archived, event_type):
         with transaction.atomic():
@@ -133,6 +165,15 @@ class AnnotationViewSet(viewsets.ModelViewSet):
                 event_type=event_type,
             )
         annotation = Annotation.objects.with_related().get(id=annotation.id)
+        try:
+            from realtime.events import send_annotation_event
+            send_annotation_event(
+                project_id=str(annotation.project_id),
+                event_type="updated",
+                payload={"annotation_id": str(annotation.id), "action": "transition"},
+            )
+        except Exception as e:
+            logger.error(f"Failed to emit annotation event on transition: {e}")
         return Response(AnnotationSerializer(annotation).data)
 
     def _check_resolution_permission(self, annotation):
@@ -158,6 +199,15 @@ class AnnotationViewSet(viewsets.ModelViewSet):
                 verb=NotificationVerb.RESOLVED.value,
                 annotation=annotation,
             )
+            try:
+                from realtime.events import send_notification_event
+                send_notification_event(
+                    org_id=str(annotation.project.organisation_id),
+                    event_type="created",
+                    payload={"action": "resolve", "recipient_id": str(annotation.author_id)},
+                )
+            except Exception as e:
+                logger.error(f"Failed to emit notification event on resolve: {e}")
         log_action(
             organisation=annotation.project.organisation,
             actor=request.user,
@@ -165,6 +215,7 @@ class AnnotationViewSet(viewsets.ModelViewSet):
             details={"annotation_id": str(annotation.id)},
         )
         return response
+
 
     @action(detail=True, methods=["post"])
     def reopen(self, request, pk=None):
@@ -248,6 +299,22 @@ class CommentViewSet(
             # Touch the annotation so list polling change-detection sees thread activity.
             annotation.save(update_fields=["updated_at"])
 
+        try:
+            from realtime.events import send_annotation_event, send_notification_event
+            send_annotation_event(
+                project_id=str(annotation.project_id),
+                event_type="updated",
+                payload={"annotation_id": str(annotation.id), "action": "comment_create"},
+            )
+            send_notification_event(
+                org_id=str(active_org.id),
+                event_type="created",
+                payload={"action": "comment_create"},
+            )
+        except Exception as e:
+            logger.error(f"Failed to emit events on comment create: {e}")
+
+
     def _notify_thread(self, annotation, comment, mentioned_ids):
         participants = set(
             annotation.comments.exclude(author=None).values_list("author_id", flat=True)
@@ -279,6 +346,21 @@ class CommentViewSet(
         with transaction.atomic():
             comment = serializer.save(edited_at=timezone.now())
             sync_mentions(comment, active_org, self.request.user)
+        try:
+            from realtime.events import send_annotation_event, send_notification_event
+            send_annotation_event(
+                project_id=str(comment.annotation.project_id),
+                event_type="updated",
+                payload={"annotation_id": str(comment.annotation_id), "action": "comment_update"},
+            )
+            send_notification_event(
+                org_id=str(active_org.id),
+                event_type="created",
+                payload={"action": "comment_update"},
+            )
+        except Exception as e:
+            logger.error(f"Failed to emit events on comment update: {e}")
+
 
     def perform_destroy(self, instance):
         active_org = get_active_organisation(self.request)
@@ -294,6 +376,16 @@ class CommentViewSet(
                 event_type=AnnotationEventType.COMMENT_DELETED.value,
             )
             annotation.save(update_fields=["updated_at"])
+        try:
+            from realtime.events import send_annotation_event
+            send_annotation_event(
+                project_id=str(annotation.project_id),
+                event_type="updated",
+                payload={"annotation_id": str(annotation.id), "action": "comment_delete"},
+            )
+        except Exception as e:
+            logger.error(f"Failed to emit event on comment delete: {e}")
+
 
     @action(detail=True, methods=["post"])
     def react(self, request, pk=None):
@@ -307,8 +399,18 @@ class CommentViewSet(
         if not created:
             reaction.delete()
         comment.annotation.save(update_fields=["updated_at"])
+        try:
+            from realtime.events import send_annotation_event
+            send_annotation_event(
+                project_id=str(comment.annotation.project_id),
+                event_type="updated",
+                payload={"annotation_id": str(comment.annotation_id), "action": "comment_react"},
+            )
+        except Exception as e:
+            logger.error(f"Failed to emit event on reaction: {e}")
         reactions = comment.reactions.select_related("user")
         return Response(ReactionSerializer(reactions, many=True).data)
+
 
 
 class NotificationViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
