@@ -19,11 +19,15 @@ const POPOVER_MARGIN_PX = 8;
 
 /** Figma-style speech-bubble cursor for comment placement mode. */
 const COMMENT_CURSOR = `url("data:image/svg+xml,${encodeURIComponent(
-  '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="30" viewBox="0 0 28 30">' +
-    '<circle cx="14" cy="13" r="12" fill="white"/>' +
-    '<path d="M6 21 L13 21 L4 29 Z" fill="white"/>' +
+  '<svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" viewBox="0 0 38 38">' +
+    '<defs>' +
+    '<filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">' +
+    '<feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-opacity="0.4" flood-color="black"/>' +
+    '</filter>' +
+    '</defs>' +
+    '<path d="M 4 34 L 4 19 A 15 15 0 0 1 19 4 A 15 15 0 0 1 34 19 A 15 15 0 0 1 19 34 L 4 34 Z" fill="#6366f1" stroke="white" stroke-width="2" filter="url(#shadow)"/>' +
     '</svg>',
-)}") 4 29, pointer`;
+)}") 4 34, pointer`;
 
 const useContainerSize = (ref: React.RefObject<HTMLDivElement>) => {
   const [size, setSize] = useState({ width: 0, height: 0 });
