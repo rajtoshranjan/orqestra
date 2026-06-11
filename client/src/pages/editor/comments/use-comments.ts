@@ -31,7 +31,6 @@ import {
   setActiveAnnotationId,
   setAnnotationFilters,
   setCommentMode,
-  setCommentsSidebarOpen,
 } from '@/store/ui-slice';
 import { getNodeAbsolutePosition } from '@/utils';
 import type { DiagramEdge, DiagramNode, ServiceNodeData } from '@/types';
@@ -257,7 +256,7 @@ export const useComments = ({
     if (!annotation) return;
 
     dispatch(setActiveAnnotationId(annotation.id));
-    dispatch(setCommentsSidebarOpen(true));
+    dispatch(setCommentMode(true));
     if (annotation.status === 'resolved') {
       dispatch(setAnnotationFilters({ status: 'all' }));
     }
@@ -334,7 +333,7 @@ export const useComments = ({
   }, [activeAnnotationId, deleteAnnotationMutation, closeThread]);
 
   const openSidebar = useCallback(
-    () => dispatch(setCommentsSidebarOpen(true)),
+    () => dispatch(setCommentMode(true)),
     [dispatch],
   );
 

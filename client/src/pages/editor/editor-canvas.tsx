@@ -92,7 +92,6 @@ import {
   setProjectSettingsOpen,
   setContextMenu,
   setCommentMode,
-  setCommentsSidebarOpen,
 } from '@/store/ui-slice';
 
 type CanvasEditorProps = {
@@ -119,13 +118,9 @@ export function CanvasEditor({
   const { settings: deploymentSettings, activeDeploymentId } = useAppSelector(
     (state) => state.deployment,
   );
-  const {
-    deployDrawerOpen,
-    contextMenu,
-    theme,
-    commentMode,
-    commentsSidebarOpen,
-  } = useAppSelector((state) => state.ui);
+  const { deployDrawerOpen, contextMenu, theme, commentMode } = useAppSelector(
+    (state) => state.ui,
+  );
 
   const createDeploymentMutation = useCreateDeployment();
   const { data: projectDeploymentState } =
@@ -231,7 +226,7 @@ export function CanvasEditor({
         });
         return;
       }
-      dispatch(setCommentsSidebarOpen(true));
+      dispatch(setCommentMode(true));
       comments.jumpToAnnotation(annotationId);
     },
     [currentProjectId, dispatch, comments],
@@ -1020,11 +1015,8 @@ export function CanvasEditor({
         onSelectNode={handleSelectNode}
         onHelp={() => setHelpOpen(true)}
         onClearCanvas={handleClearCanvas}
-        commentsSidebarOpen={commentsSidebarOpen}
-        onToggleCommentsSidebar={() =>
-          dispatch(setCommentsSidebarOpen(!commentsSidebarOpen))
-        }
         commentMode={commentMode}
+        onToggleCommentMode={toggleCommentMode}
         onOpenAnnotation={handleOpenAnnotation}
       />
 
@@ -1151,7 +1143,7 @@ export function CanvasEditor({
           />
         </div>
 
-        {commentsSidebarOpen && <CommentsSidebar comments={comments} />}
+        {commentMode && <CommentsSidebar comments={comments} />}
 
         {selectedNode && (
           <NodeInspector

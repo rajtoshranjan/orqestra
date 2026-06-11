@@ -206,7 +206,7 @@ export class WebSocketClient {
     }
   }
 
-  private handleError(_error: Event): void {
+  private handleError(): void {
     // Note: handleClose is always called after handleError, so we do not trigger reconnect here
   }
 

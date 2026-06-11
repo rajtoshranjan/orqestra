@@ -63,9 +63,8 @@ export type EditorToolbarProps = {
   onSelectNode?: (nodeId: string) => void;
   onHelp?: () => void;
   onClearCanvas?: () => void;
-  commentsSidebarOpen?: boolean;
-  onToggleCommentsSidebar?: () => void;
   commentMode?: boolean;
+  onToggleCommentMode?: () => void;
   onOpenAnnotation?: (annotationId: string, projectId: string) => void;
 };
 
@@ -78,9 +77,8 @@ function EditorToolbarComponent({
   onSelectNode,
   onHelp,
   onClearCanvas,
-  commentsSidebarOpen = false,
-  onToggleCommentsSidebar,
   commentMode = false,
+  onToggleCommentMode,
   onOpenAnnotation,
 }: EditorToolbarProps) {
   const dispatch = useAppDispatch();
@@ -365,14 +363,12 @@ function EditorToolbarComponent({
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={onToggleCommentsSidebar}
-                aria-label={
-                  commentsSidebarOpen ? 'Hide comments' : 'Show comments'
-                }
-                aria-pressed={commentsSidebarOpen || commentMode}
+                onClick={onToggleCommentMode}
+                aria-label={commentMode ? 'Hide comments' : 'Show comments'}
+                aria-pressed={commentMode}
                 className={cn(
                   'h-8 w-8 text-muted-foreground transition-all duration-200',
-                  (commentsSidebarOpen || commentMode) &&
+                  commentMode &&
                     'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
                 )}
                 title="Toggle Comments Panel"
@@ -381,9 +377,7 @@ function EditorToolbarComponent({
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-xs">
-              {commentsSidebarOpen
-                ? 'Hide Comments Panel'
-                : 'Show Comments Panel'}
+              {commentMode ? 'Hide Comments Panel' : 'Show Comments Panel'}
             </TooltipContent>
           </Tooltip>
 

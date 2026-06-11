@@ -15,7 +15,7 @@ import { formatRelativeTime } from '@/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   setAnnotationFilters,
-  setCommentsSidebarOpen,
+  setCommentMode,
   toggleReviewMode,
 } from '@/store/ui-slice';
 import type { ClientAnnotation } from '@/api';
@@ -134,7 +134,7 @@ export function CommentsSidebar({ comments }: CommentsSidebarProps) {
           size="sm"
           type="button"
           className="ml-auto size-6 p-0 text-muted-foreground"
-          onClick={() => dispatch(setCommentsSidebarOpen(false))}
+          onClick={() => dispatch(setCommentMode(false))}
           aria-label="Close comments sidebar"
         >
           <X size={14} />

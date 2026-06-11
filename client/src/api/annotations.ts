@@ -254,10 +254,7 @@ export const annotationsQueryKey = (projectId: string) =>
  * `queryClient.invalidateQueries({ queryKey: annotationsQueryKey(projectId) })`
  * from a socket message handler — no component changes required.
  */
-export const useProjectAnnotations = (
-  projectId: string | null,
-  _options: { poll?: boolean } = {},
-) => {
+export const useProjectAnnotations = (projectId: string | null) => {
   return useQuery({
     queryKey: annotationsQueryKey(projectId ?? ''),
     queryFn: () => fetchProjectAnnotations(projectId!),

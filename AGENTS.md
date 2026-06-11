@@ -24,6 +24,10 @@ Cloud resources are plugins. The orchestration layer must remain provider-agnost
 
 Before writing new code, search for an existing implementation. Reuse existing utilities, components, hooks, serializers, managers, permissions, and API mappers. Match the nearest existing pattern. Consistency over novelty.
 
+### Avoid Patch Fixes (Clean Refactoring Over Hiding Issues)
+
+Do not use "patch fixes" to suppress compilation, typing, or linting warnings/errors (e.g., adding `eslint-disable` or `// @ts-ignore` comments to hide unused variables or type mismatches). If a variable or parameter is unused, clean-remove it. If state properties are duplicate or redundant, refactor the codebase to unify the state rather than writing synchronized duplicate states. follow the same rules with everything in this project
+
 ---
 
 ## Repository Structure

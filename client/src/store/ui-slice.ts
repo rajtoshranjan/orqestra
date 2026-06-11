@@ -9,7 +9,6 @@ type UiState = {
   theme: 'dark' | 'light';
   commentMode: boolean;
   reviewMode: boolean;
-  commentsSidebarOpen: boolean;
   activeAnnotationId: string | null;
   annotationFilters: AnnotationFilters;
 };
@@ -28,7 +27,6 @@ const initialState: UiState = {
   theme: getInitialTheme(),
   commentMode: false,
   reviewMode: false,
-  commentsSidebarOpen: false,
   activeAnnotationId: null,
   annotationFilters: { status: 'open', onlyMine: false, onlyMentions: false },
 };
@@ -61,23 +59,17 @@ export const uiSlice = createSlice({
     },
     setCommentMode: (state, action: PayloadAction<boolean>) => {
       state.commentMode = action.payload;
-      state.commentsSidebarOpen = action.payload;
+      if (!action.payload) {
+        state.reviewMode = false;
+      }
     },
     toggleReviewMode: (state) => {
       state.reviewMode = !state.reviewMode;
       if (state.reviewMode) {
-        state.commentsSidebarOpen = true;
         state.commentMode = true;
         state.annotationFilters.status = 'all';
       } else if (state.annotationFilters.status === 'all') {
         state.annotationFilters.status = 'open';
-      }
-    },
-    setCommentsSidebarOpen: (state, action: PayloadAction<boolean>) => {
-      state.commentsSidebarOpen = action.payload;
-      state.commentMode = action.payload;
-      if (!action.payload) {
-        state.reviewMode = false;
       }
     },
     setActiveAnnotationId: (state, action: PayloadAction<string | null>) => {
@@ -103,7 +95,6 @@ export const {
   toggleTheme,
   setCommentMode,
   toggleReviewMode,
-  setCommentsSidebarOpen,
   setActiveAnnotationId,
   setAnnotationFilters,
 } = uiSlice.actions;
