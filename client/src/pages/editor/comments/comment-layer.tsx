@@ -17,17 +17,16 @@ const POPOVER_MAX_HEIGHT_PX = 420;
 const POPOVER_OFFSET_PX = 12;
 const POPOVER_MARGIN_PX = 8;
 
-/** Figma-style speech-bubble cursor for comment placement mode. */
 const COMMENT_CURSOR = `url("data:image/svg+xml,${encodeURIComponent(
-  '<svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" viewBox="0 0 38 38">' +
-    '<defs>' +
-    '<filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">' +
-    '<feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-opacity="0.4" flood-color="black"/>' +
-    '</filter>' +
-    '</defs>' +
-    '<path d="M 4 34 L 4 19 A 15 15 0 0 1 19 4 A 15 15 0 0 1 34 19 A 15 15 0 0 1 19 34 L 4 34 Z" fill="#6366f1" stroke="white" stroke-width="2" filter="url(#shadow)"/>' +
-    '</svg>',
-)}") 4 34, pointer`;
+  '<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36">' +
+  '<defs>' +
+  '<filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">' +
+  '<feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-opacity="0.4" flood-color="black"/>' +
+  '</filter>' +
+  '</defs>' +
+  '<path d="M 5.5 30.5 L 5.5 18 A 12.5 12.5 0 0 1 18 5.5 A 12.5 12.5 0 0 1 30.5 18 A 12.5 12.5 0 0 1 18 30.5 L 5.5 30.5 Z" fill="#6366f1" stroke="white" stroke-width="2" filter="url(#shadow)"/>' +
+  '</svg>',
+)}") 4 32, pointer`;
 
 const useContainerSize = (ref: React.RefObject<HTMLDivElement>) => {
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -140,58 +139,58 @@ export function CommentLayer({
       >
         {shouldCluster
           ? clusters.map((cluster) =>
-              cluster.placements.length === 1 ? (
-                <div
-                  key={cluster.key}
-                  className="absolute"
-                  style={{ left: cluster.x, top: cluster.y }}
-                >
-                  <CommentPin
-                    annotation={cluster.placements[0].annotation}
-                    isActive={
-                      cluster.placements[0].annotation.id ===
-                      comments.activeAnnotation?.id
-                    }
-                    zoom={viewport.zoom}
-                    onClick={() =>
-                      comments.openThread(cluster.placements[0].annotation.id)
-                    }
-                  />
-                </div>
-              ) : (
-                <div
-                  key={cluster.key}
-                  className="absolute"
-                  style={{ left: cluster.x, top: cluster.y }}
-                >
-                  <CommentClusterPin
-                    count={cluster.placements.length}
-                    zoom={viewport.zoom}
-                    onClick={() =>
-                      comments.jumpToAnnotation(
-                        cluster.placements[0].annotation.id,
-                      )
-                    }
-                  />
-                </div>
-              ),
-            )
-          : placements.map((placement) => (
+            cluster.placements.length === 1 ? (
               <div
-                key={placement.annotation.id}
+                key={cluster.key}
                 className="absolute"
-                style={{ left: placement.x, top: placement.y }}
+                style={{ left: cluster.x, top: cluster.y }}
               >
                 <CommentPin
-                  annotation={placement.annotation}
+                  annotation={cluster.placements[0].annotation}
                   isActive={
-                    placement.annotation.id === comments.activeAnnotation?.id
+                    cluster.placements[0].annotation.id ===
+                    comments.activeAnnotation?.id
                   }
                   zoom={viewport.zoom}
-                  onClick={() => comments.openThread(placement.annotation.id)}
+                  onClick={() =>
+                    comments.openThread(cluster.placements[0].annotation.id)
+                  }
                 />
               </div>
-            ))}
+            ) : (
+              <div
+                key={cluster.key}
+                className="absolute"
+                style={{ left: cluster.x, top: cluster.y }}
+              >
+                <CommentClusterPin
+                  count={cluster.placements.length}
+                  zoom={viewport.zoom}
+                  onClick={() =>
+                    comments.jumpToAnnotation(
+                      cluster.placements[0].annotation.id,
+                    )
+                  }
+                />
+              </div>
+            ),
+          )
+          : placements.map((placement) => (
+            <div
+              key={placement.annotation.id}
+              className="absolute"
+              style={{ left: placement.x, top: placement.y }}
+            >
+              <CommentPin
+                annotation={placement.annotation}
+                isActive={
+                  placement.annotation.id === comments.activeAnnotation?.id
+                }
+                zoom={viewport.zoom}
+                onClick={() => comments.openThread(placement.annotation.id)}
+              />
+            </div>
+          ))}
 
         {/* Draft marker. */}
         {comments.draft && (
@@ -203,7 +202,7 @@ export function CommentLayer({
             }}
           >
             <div
-              className="size-8 rounded-full rounded-bl-none border-2 border-dashed border-primary bg-primary/20 shadow-md"
+              className="size-[28px] rounded-full rounded-bl-none border-2 border-dashed border-primary bg-primary/20 shadow-md"
               style={{
                 transform: `translate(0, -100%) scale(${1 / viewport.zoom})`,
                 transformOrigin: 'bottom left',
@@ -240,15 +239,15 @@ export function CommentLayer({
             activeFlowPosition
               ? clampPopover(toScreen(activeFlowPosition))
               : {
-                  left: Math.max(
-                    (containerSize.width - POPOVER_WIDTH_PX) / 2,
-                    POPOVER_MARGIN_PX,
-                  ),
-                  top: Math.max(
-                    (containerSize.height - POPOVER_MAX_HEIGHT_PX) / 2,
-                    POPOVER_MARGIN_PX,
-                  ),
-                }
+                left: Math.max(
+                  (containerSize.width - POPOVER_WIDTH_PX) / 2,
+                  POPOVER_MARGIN_PX,
+                ),
+                top: Math.max(
+                  (containerSize.height - POPOVER_MAX_HEIGHT_PX) / 2,
+                  POPOVER_MARGIN_PX,
+                ),
+              }
           }
         >
           <CommentThreadPopover
