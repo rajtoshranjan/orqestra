@@ -1,3 +1,13 @@
+import { NetworkAclIcon } from '@/components/icons';
+
+import {
+  createDefaultNetworkAclConfig,
+  getNetworkAclDisplayName,
+} from './defaults';
+import { NetworkAclInspector } from './network-acl-inspector';
+import { NetworkAclNode } from './network-acl-node';
+import { validateNetworkAclConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,14 +15,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { NetworkAclConfig } from './types';
-import {
-  createDefaultNetworkAclConfig,
-  getNetworkAclDisplayName,
-} from './defaults';
-import { validateNetworkAclConfig } from './validate';
-import { NetworkAclNode } from './network-acl-node';
-import { NetworkAclInspector } from './network-acl-inspector';
-import { NetworkAclIcon } from '@/components/icons';
 
 export const networkAclService: ServiceDefinition<NetworkAclConfig> = {
   id: 'network-acl',

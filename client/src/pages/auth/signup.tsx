@@ -1,8 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
+
+import { useSignup } from '@/api/auth';
 import {
   Button,
   Card,
@@ -14,7 +15,6 @@ import {
   Input,
 } from '@/components/ui';
 import { useFormErrorHandler } from '@/hooks';
-import { useSignup } from '@/api/auth';
 
 const signupSchema = z
   .object({

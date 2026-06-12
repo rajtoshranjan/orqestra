@@ -1,6 +1,7 @@
+import { appsyncConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { AppSyncConfig } from './types';
-import { appsyncConfigSchema } from '@/schemas/resources.schema';
 
 export function validateAppSyncConfig(
   config: AppSyncConfig,

@@ -1,6 +1,7 @@
+import { snsConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { SNSConfig } from './types';
-import { snsConfigSchema } from '@/schemas/resources.schema';
 
 export function validateSNSConfig(config: SNSConfig): ServiceValidationErrors {
   const result = snsConfigSchema.safeParse(config);

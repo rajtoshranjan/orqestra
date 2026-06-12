@@ -1,6 +1,7 @@
+import { ecsClusterConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { EcsClusterConfig } from './types';
-import { ecsClusterConfigSchema } from '@/schemas/resources.schema';
 
 export function validateEcsClusterConfig(
   config: EcsClusterConfig,

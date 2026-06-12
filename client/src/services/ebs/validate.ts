@@ -1,6 +1,7 @@
+import { ebsConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { EBSConfig } from './types';
-import { ebsConfigSchema } from '@/schemas/resources.schema';
 
 export function validateEBSConfig(config: EBSConfig): ServiceValidationErrors {
   const result = ebsConfigSchema.safeParse(config);

@@ -1,11 +1,11 @@
 import { memo } from 'react';
-import type { NodeProps } from 'reactflow';
+
+import { BaseServiceNode } from '@/components';
+import { NeptuneIcon } from '@/components/icons';
 
 import type { ServiceValidationErrors } from '../types';
 import type { NeptuneConfig } from './types';
-
-import { NeptuneIcon } from '@/components/icons';
-import { BaseServiceNode } from '@/components';
+import type { NodeProps } from 'reactflow';
 
 type NeptuneNodeDataShape = {
   serviceId: string;

@@ -1,6 +1,7 @@
+import { subnetConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { SubnetConfig } from './types';
-import { subnetConfigSchema } from '@/schemas/resources.schema';
 
 export function validateSubnetConfig(
   config: SubnetConfig,

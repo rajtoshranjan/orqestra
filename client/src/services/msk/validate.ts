@@ -1,6 +1,7 @@
+import { mskConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { MskConfig } from './types';
-import { mskConfigSchema } from '@/schemas/resources.schema';
 
 export function validateMskConfig(config: MskConfig): ServiceValidationErrors {
   const result = mskConfigSchema.safeParse(config);

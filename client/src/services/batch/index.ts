@@ -1,3 +1,10 @@
+import { BatchIcon } from '@/components/icons';
+
+import { BatchInspector } from './batch-inspector';
+import { BatchNode } from './batch-node';
+import { createDefaultBatchConfig, getBatchDisplayName } from './defaults';
+import { validateBatchConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,11 +12,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { BatchConfig } from './types';
-import { createDefaultBatchConfig, getBatchDisplayName } from './defaults';
-import { validateBatchConfig } from './validate';
-import { BatchNode } from './batch-node';
-import { BatchInspector } from './batch-inspector';
-import { BatchIcon } from '@/components/icons';
 
 export const batchService: ServiceDefinition<BatchConfig> = {
   id: 'batch',

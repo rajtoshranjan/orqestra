@@ -1,6 +1,7 @@
+import { sqsConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { SQSConfig } from './types';
-import { sqsConfigSchema } from '@/schemas/resources.schema';
 
 export function validateSQSConfig(config: SQSConfig): ServiceValidationErrors {
   const result = sqsConfigSchema.safeParse(config);

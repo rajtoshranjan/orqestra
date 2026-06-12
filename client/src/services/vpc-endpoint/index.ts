@@ -1,3 +1,13 @@
+import { VpcEndpointIcon } from '@/components/icons';
+
+import {
+  createDefaultVpcEndpointConfig,
+  getVpcEndpointDisplayName,
+} from './defaults';
+import { validateVpcEndpointConfig } from './validate';
+import { VpcEndpointInspector } from './vpc-endpoint-inspector';
+import { VpcEndpointNode } from './vpc-endpoint-node';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,14 +15,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { VpcEndpointConfig } from './types';
-import {
-  createDefaultVpcEndpointConfig,
-  getVpcEndpointDisplayName,
-} from './defaults';
-import { validateVpcEndpointConfig } from './validate';
-import { VpcEndpointNode } from './vpc-endpoint-node';
-import { VpcEndpointInspector } from './vpc-endpoint-inspector';
-import { VpcEndpointIcon } from '@/components/icons';
 
 export const vpcEndpointService: ServiceDefinition<VpcEndpointConfig> = {
   id: 'vpc-endpoint',

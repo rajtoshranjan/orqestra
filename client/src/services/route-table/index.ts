@@ -1,17 +1,19 @@
+import { RouteTableIcon } from '@/components/icons';
+
+import {
+  createDefaultRouteTableConfig,
+  getRouteTableDisplayName,
+} from './defaults';
+import { RouteTableInspector } from './route-table-inspector';
+import { RouteTableNode } from './route-table-node';
+import { validateRouteTableConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
   DeploymentHints,
 } from '../types';
 import type { RouteTableConfig } from './types';
-import {
-  createDefaultRouteTableConfig,
-  getRouteTableDisplayName,
-} from './defaults';
-import { validateRouteTableConfig } from './validate';
-import { RouteTableNode } from './route-table-node';
-import { RouteTableInspector } from './route-table-inspector';
-import { RouteTableIcon } from '@/components/icons';
 
 export const routeTableService: ServiceDefinition<RouteTableConfig> = {
   id: 'route-table',

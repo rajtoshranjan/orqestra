@@ -1,16 +1,19 @@
 import React from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Trash2 } from 'lucide-react';
-import type { ServiceInspectorProps } from '../types';
-import type { IAMRoleConfig } from './types';
-import { iamRoleConfigSchema } from '@/schemas/resources.schema';
-import { Input, Button, Textarea } from '@/components/ui';
+import { useForm, useFieldArray } from 'react-hook-form';
+
 import {
   InspectorSection,
   InspectorField,
   CodeEditorField,
 } from '@/components';
+import { Input, Button, Textarea } from '@/components/ui';
+import { iamRoleConfigSchema } from '@/schemas/resources.schema';
+
+import type { ServiceInspectorProps } from '../types';
+import type { IAMRoleConfig } from './types';
 
 export function IAMRoleInspector({
   config,

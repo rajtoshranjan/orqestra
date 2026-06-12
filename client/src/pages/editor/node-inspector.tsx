@@ -1,4 +1,5 @@
 import React from 'react';
+
 import {
   MousePointer2,
   ShieldAlert,
@@ -8,9 +9,10 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { MarkerType } from 'reactflow';
-import type { DiagramNode, DiagramEdge } from '@/types';
-import { registry } from '@/services';
+
 import { Badge, Button, EmptyState } from '@/components/ui';
+import { registry } from '@/services';
+import type { DiagramNode, DiagramEdge } from '@/types';
 import { deriveGraphConfigurations } from '@/utils/derivation-engine';
 import { createServiceNode, makeId } from '@/utils/diagram';
 

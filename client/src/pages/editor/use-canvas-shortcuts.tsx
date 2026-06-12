@@ -1,12 +1,15 @@
 import React from 'react';
+
 import { Lock, Unlock, Grid } from 'lucide-react';
-import type { ReactFlowInstance } from 'reactflow';
-import type { CanvasShortcut } from './canvas-utils';
-import type { ServiceNodeData, DiagramNode } from '@/types';
+
 import { useKeyboardShortcuts } from '@/hooks';
+import { toast } from '@/hooks/use-toast';
 import { useAppDispatch } from '@/store';
 import { setIsLocked, setSnapToGrid } from '@/store/editor-slice';
-import { toast } from '@/hooks/use-toast';
+import type { ServiceNodeData, DiagramNode } from '@/types';
+
+import type { CanvasShortcut } from './canvas-utils';
+import type { ReactFlowInstance } from 'reactflow';
 
 type QuickAddState = {
   x: number;

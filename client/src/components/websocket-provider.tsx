@@ -1,5 +1,7 @@
 import React, { createContext, useEffect, useRef, useState } from 'react';
+
 import { useQueryClient } from '@tanstack/react-query';
+
 import { EnvVariables } from '@/config';
 import { localStorageManager } from '@/lib/utils/local-storage-manager';
 import { WebSocketClient, WebSocketConnectionState } from '@/lib/websocket';

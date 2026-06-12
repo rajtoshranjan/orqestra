@@ -1,3 +1,10 @@
+import { AuroraIcon } from '@/components/icons';
+
+import { AuroraInspector } from './aurora-inspector';
+import { AuroraNode } from './aurora-node';
+import { createDefaultAuroraConfig, getAuroraDisplayName } from './defaults';
+import { validateAuroraConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,11 +12,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { AuroraConfig } from './types';
-import { createDefaultAuroraConfig, getAuroraDisplayName } from './defaults';
-import { validateAuroraConfig } from './validate';
-import { AuroraNode } from './aurora-node';
-import { AuroraInspector } from './aurora-inspector';
-import { AuroraIcon } from '@/components/icons';
 
 export const auroraService: ServiceDefinition<AuroraConfig> = {
   id: 'aurora',

@@ -1,6 +1,7 @@
+import { lambdaConfigSchema } from '@/schemas/lambda.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { LambdaConfig } from './types';
-import { lambdaConfigSchema } from '@/schemas/lambda.schema';
 
 export function validateLambdaConfig(
   config: LambdaConfig,

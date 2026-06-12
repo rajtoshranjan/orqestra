@@ -1,10 +1,10 @@
 import React from 'react';
-import { useForm } from 'react-hook-form';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ChevronDown } from 'lucide-react';
-import type { ServiceInspectorProps } from '../types';
-import type { SubnetConfig } from './types';
-import { subnetConfigSchema } from '@/schemas/resources.schema';
+import { useForm } from 'react-hook-form';
+
+import { InspectorSection, InspectorField } from '@/components';
 import {
   Input,
   Button,
@@ -14,7 +14,10 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from '@/components/ui';
-import { InspectorSection, InspectorField } from '@/components';
+import { subnetConfigSchema } from '@/schemas/resources.schema';
+
+import type { ServiceInspectorProps } from '../types';
+import type { SubnetConfig } from './types';
 
 export function SubnetInspector({
   config,

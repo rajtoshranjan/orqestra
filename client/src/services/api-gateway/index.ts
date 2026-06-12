@@ -1,13 +1,15 @@
-import type { ServiceDefinition, ServicePlanResource } from '../types';
-import type { APIGatewayConfig } from './types';
+import { ApiGatewayIcon } from '@/components/icons';
+
+import { APIGatewayInspector } from './api-gateway-inspector';
+import { APIGatewayNode } from './api-gateway-node';
 import {
   createDefaultAPIGatewayConfig,
   getAPIGatewayDisplayName,
 } from './defaults';
 import { validateAPIGatewayConfig } from './validate';
-import { APIGatewayNode } from './api-gateway-node';
-import { APIGatewayInspector } from './api-gateway-inspector';
-import { ApiGatewayIcon } from '@/components/icons';
+
+import type { ServiceDefinition, ServicePlanResource } from '../types';
+import type { APIGatewayConfig } from './types';
 
 export const apiGatewayService: ServiceDefinition<APIGatewayConfig> = {
   id: 'api-gateway',

@@ -1,6 +1,7 @@
+import { route53ConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { Route53Config } from './types';
-import { route53ConfigSchema } from '@/schemas/resources.schema';
 
 export function validateRoute53Config(
   config: Route53Config,

@@ -1,4 +1,6 @@
 import React from 'react';
+
+import { AlertTriangle } from 'lucide-react';
 import ReactFlow, {
   addEdge,
   Background,
@@ -19,33 +21,28 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useLocalStorage } from 'usehooks-ts';
-import { AlertTriangle } from 'lucide-react';
-import { EditorToolbar } from './editor-toolbar';
-import { ServiceCatalog } from './service-catalog';
-import { NodeInspector } from './node-inspector';
-import { DeployDrawer } from './deploy-drawer';
-import { ContextMenu } from './context-menu';
-import { QuickAddMenu } from './quick-add-menu';
-import { CanvasEmptyState } from './canvas-empty-state';
-import { CanvasShortcutsDialog } from './canvas-shortcuts-dialog';
-import { useEnrichedNodes } from './use-enriched-nodes';
-import { useEnrichedEdges } from './use-enriched-edges';
-import { useCanvasPersistence } from './use-canvas-persistence';
-import { useCanvasShortcuts } from './use-canvas-shortcuts';
-import { useComments } from './comments/use-comments';
-import { CommentLayer } from './comments/comment-layer';
-import { CommentsSidebar } from './comments/comments-sidebar';
-import {
-  PRO_OPTIONS,
-  CONTAINER_CHILD_PADDING,
-  CONTAINER_HEADER_HEIGHT,
-  getMiniMapNodeColor,
-  findBestParentForDraggedNode,
-} from './canvas-utils';
-import type { OriginalProjectSnapshot } from './use-canvas-persistence';
-import type { EnrichedServiceNodeData } from './canvas-utils';
-import { ConfirmDialog } from '@/components/ui';
 
+import { useProjectDeploymentState, useCreateDeployment } from '@/api';
+import { ConfirmDialog } from '@/components/ui';
+import { useActiveDeploymentResult } from '@/hooks/use-active-deployment-result';
+import { toast } from '@/hooks/use-toast';
+import { registry } from '@/services';
+import { useAppDispatch, useAppSelector } from '@/store';
+import {
+  setDeploymentSettings,
+  setActiveDeploymentId,
+} from '@/store/deployment-slice';
+import {
+  setNodes as setReduxNodes,
+  setEdges as setReduxEdges,
+  setClipboard,
+} from '@/store/editor-slice';
+import {
+  setDeployDrawerOpen,
+  setProjectSettingsOpen,
+  setContextMenu,
+  setCommentMode,
+} from '@/store/ui-slice';
 import type {
   DiagramNode,
   DiagramEdge,
@@ -72,27 +69,32 @@ import {
   adjustParentSizes,
 } from '@/utils';
 import { autoLayoutDiagram } from '@/utils/auto-layout';
-import { registry } from '@/services';
-import { toast } from '@/hooks/use-toast';
-import { useProjectDeploymentState, useCreateDeployment } from '@/api';
-import { useActiveDeploymentResult } from '@/hooks/use-active-deployment-result';
-import { useAppDispatch, useAppSelector } from '@/store';
 
+import { CanvasEmptyState } from './canvas-empty-state';
+import { CanvasShortcutsDialog } from './canvas-shortcuts-dialog';
 import {
-  setNodes as setReduxNodes,
-  setEdges as setReduxEdges,
-  setClipboard,
-} from '@/store/editor-slice';
-import {
-  setDeploymentSettings,
-  setActiveDeploymentId,
-} from '@/store/deployment-slice';
-import {
-  setDeployDrawerOpen,
-  setProjectSettingsOpen,
-  setContextMenu,
-  setCommentMode,
-} from '@/store/ui-slice';
+  PRO_OPTIONS,
+  CONTAINER_CHILD_PADDING,
+  CONTAINER_HEADER_HEIGHT,
+  getMiniMapNodeColor,
+  findBestParentForDraggedNode,
+} from './canvas-utils';
+import { CommentLayer } from './comments/comment-layer';
+import { CommentsSidebar } from './comments/comments-sidebar';
+import { useComments } from './comments/use-comments';
+import { ContextMenu } from './context-menu';
+import { DeployDrawer } from './deploy-drawer';
+import { EditorToolbar } from './editor-toolbar';
+import { NodeInspector } from './node-inspector';
+import { QuickAddMenu } from './quick-add-menu';
+import { ServiceCatalog } from './service-catalog';
+import { useCanvasPersistence } from './use-canvas-persistence';
+import { useCanvasShortcuts } from './use-canvas-shortcuts';
+import { useEnrichedEdges } from './use-enriched-edges';
+import { useEnrichedNodes } from './use-enriched-nodes';
+
+import type { EnrichedServiceNodeData } from './canvas-utils';
+import type { OriginalProjectSnapshot } from './use-canvas-persistence';
 
 type CanvasEditorProps = {
   initialProject: PersistedDiagram;

@@ -1,5 +1,6 @@
-import { registry } from '../services/registry';
 import type { DiagramNode, DiagramEdge } from '@/types';
+
+import { registry } from '../services/registry';
 
 export type DerivedNodeConfig = {
   executionRole?: {

@@ -1,13 +1,15 @@
 import { Folder } from 'lucide-react';
-import type { ServiceDefinition, ServicePlanResource } from '../types';
-import type { AppGroupConfig } from './types';
+
 import {
   createDefaultAppGroupConfig,
   getAppGroupDisplayName,
 } from './defaults';
-import { validateAppGroupConfig } from './validate';
-import { AppGroupNode } from './group-node';
 import { AppGroupInspector } from './group-inspector';
+import { AppGroupNode } from './group-node';
+import { validateAppGroupConfig } from './validate';
+
+import type { ServiceDefinition, ServicePlanResource } from '../types';
+import type { AppGroupConfig } from './types';
 
 export const appGroupService: ServiceDefinition<AppGroupConfig> = {
   id: 'app-group',

@@ -1,3 +1,13 @@
+import { InternetGatewayIcon } from '@/components/icons';
+
+import {
+  createDefaultInternetGatewayConfig,
+  getInternetGatewayDisplayName,
+} from './defaults';
+import { InternetGatewayInspector } from './internet-gateway-inspector';
+import { InternetGatewayNode } from './internet-gateway-node';
+import { validateInternetGatewayConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,14 +15,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { InternetGatewayConfig } from './types';
-import {
-  createDefaultInternetGatewayConfig,
-  getInternetGatewayDisplayName,
-} from './defaults';
-import { validateInternetGatewayConfig } from './validate';
-import { InternetGatewayNode } from './internet-gateway-node';
-import { InternetGatewayInspector } from './internet-gateway-inspector';
-import { InternetGatewayIcon } from '@/components/icons';
 
 export const internetGatewayService: ServiceDefinition<InternetGatewayConfig> =
   {

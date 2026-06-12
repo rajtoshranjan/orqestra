@@ -1,10 +1,12 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
+
 import { ChevronLeft, ChevronRight, GripVertical, Search } from 'lucide-react';
+
+import { EmptyState } from '@/components/ui';
 import { registry } from '@/services';
-import { NODE_DRAG_TYPE } from '@/utils';
 import { SERVICE_CATEGORY_LABELS } from '@/services/types';
 import type { ServiceCategory, ServiceDefinition } from '@/services/types';
-import { EmptyState } from '@/components/ui';
+import { NODE_DRAG_TYPE } from '@/utils';
 
 interface CustomCSSProperties extends React.CSSProperties {
   '--hover-border'?: string;

@@ -1,5 +1,7 @@
 import { Fragment } from 'react';
+
 import { parseCommentBody } from './comments-utils';
+
 import type { CommentInlineSegment } from './comments-utils';
 
 const InlineSegment = ({ segment }: { segment: CommentInlineSegment }) => {

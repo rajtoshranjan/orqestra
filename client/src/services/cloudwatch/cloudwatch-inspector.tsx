@@ -1,9 +1,12 @@
 import React from 'react';
+
 import { useForm } from 'react-hook-form';
+
+import { InspectorSection, InspectorField } from '@/components';
+import { Input } from '@/components/ui';
+
 import type { ServiceInspectorProps } from '../types';
 import type { CloudWatchConfig } from './types';
-import { Input } from '@/components/ui';
-import { InspectorSection, InspectorField } from '@/components';
 
 export function CloudWatchInspector({
   config,

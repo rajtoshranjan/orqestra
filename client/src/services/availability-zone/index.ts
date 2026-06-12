@@ -1,10 +1,12 @@
 import { Grid } from 'lucide-react';
-import type { ServiceDefinition, ServicePlanResource } from '../types';
-import type { AZConfig } from './types';
+
+import { AZInspector } from './az-inspector';
+import { AZNode } from './az-node';
 import { createDefaultAZConfig, getAZDisplayName } from './defaults';
 import { validateAZConfig } from './validate';
-import { AZNode } from './az-node';
-import { AZInspector } from './az-inspector';
+
+import type { ServiceDefinition, ServicePlanResource } from '../types';
+import type { AZConfig } from './types';
 
 export const azService: ServiceDefinition<AZConfig> = {
   id: 'availability-zone',

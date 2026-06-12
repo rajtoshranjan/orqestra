@@ -1,3 +1,10 @@
+import { GlueIcon } from '@/components/icons';
+
+import { createDefaultGlueConfig, getGlueDisplayName } from './defaults';
+import { GlueInspector } from './glue-inspector';
+import { GlueNode } from './glue-node';
+import { validateGlueConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,11 +12,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { GlueConfig } from './types';
-import { createDefaultGlueConfig, getGlueDisplayName } from './defaults';
-import { validateGlueConfig } from './validate';
-import { GlueNode } from './glue-node';
-import { GlueInspector } from './glue-inspector';
-import { GlueIcon } from '@/components/icons';
 
 export const glueService: ServiceDefinition<GlueConfig> = {
   id: 'glue',

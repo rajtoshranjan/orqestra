@@ -1,6 +1,7 @@
+import { eksClusterConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { EksClusterConfig } from './types';
-import { eksClusterConfigSchema } from '@/schemas/resources.schema';
 
 export function validateEksClusterConfig(
   config: EksClusterConfig,

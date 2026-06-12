@@ -1,6 +1,7 @@
+import { codedeployConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { CodeDeployConfig } from './types';
-import { codedeployConfigSchema } from '@/schemas/resources.schema';
 
 export function validateCodeDeployConfig(
   config: CodeDeployConfig,

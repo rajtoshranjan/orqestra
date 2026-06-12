@@ -1,9 +1,12 @@
 import React from 'react';
+
 import { useForm } from 'react-hook-form';
+
+import { InspectorSection, InspectorField } from '@/components';
+import { Input, Select } from '@/components/ui';
+
 import type { ServiceInspectorProps } from '../types';
 import type { CognitoConfig, CognitoMFAConfiguration } from './types';
-import { Input, Select } from '@/components/ui';
-import { InspectorSection, InspectorField } from '@/components';
 
 const MFA_OPTIONS: Array<{ value: CognitoMFAConfiguration; label: string }> = [
   { value: 'OFF', label: 'Off' },

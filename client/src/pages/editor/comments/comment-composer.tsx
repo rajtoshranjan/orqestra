@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+
 import { SendHorizontal } from 'lucide-react';
+
+import { useMentionableUsers } from '@/api';
+import type { MentionableUser } from '@/api';
+import { Button } from '@/components/ui';
+import { cn } from '@/lib/utils';
+
 import { MentionAutocomplete } from './mention-autocomplete';
 import {
   getMentionQueryAtCaret,
@@ -9,11 +16,8 @@ import {
   renderMentionValue,
   serializeMentionValue,
 } from './mention-editable';
+
 import type { CaretMentionQuery } from './mention-editable';
-import { Button } from '@/components/ui';
-import { cn } from '@/lib/utils';
-import { useMentionableUsers } from '@/api';
-import type { MentionableUser } from '@/api';
 
 type CommentComposerProps = {
   placeholder?: string;

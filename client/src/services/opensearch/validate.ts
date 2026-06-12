@@ -1,6 +1,7 @@
+import { opensearchConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { OpenSearchConfig } from './types';
-import { opensearchConfigSchema } from '@/schemas/resources.schema';
 
 export function validateOpenSearchConfig(
   config: OpenSearchConfig,

@@ -1,7 +1,13 @@
 import { ChevronDown, LogOut, Settings as SettingsIcon } from 'lucide-react';
-
 import { useLocation } from 'react-router-dom';
 import { useLocalStorage } from 'usehooks-ts';
+
+import { useGetUserInfo, useOrganisations } from '@/api/auth';
+import { logout } from '@/api/client';
+import { history } from '@/lib/utils';
+import { localStorageManager } from '@/lib/utils/local-storage-manager';
+
+import { NotificationsBell } from './notifications-bell';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,12 +15,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
-
-import { NotificationsBell } from './notifications-bell';
-import { useGetUserInfo, useOrganisations } from '@/api/auth';
-import { logout } from '@/api/client';
-import { history } from '@/lib/utils';
-import { localStorageManager } from '@/lib/utils/local-storage-manager';
 
 const getCurrentSectionLabel = (): string => {
   const path = window.location.pathname;

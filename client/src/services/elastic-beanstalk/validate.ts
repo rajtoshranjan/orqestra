@@ -1,6 +1,7 @@
+import { elasticBeanstalkConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { ElasticBeanstalkConfig } from './types';
-import { elasticBeanstalkConfigSchema } from '@/schemas/resources.schema';
 
 export function validateElasticBeanstalkConfig(
   config: ElasticBeanstalkConfig,

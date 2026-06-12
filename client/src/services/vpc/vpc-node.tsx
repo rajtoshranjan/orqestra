@@ -1,11 +1,11 @@
 import { memo } from 'react';
-import type { NodeProps } from 'reactflow';
+
+import { BaseContainerNode } from '@/components';
+import { VpcIcon } from '@/components/icons';
 
 import type { ServiceValidationErrors } from '../types';
 import type { VPCConfig } from './types';
-
-import { VpcIcon } from '@/components/icons';
-import { BaseContainerNode } from '@/components';
+import type { NodeProps } from 'reactflow';
 
 type VPCNodeDataShape = {
   serviceId: string;

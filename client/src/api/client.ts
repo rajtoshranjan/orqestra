@@ -1,5 +1,6 @@
 import { QueryClient } from '@tanstack/react-query';
 import axios from 'axios';
+
 import { EnvVariables } from '@/config';
 import { localStorageManager } from '@/lib/utils/local-storage-manager';
 

@@ -1,6 +1,7 @@
+import { azConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { AZConfig } from './types';
-import { azConfigSchema } from '@/schemas/resources.schema';
 
 export function validateAZConfig(config: AZConfig): ServiceValidationErrors {
   const result = azConfigSchema.safeParse(config);

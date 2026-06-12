@@ -1,6 +1,7 @@
+import { iamRoleConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { IAMRoleConfig } from './types';
-import { iamRoleConfigSchema } from '@/schemas/resources.schema';
 
 export function validateIAMRoleConfig(
   config: IAMRoleConfig,

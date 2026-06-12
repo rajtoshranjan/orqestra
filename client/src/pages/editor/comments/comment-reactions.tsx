@@ -1,7 +1,8 @@
 import { SmilePlus } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui';
+
 import type { ClientReaction } from '@/api';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui';
+import { cn } from '@/lib/utils';
 
 export const REACTION_EMOJIS = ['👍', '👎', '❤️', '🎉', '👀', '🚀', '😄', '🤔'];
 

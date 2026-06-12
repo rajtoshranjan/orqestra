@@ -1,6 +1,7 @@
+import { batchConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { BatchConfig } from './types';
-import { batchConfigSchema } from '@/schemas/resources.schema';
 
 export function validateBatchConfig(
   config: BatchConfig,

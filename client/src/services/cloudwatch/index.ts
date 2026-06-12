@@ -1,3 +1,13 @@
+import { CloudWatchIcon } from '@/components/icons';
+
+import { CloudWatchInspector } from './cloudwatch-inspector';
+import { CloudWatchNode } from './cloudwatch-node';
+import {
+  createDefaultCloudWatchConfig,
+  getCloudWatchDisplayName,
+} from './defaults';
+import { validateCloudWatchConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,14 +15,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { CloudWatchConfig } from './types';
-import {
-  createDefaultCloudWatchConfig,
-  getCloudWatchDisplayName,
-} from './defaults';
-import { validateCloudWatchConfig } from './validate';
-import { CloudWatchNode } from './cloudwatch-node';
-import { CloudWatchInspector } from './cloudwatch-inspector';
-import { CloudWatchIcon } from '@/components/icons';
 
 export const cloudwatchService: ServiceDefinition<CloudWatchConfig> = {
   id: 'cloudwatch',

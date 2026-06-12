@@ -1,5 +1,6 @@
-import { createServiceNode } from './diagram';
 import type { DiagramNode, DiagramEdge } from '@/types';
+
+import { createServiceNode } from './diagram';
 
 /**
  * Serverless REST API Starter

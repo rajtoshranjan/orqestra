@@ -1,3 +1,10 @@
+import { AlbIcon } from '@/components/icons';
+
+import { AlbInspector } from './alb-inspector';
+import { AlbNode } from './alb-node';
+import { createDefaultAlbConfig, getAlbDisplayName } from './defaults';
+import { validateAlbConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,11 +12,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { AlbConfig } from './types';
-import { createDefaultAlbConfig, getAlbDisplayName } from './defaults';
-import { validateAlbConfig } from './validate';
-import { AlbNode } from './alb-node';
-import { AlbInspector } from './alb-inspector';
-import { AlbIcon } from '@/components/icons';
 
 export const albService: ServiceDefinition<AlbConfig> = {
   id: 'alb',

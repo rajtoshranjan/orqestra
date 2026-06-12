@@ -1,6 +1,7 @@
+import { environmentConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { EnvironmentConfig } from './types';
-import { environmentConfigSchema } from '@/schemas/resources.schema';
 
 export function validateEnvironmentConfig(
   config: EnvironmentConfig,

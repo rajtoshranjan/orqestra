@@ -11,8 +11,9 @@ vi.mock('history', () => {
   };
 });
 
-import { adjustParentSizes, findBestParentForPosition } from './diagram';
 import type { DiagramNode } from '@/types';
+
+import { adjustParentSizes, findBestParentForPosition } from './diagram';
 
 describe('diagram parenting and layout utility tests', () => {
   it('should adjust parent container dimensions to fit child nodes', () => {

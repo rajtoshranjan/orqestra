@@ -1,4 +1,5 @@
 import { useState } from 'react';
+
 import {
   Plus,
   LayoutDashboard,
@@ -10,8 +11,8 @@ import {
   SearchX,
 } from 'lucide-react';
 
-import { formatRelativeTime } from '@/utils';
 import { useProjects, useDeleteProject, useAWSAccounts } from '@/api';
+import { PageLayout } from '@/components';
 import {
   Button,
   Card,
@@ -33,7 +34,7 @@ import {
   Select,
   Textarea,
 } from '@/components/ui';
-import { PageLayout } from '@/components';
+import { formatRelativeTime } from '@/utils';
 
 type ProjectsProps = {
   onOpenProject: (projectId: string) => void;

@@ -1,6 +1,7 @@
+import { athenaConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { AthenaConfig } from './types';
-import { athenaConfigSchema } from '@/schemas/resources.schema';
 
 export function validateAthenaConfig(
   config: AthenaConfig,

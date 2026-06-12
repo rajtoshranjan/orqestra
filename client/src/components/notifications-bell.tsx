@@ -1,14 +1,17 @@
 import { useState } from 'react';
+
 import { AtSign, Bell, Check, MessageSquare, Reply } from 'lucide-react';
-import { Button, Popover, PopoverContent, PopoverTrigger } from './ui';
-import { cn, history } from '@/lib/utils';
-import { commentBodyToPlainText, formatRelativeTime } from '@/utils';
+
 import {
   useMarkNotificationsRead,
   useNotifications,
   useUnreadNotificationCount,
 } from '@/api';
 import type { ClientNotification, NotificationVerb } from '@/api';
+import { cn, history } from '@/lib/utils';
+import { commentBodyToPlainText, formatRelativeTime } from '@/utils';
+
+import { Button, Popover, PopoverContent, PopoverTrigger } from './ui';
 
 const VERB_META: Record<
   NotificationVerb,

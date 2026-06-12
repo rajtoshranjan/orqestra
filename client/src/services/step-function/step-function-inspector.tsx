@@ -1,10 +1,14 @@
 import React from 'react';
-import { useForm } from 'react-hook-form';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ChevronDown } from 'lucide-react';
-import type { ServiceInspectorProps } from '../types';
-import type { StepFunctionConfig } from './types';
-import { stepFunctionConfigSchema } from '@/schemas/resources.schema';
+import { useForm } from 'react-hook-form';
+
+import {
+  InspectorSection,
+  InspectorField,
+  CodeEditorField,
+} from '@/components';
 import {
   Input,
   Button,
@@ -14,11 +18,10 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from '@/components/ui';
-import {
-  InspectorSection,
-  InspectorField,
-  CodeEditorField,
-} from '@/components';
+import { stepFunctionConfigSchema } from '@/schemas/resources.schema';
+
+import type { ServiceInspectorProps } from '../types';
+import type { StepFunctionConfig } from './types';
 
 export function StepFunctionInspector({
   config,

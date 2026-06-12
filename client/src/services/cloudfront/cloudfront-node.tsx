@@ -1,11 +1,11 @@
 import { memo } from 'react';
-import type { NodeProps } from 'reactflow';
+
+import { BaseServiceNode } from '@/components';
+import { CloudFrontIcon } from '@/components/icons';
 
 import type { ServiceValidationErrors } from '../types';
 import type { CloudFrontConfig } from './types';
-
-import { CloudFrontIcon } from '@/components/icons';
-import { BaseServiceNode } from '@/components';
+import type { NodeProps } from 'reactflow';
 
 type CloudFrontNodeDataShape = {
   serviceId: string;

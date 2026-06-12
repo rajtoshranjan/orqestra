@@ -1,3 +1,13 @@
+import { OpenSearchIcon } from '@/components/icons';
+
+import {
+  createDefaultOpenSearchConfig,
+  getOpenSearchDisplayName,
+} from './defaults';
+import { OpenSearchInspector } from './opensearch-inspector';
+import { OpenSearchNode } from './opensearch-node';
+import { validateOpenSearchConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,14 +15,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { OpenSearchConfig } from './types';
-import {
-  createDefaultOpenSearchConfig,
-  getOpenSearchDisplayName,
-} from './defaults';
-import { validateOpenSearchConfig } from './validate';
-import { OpenSearchNode } from './opensearch-node';
-import { OpenSearchInspector } from './opensearch-inspector';
-import { OpenSearchIcon } from '@/components/icons';
 
 export const openSearchService: ServiceDefinition<OpenSearchConfig> = {
   id: 'opensearch',

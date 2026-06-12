@@ -1,11 +1,14 @@
 import React from 'react';
-import { useForm } from 'react-hook-form';
+
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+
+import { InspectorSection, InspectorField } from '@/components';
+import { Input, Select } from '@/components/ui';
+import { wafConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceInspectorProps } from '../types';
 import type { WafConfig, WafDefaultAction, WafScope } from './types';
-import { wafConfigSchema } from '@/schemas/resources.schema';
-import { Input, Select } from '@/components/ui';
-import { InspectorSection, InspectorField } from '@/components';
 
 const SCOPE_OPTIONS: Array<{ value: WafScope; label: string }> = [
   { value: 'REGIONAL', label: 'Regional' },

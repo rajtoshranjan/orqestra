@@ -1,6 +1,7 @@
+import { networkAclConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { NetworkAclConfig } from './types';
-import { networkAclConfigSchema } from '@/schemas/resources.schema';
 
 export function validateNetworkAclConfig(
   config: NetworkAclConfig,

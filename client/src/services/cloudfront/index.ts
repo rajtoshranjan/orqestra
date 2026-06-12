@@ -1,3 +1,13 @@
+import { CloudFrontIcon } from '@/components/icons';
+
+import { CloudFrontInspector } from './cloudfront-inspector';
+import { CloudFrontNode } from './cloudfront-node';
+import {
+  createDefaultCloudFrontConfig,
+  getCloudFrontDisplayName,
+} from './defaults';
+import { validateCloudFrontConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,14 +15,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { CloudFrontConfig } from './types';
-import {
-  createDefaultCloudFrontConfig,
-  getCloudFrontDisplayName,
-} from './defaults';
-import { validateCloudFrontConfig } from './validate';
-import { CloudFrontNode } from './cloudfront-node';
-import { CloudFrontInspector } from './cloudfront-inspector';
-import { CloudFrontIcon } from '@/components/icons';
 
 export const cloudFrontService: ServiceDefinition<CloudFrontConfig> = {
   id: 'cloudfront',

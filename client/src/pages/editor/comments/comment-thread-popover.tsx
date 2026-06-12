@@ -1,4 +1,5 @@
 import { useState } from 'react';
+
 import {
   Check,
   MoreHorizontal,
@@ -7,11 +8,8 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import { CommentBody } from './comment-body';
-import { CommentComposer } from './comment-composer';
-import { CommentReactions } from './comment-reactions';
-import { getInitials } from './comments-utils';
-import { formatRelativeTime } from '@/utils';
+
+import type { ClientAnnotation, ClientComment } from '@/api';
 import {
   Badge,
   Button,
@@ -20,7 +18,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui';
-import type { ClientAnnotation, ClientComment } from '@/api';
+import { formatRelativeTime } from '@/utils';
+
+import { CommentBody } from './comment-body';
+import { CommentComposer } from './comment-composer';
+import { CommentReactions } from './comment-reactions';
+import { getInitials } from './comments-utils';
 
 type ThreadActions = {
   onReply: (body: string) => void;

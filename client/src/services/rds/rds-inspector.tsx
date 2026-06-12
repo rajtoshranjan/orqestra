@@ -1,9 +1,12 @@
 import React from 'react';
+
 import { useForm } from 'react-hook-form';
+
+import { InspectorSection, InspectorField } from '@/components';
+import { Input, Select } from '@/components/ui';
+
 import type { ServiceInspectorProps } from '../types';
 import type { RDSConfig, RDSEngine } from './types';
-import { Input, Select } from '@/components/ui';
-import { InspectorSection, InspectorField } from '@/components';
 
 const ENGINE_OPTIONS: Array<{ value: RDSEngine; label: string }> = [
   { value: 'postgres', label: 'PostgreSQL' },

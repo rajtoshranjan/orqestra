@@ -1,11 +1,11 @@
 import { memo } from 'react';
-import type { NodeProps } from 'reactflow';
+
+import { BaseServiceNode } from '@/components';
+import { BedrockIcon } from '@/components/icons';
 
 import type { ServiceValidationErrors } from '../types';
 import type { BedrockConfig } from './types';
-
-import { BedrockIcon } from '@/components/icons';
-import { BaseServiceNode } from '@/components';
+import type { NodeProps } from 'reactflow';
 
 type BedrockNodeDataShape = {
   serviceId: string;

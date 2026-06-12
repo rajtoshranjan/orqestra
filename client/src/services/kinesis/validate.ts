@@ -1,6 +1,7 @@
+import { kinesisConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { KinesisConfig } from './types';
-import { kinesisConfigSchema } from '@/schemas/resources.schema';
 
 export function validateKinesisConfig(
   config: KinesisConfig,

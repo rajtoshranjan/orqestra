@@ -1,10 +1,12 @@
+import { EfsIcon } from '@/components/icons';
+
+import { createDefaultEFSConfig, getEFSDisplayName } from './defaults';
+import { EFSInspector } from './efs-inspector';
+import { EFSNode } from './efs-node';
+import { validateEFSConfig } from './validate';
+
 import type { ServiceDefinition, ServicePlanResource } from '../types';
 import type { EFSConfig } from './types';
-import { createDefaultEFSConfig, getEFSDisplayName } from './defaults';
-import { validateEFSConfig } from './validate';
-import { EFSNode } from './efs-node';
-import { EFSInspector } from './efs-inspector';
-import { EfsIcon } from '@/components/icons';
 
 export const efsService: ServiceDefinition<EFSConfig> = {
   id: 'efs',

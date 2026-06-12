@@ -1,3 +1,10 @@
+import { SsmIcon } from '@/components/icons';
+
+import { createDefaultSsmConfig, getSsmDisplayName } from './defaults';
+import { SsmInspector } from './ssm-inspector';
+import { SsmNode } from './ssm-node';
+import { validateSsmConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,11 +12,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { SsmConfig } from './types';
-import { createDefaultSsmConfig, getSsmDisplayName } from './defaults';
-import { validateSsmConfig } from './validate';
-import { SsmNode } from './ssm-node';
-import { SsmInspector } from './ssm-inspector';
-import { SsmIcon } from '@/components/icons';
 
 export const ssmService: ServiceDefinition<SsmConfig> = {
   id: 'ssm',

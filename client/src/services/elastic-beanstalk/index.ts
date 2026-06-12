@@ -1,3 +1,13 @@
+import { ElasticBeanstalkIcon } from '@/components/icons';
+
+import {
+  createDefaultElasticBeanstalkConfig,
+  getElasticBeanstalkDisplayName,
+} from './defaults';
+import { ElasticBeanstalkInspector } from './elastic-beanstalk-inspector';
+import { ElasticBeanstalkNode } from './elastic-beanstalk-node';
+import { validateElasticBeanstalkConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,14 +15,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { ElasticBeanstalkConfig } from './types';
-import {
-  createDefaultElasticBeanstalkConfig,
-  getElasticBeanstalkDisplayName,
-} from './defaults';
-import { validateElasticBeanstalkConfig } from './validate';
-import { ElasticBeanstalkNode } from './elastic-beanstalk-node';
-import { ElasticBeanstalkInspector } from './elastic-beanstalk-inspector';
-import { ElasticBeanstalkIcon } from '@/components/icons';
 
 export const elasticBeanstalkService: ServiceDefinition<ElasticBeanstalkConfig> =
   {

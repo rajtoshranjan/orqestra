@@ -1,11 +1,14 @@
 import React from 'react';
-import { useForm } from 'react-hook-form';
+
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+
+import { InspectorSection, InspectorField } from '@/components';
+import { Input, Select } from '@/components/ui';
+import { elasticacheConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceInspectorProps } from '../types';
 import type { ElastiCacheConfig } from './types';
-import { elasticacheConfigSchema } from '@/schemas/resources.schema';
-import { Input, Select } from '@/components/ui';
-import { InspectorSection, InspectorField } from '@/components';
 
 const ENGINE_OPTIONS: Array<{
   value: ElastiCacheConfig['engine'];

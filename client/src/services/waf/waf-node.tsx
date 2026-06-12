@@ -1,11 +1,11 @@
 import { memo } from 'react';
-import type { NodeProps } from 'reactflow';
+
+import { BaseServiceNode } from '@/components';
+import { WafIcon } from '@/components/icons';
 
 import type { ServiceValidationErrors } from '../types';
 import type { WafConfig } from './types';
-
-import { WafIcon } from '@/components/icons';
-import { BaseServiceNode } from '@/components';
+import type { NodeProps } from 'reactflow';
 
 type WafNodeDataShape = {
   serviceId: string;

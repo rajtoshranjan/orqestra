@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
+
 import { MessageSquare, ScanEye, Unlink, X } from 'lucide-react';
-import { commentBodyToPlainText, getInitials } from './comments-utils';
-import type { CommentsApi } from './use-comments';
+
+import type { ClientAnnotation } from '@/api';
 import {
   Badge,
   Button,
@@ -11,15 +12,18 @@ import {
   TabsTrigger,
 } from '@/components/ui';
 import { cn } from '@/lib/utils';
-import { formatRelativeTime } from '@/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   setAnnotationFilters,
   setCommentMode,
   toggleReviewMode,
 } from '@/store/ui-slice';
-import type { ClientAnnotation } from '@/api';
 import type { AnnotationStatusFilter } from '@/types';
+import { formatRelativeTime } from '@/utils';
+
+import { commentBodyToPlainText, getInitials } from './comments-utils';
+
+import type { CommentsApi } from './use-comments';
 
 const TARGET_LABELS: Record<ClientAnnotation['targetType'], string> = {
   canvas: 'Canvas',

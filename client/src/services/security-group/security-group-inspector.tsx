@@ -1,13 +1,17 @@
 import React from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Trash2 } from 'lucide-react';
+import { useForm, useFieldArray } from 'react-hook-form';
+
+import { InspectorSection, InspectorField } from '@/components';
+import { Input, Button } from '@/components/ui';
+import { securityGroupConfigSchema } from '@/schemas/resources.schema';
+
+import { makeEmptyRule } from './defaults';
+
 import type { ServiceInspectorProps } from '../types';
 import type { SecurityGroupConfig } from './types';
-import { makeEmptyRule } from './defaults';
-import { securityGroupConfigSchema } from '@/schemas/resources.schema';
-import { Input, Button } from '@/components/ui';
-import { InspectorSection, InspectorField } from '@/components';
 
 export function SecurityGroupInspector({
   config,

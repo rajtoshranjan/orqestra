@@ -1,9 +1,12 @@
 import { memo } from 'react';
-import type { NodeProps } from 'reactflow';
+
 import { Folder } from 'lucide-react';
+
+import { BaseContainerNode } from '@/components';
+
 import type { ServiceValidationErrors } from '../types';
 import type { AppGroupConfig } from './types';
-import { BaseContainerNode } from '@/components';
+import type { NodeProps } from 'reactflow';
 
 type AppGroupNodeData = {
   serviceId: string;

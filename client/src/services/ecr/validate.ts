@@ -1,6 +1,7 @@
+import { ecrConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { ECRConfig } from './types';
-import { ecrConfigSchema } from '@/schemas/resources.schema';
 
 export function validateECRConfig(config: ECRConfig): ServiceValidationErrors {
   const result = ecrConfigSchema.safeParse(config);

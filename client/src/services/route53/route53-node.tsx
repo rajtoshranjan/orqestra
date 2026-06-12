@@ -1,11 +1,11 @@
 import { memo } from 'react';
-import type { NodeProps } from 'reactflow';
+
+import { BaseServiceNode } from '@/components';
+import { Route53Icon } from '@/components/icons';
 
 import type { ServiceValidationErrors } from '../types';
 import type { Route53Config } from './types';
-
-import { Route53Icon } from '@/components/icons';
-import { BaseServiceNode } from '@/components';
+import type { NodeProps } from 'reactflow';
 
 type Route53NodeDataShape = {
   serviceId: string;

@@ -1,9 +1,11 @@
 import React from 'react';
-import type { DeploymentNodeStatus } from './canvas-utils';
+
+import { cn } from '@/lib/utils';
+import { registry } from '@/services';
 import type { DiagramNode } from '@/types';
 import { getDescendants } from '@/utils';
-import { registry } from '@/services';
-import { cn } from '@/lib/utils';
+
+import type { DeploymentNodeStatus } from './canvas-utils';
 
 type UseEnrichedNodesOptions = {
   nodes: DiagramNode[];

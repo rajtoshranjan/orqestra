@@ -1,4 +1,6 @@
 import React, { useEffect } from 'react';
+
+import { useAWSAccounts } from '@/api';
 import {
   Dialog,
   DialogContent,
@@ -16,7 +18,6 @@ import {
   setProjectDescription,
   setAwsAccountId,
 } from '@/store/editor-slice';
-import { useAWSAccounts } from '@/api';
 
 type ProjectSettingsModalProps = {
   open: boolean;

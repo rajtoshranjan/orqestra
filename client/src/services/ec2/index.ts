@@ -1,3 +1,10 @@
+import { Ec2Icon } from '@/components/icons';
+
+import { createDefaultEC2Config, getEC2DisplayName } from './defaults';
+import { EC2Inspector } from './ec2-inspector';
+import { EC2Node } from './ec2-node';
+import { validateEC2Config } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -6,11 +13,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { EC2Config } from './types';
-import { createDefaultEC2Config, getEC2DisplayName } from './defaults';
-import { validateEC2Config } from './validate';
-import { EC2Node } from './ec2-node';
-import { EC2Inspector } from './ec2-inspector';
-import { Ec2Icon } from '@/components/icons';
 
 export const ec2Service: ServiceDefinition<EC2Config> = {
   id: 'ec2',

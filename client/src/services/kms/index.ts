@@ -1,3 +1,10 @@
+import { KmsIcon } from '@/components/icons';
+
+import { createDefaultKMSConfig, getKMSDisplayName } from './defaults';
+import { KMSInspector } from './kms-inspector';
+import { KMSNode } from './kms-node';
+import { validateKMSConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,11 +12,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { KMSConfig } from './types';
-import { createDefaultKMSConfig, getKMSDisplayName } from './defaults';
-import { validateKMSConfig } from './validate';
-import { KMSNode } from './kms-node';
-import { KMSInspector } from './kms-inspector';
-import { KmsIcon } from '@/components/icons';
 
 export const kmsService: ServiceDefinition<KMSConfig> = {
   id: 'kms',

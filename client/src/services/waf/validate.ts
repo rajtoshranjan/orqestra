@@ -1,6 +1,7 @@
+import { wafConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { WafConfig } from './types';
-import { wafConfigSchema } from '@/schemas/resources.schema';
 
 export function validateWafConfig(config: WafConfig): ServiceValidationErrors {
   const result = wafConfigSchema.safeParse(config);

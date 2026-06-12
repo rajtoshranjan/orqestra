@@ -1,6 +1,7 @@
+import { dynamodbConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { DynamoDBConfig } from './types';
-import { dynamodbConfigSchema } from '@/schemas/resources.schema';
 
 export function validateDynamoDBConfig(
   config: DynamoDBConfig,

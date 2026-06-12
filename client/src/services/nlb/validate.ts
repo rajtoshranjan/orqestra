@@ -1,6 +1,7 @@
+import { nlbConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { NlbConfig } from './types';
-import { nlbConfigSchema } from '@/schemas/resources.schema';
 
 export function validateNlbConfig(config: NlbConfig): ServiceValidationErrors {
   const result = nlbConfigSchema.safeParse(config);

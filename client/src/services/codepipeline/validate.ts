@@ -1,6 +1,7 @@
+import { codepipelineConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { CodePipelineConfig } from './types';
-import { codepipelineConfigSchema } from '@/schemas/resources.schema';
 
 export function validateCodePipelineConfig(
   config: CodePipelineConfig,

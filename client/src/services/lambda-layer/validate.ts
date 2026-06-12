@@ -1,6 +1,7 @@
+import { lambdaLayerConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { LambdaLayerConfig } from './types';
-import { lambdaLayerConfigSchema } from '@/schemas/resources.schema';
 
 export function validateLambdaLayerConfig(
   config: LambdaLayerConfig,

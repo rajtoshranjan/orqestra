@@ -1,3 +1,10 @@
+import { XRayIcon } from '@/components/icons';
+
+import { createDefaultXRayConfig, getXRayDisplayName } from './defaults';
+import { validateXRayConfig } from './validate';
+import { XRayInspector } from './xray-inspector';
+import { XRayNode } from './xray-node';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,11 +12,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { XRayConfig } from './types';
-import { createDefaultXRayConfig, getXRayDisplayName } from './defaults';
-import { validateXRayConfig } from './validate';
-import { XRayNode } from './xray-node';
-import { XRayInspector } from './xray-inspector';
-import { XRayIcon } from '@/components/icons';
 
 export const xrayService: ServiceDefinition<XRayConfig> = {
   id: 'xray',

@@ -1,13 +1,15 @@
-import type { ServiceDefinition, ServicePlanResource } from '../types';
-import type { EventBridgeConfig } from './types';
+import { EventBridgeIcon } from '@/components/icons';
+
 import {
   createDefaultEventBridgeConfig,
   getEventBridgeDisplayName,
 } from './defaults';
-import { validateEventBridgeConfig } from './validate';
-import { EventBridgeNode } from './eventbridge-node';
 import { EventBridgeInspector } from './eventbridge-inspector';
-import { EventBridgeIcon } from '@/components/icons';
+import { EventBridgeNode } from './eventbridge-node';
+import { validateEventBridgeConfig } from './validate';
+
+import type { ServiceDefinition, ServicePlanResource } from '../types';
+import type { EventBridgeConfig } from './types';
 
 export const eventbridgeService: ServiceDefinition<EventBridgeConfig> = {
   id: 'eventbridge',

@@ -1,6 +1,7 @@
+import { sharedServicesConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { SharedServicesConfig } from './types';
-import { sharedServicesConfigSchema } from '@/schemas/resources.schema';
 
 export function validateSharedServicesConfig(
   config: SharedServicesConfig,

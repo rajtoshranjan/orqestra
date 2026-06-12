@@ -1,3 +1,13 @@
+import { EksIcon } from '@/components/icons';
+
+import {
+  createDefaultEksClusterConfig,
+  getEksClusterDisplayName,
+} from './defaults';
+import { EksClusterInspector } from './eks-cluster-inspector';
+import { EksClusterNode } from './eks-cluster-node';
+import { validateEksClusterConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,14 +15,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { EksClusterConfig } from './types';
-import {
-  createDefaultEksClusterConfig,
-  getEksClusterDisplayName,
-} from './defaults';
-import { validateEksClusterConfig } from './validate';
-import { EksClusterNode } from './eks-cluster-node';
-import { EksClusterInspector } from './eks-cluster-inspector';
-import { EksIcon } from '@/components/icons';
 
 export const eksClusterService: ServiceDefinition<EksClusterConfig> = {
   id: 'eks-cluster',

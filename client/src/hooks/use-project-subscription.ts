@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+
 import { useWebSocket } from './use-websocket';
 
 export const useProjectSubscription = (projectId: string | null) => {

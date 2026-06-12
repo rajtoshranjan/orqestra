@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { autoLayoutDiagram } from './auto-layout';
+
 import type { DiagramNode } from '@/types';
+
+import { autoLayoutDiagram } from './auto-layout';
 
 describe('auto-layout engine tests', () => {
   it('should layout parent and nested nodes correctly', () => {

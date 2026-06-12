@@ -1,4 +1,5 @@
 import { Sparkles, Grid3x3, Lock, Rocket } from 'lucide-react';
+
 import { registry } from '@/services';
 import type { DiagramNode, DiagramEdge } from '@/types';
 import {

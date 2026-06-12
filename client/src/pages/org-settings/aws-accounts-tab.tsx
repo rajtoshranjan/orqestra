@@ -1,5 +1,15 @@
 import { useState } from 'react';
+
 import { Plus, Trash2, Edit2 } from 'lucide-react';
+
+import {
+  useAWSAccounts,
+  useCreateAWSAccount,
+  useUpdateAWSAccount,
+  useDeleteAWSAccount,
+  type CreateAWSAccountPayload,
+  type AWSAccount,
+} from '@/api';
 import {
   Card,
   CardContent,
@@ -22,14 +32,6 @@ import {
   TableHead,
   TableCell,
 } from '@/components/ui';
-import {
-  useAWSAccounts,
-  useCreateAWSAccount,
-  useUpdateAWSAccount,
-  useDeleteAWSAccount,
-  type CreateAWSAccountPayload,
-  type AWSAccount,
-} from '@/api';
 import { toast } from '@/hooks/use-toast';
 
 type AWSAccountsTabProps = {

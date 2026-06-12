@@ -1,10 +1,11 @@
-import type { CanvasShortcut } from './canvas-utils';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui';
+
+import type { CanvasShortcut } from './canvas-utils';
 
 type CanvasShortcutsDialogProps = {
   open: boolean;

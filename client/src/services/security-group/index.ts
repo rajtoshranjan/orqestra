@@ -1,3 +1,13 @@
+import { SecurityGroupIcon } from '@/components/icons';
+
+import {
+  createDefaultSecurityGroupConfig,
+  getSecurityGroupDisplayName,
+} from './defaults';
+import { SecurityGroupInspector } from './security-group-inspector';
+import { SecurityGroupNode } from './security-group-node';
+import { validateSecurityGroupConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -6,14 +16,6 @@ import type {
   AIHints,
 } from '../types';
 import type { SecurityGroupConfig } from './types';
-import {
-  createDefaultSecurityGroupConfig,
-  getSecurityGroupDisplayName,
-} from './defaults';
-import { validateSecurityGroupConfig } from './validate';
-import { SecurityGroupNode } from './security-group-node';
-import { SecurityGroupInspector } from './security-group-inspector';
-import { SecurityGroupIcon } from '@/components/icons';
 
 export const securityGroupService: ServiceDefinition<SecurityGroupConfig> = {
   id: 'security-group',

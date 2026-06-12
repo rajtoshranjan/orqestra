@@ -1,6 +1,7 @@
+import { fsxConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { FSxConfig } from './types';
-import { fsxConfigSchema } from '@/schemas/resources.schema';
 
 export function validateFSxConfig(config: FSxConfig): ServiceValidationErrors {
   const result = fsxConfigSchema.safeParse(config);

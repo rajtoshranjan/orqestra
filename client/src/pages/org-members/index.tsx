@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useLocalStorage } from 'usehooks-ts';
+
 import {
   ChevronDown,
   Shield,
@@ -8,7 +8,17 @@ import {
   Users,
   Check,
 } from 'lucide-react';
+import { useLocalStorage } from 'usehooks-ts';
 
+import {
+  useOrganisations,
+  useOrganisationMembers,
+  useAddOrganisationMember,
+  useRemoveOrganisationMember,
+  useGetUserInfo,
+  useUpdateOrganisationMember,
+} from '@/api/auth';
+import { PageLayout } from '@/components';
 import {
   Card,
   CardContent,
@@ -24,18 +34,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui';
-import { PageLayout } from '@/components';
-import {
-  useOrganisations,
-  useOrganisationMembers,
-  useAddOrganisationMember,
-  useRemoveOrganisationMember,
-  useGetUserInfo,
-  useUpdateOrganisationMember,
-} from '@/api/auth';
-import { localStorageManager } from '@/lib/utils/local-storage-manager';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { localStorageManager } from '@/lib/utils/local-storage-manager';
 
 /**
  * Computes the first letters of the user or organisation name to render custom avatars.

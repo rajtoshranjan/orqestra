@@ -1,3 +1,13 @@
+import { ElastiCacheIcon } from '@/components/icons';
+
+import {
+  createDefaultElastiCacheConfig,
+  getElastiCacheDisplayName,
+} from './defaults';
+import { ElastiCacheInspector } from './elasticache-inspector';
+import { ElastiCacheNode } from './elasticache-node';
+import { validateElastiCacheConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,14 +15,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { ElastiCacheConfig } from './types';
-import {
-  createDefaultElastiCacheConfig,
-  getElastiCacheDisplayName,
-} from './defaults';
-import { validateElastiCacheConfig } from './validate';
-import { ElastiCacheNode } from './elasticache-node';
-import { ElastiCacheInspector } from './elasticache-inspector';
-import { ElastiCacheIcon } from '@/components/icons';
 
 export const elasticacheService: ServiceDefinition<ElastiCacheConfig> = {
   id: 'elasticache',

@@ -1,11 +1,11 @@
 import { memo } from 'react';
-import type { NodeProps } from 'reactflow';
+
+import { BaseServiceNode } from '@/components';
+import { FsxIcon } from '@/components/icons';
 
 import type { ServiceValidationErrors } from '../types';
 import type { FSxConfig } from './types';
-
-import { FsxIcon } from '@/components/icons';
-import { BaseServiceNode } from '@/components';
+import type { NodeProps } from 'reactflow';
 
 type FSxNodeDataShape = {
   serviceId: string;

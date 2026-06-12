@@ -1,3 +1,10 @@
+import { AthenaIcon } from '@/components/icons';
+
+import { AthenaInspector } from './athena-inspector';
+import { AthenaNode } from './athena-node';
+import { createDefaultAthenaConfig, getAthenaDisplayName } from './defaults';
+import { validateAthenaConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,11 +12,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { AthenaConfig } from './types';
-import { createDefaultAthenaConfig, getAthenaDisplayName } from './defaults';
-import { validateAthenaConfig } from './validate';
-import { AthenaNode } from './athena-node';
-import { AthenaInspector } from './athena-inspector';
-import { AthenaIcon } from '@/components/icons';
 
 export const athenaService: ServiceDefinition<AthenaConfig> = {
   id: 'athena',

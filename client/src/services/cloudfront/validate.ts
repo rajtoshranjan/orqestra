@@ -1,6 +1,7 @@
+import { cloudfrontConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { CloudFrontConfig } from './types';
-import { cloudfrontConfigSchema } from '@/schemas/resources.schema';
 
 export function validateCloudFrontConfig(
   config: CloudFrontConfig,

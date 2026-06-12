@@ -1,11 +1,11 @@
 import { memo } from 'react';
-import type { NodeProps } from 'reactflow';
+
+import { BaseServiceNode } from '@/components';
+import { StepFunctionIcon } from '@/components/icons';
 
 import type { ServiceValidationErrors } from '../types';
 import type { StepFunctionConfig } from './types';
-
-import { StepFunctionIcon } from '@/components/icons';
-import { BaseServiceNode } from '@/components';
+import type { NodeProps } from 'reactflow';
 
 type StepFunctionNodeDataShape = {
   serviceId: string;

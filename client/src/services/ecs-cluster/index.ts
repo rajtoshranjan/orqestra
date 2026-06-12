@@ -1,3 +1,13 @@
+import { EcsIcon } from '@/components/icons';
+
+import {
+  createDefaultEcsClusterConfig,
+  getEcsClusterDisplayName,
+} from './defaults';
+import { EcsClusterInspector } from './ecs-cluster-inspector';
+import { EcsClusterNode } from './ecs-cluster-node';
+import { validateEcsClusterConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,14 +15,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { EcsClusterConfig } from './types';
-import {
-  createDefaultEcsClusterConfig,
-  getEcsClusterDisplayName,
-} from './defaults';
-import { validateEcsClusterConfig } from './validate';
-import { EcsClusterNode } from './ecs-cluster-node';
-import { EcsClusterInspector } from './ecs-cluster-inspector';
-import { EcsIcon } from '@/components/icons';
 
 export const ecsClusterService: ServiceDefinition<EcsClusterConfig> = {
   id: 'ecs-cluster',

@@ -1,6 +1,7 @@
+import { transitGatewayConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { TransitGatewayConfig } from './types';
-import { transitGatewayConfigSchema } from '@/schemas/resources.schema';
 
 export function validateTransitGatewayConfig(
   config: TransitGatewayConfig,

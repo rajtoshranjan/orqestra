@@ -1,3 +1,13 @@
+import { AppRunnerIcon } from '@/components/icons';
+
+import { AppRunnerInspector } from './app-runner-inspector';
+import { AppRunnerNode } from './app-runner-node';
+import {
+  createDefaultAppRunnerConfig,
+  getAppRunnerDisplayName,
+} from './defaults';
+import { validateAppRunnerConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,14 +15,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { AppRunnerConfig } from './types';
-import {
-  createDefaultAppRunnerConfig,
-  getAppRunnerDisplayName,
-} from './defaults';
-import { validateAppRunnerConfig } from './validate';
-import { AppRunnerNode } from './app-runner-node';
-import { AppRunnerInspector } from './app-runner-inspector';
-import { AppRunnerIcon } from '@/components/icons';
 
 export const appRunnerService: ServiceDefinition<AppRunnerConfig> = {
   id: 'app-runner',

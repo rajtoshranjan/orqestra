@@ -1,11 +1,11 @@
 import { memo } from 'react';
-import type { NodeProps } from 'reactflow';
+
+import { BaseServiceNode } from '@/components';
+import { AuroraIcon } from '@/components/icons';
 
 import type { ServiceValidationErrors } from '../types';
 import type { AuroraConfig } from './types';
-
-import { AuroraIcon } from '@/components/icons';
-import { BaseServiceNode } from '@/components';
+import type { NodeProps } from 'reactflow';
 
 type AuroraNodeDataShape = {
   serviceId: string;

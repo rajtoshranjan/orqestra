@@ -1,3 +1,10 @@
+import { IamRoleIcon } from '@/components/icons';
+
+import { createDefaultIAMRoleConfig, getIAMRoleDisplayName } from './defaults';
+import { IAMRoleInspector } from './iam-role-inspector';
+import { IAMRoleNode } from './iam-role-node';
+import { validateIAMRoleConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,11 +12,6 @@ import type {
   AIHints,
 } from '../types';
 import type { IAMRoleConfig } from './types';
-import { createDefaultIAMRoleConfig, getIAMRoleDisplayName } from './defaults';
-import { validateIAMRoleConfig } from './validate';
-import { IAMRoleNode } from './iam-role-node';
-import { IAMRoleInspector } from './iam-role-inspector';
-import { IamRoleIcon } from '@/components/icons';
 
 export const iamRoleService: ServiceDefinition<IAMRoleConfig> = {
   id: 'iam-role',

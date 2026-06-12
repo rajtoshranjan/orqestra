@@ -1,3 +1,10 @@
+import { NeptuneIcon } from '@/components/icons';
+
+import { createDefaultNeptuneConfig, getNeptuneDisplayName } from './defaults';
+import { NeptuneInspector } from './neptune-inspector';
+import { NeptuneNode } from './neptune-node';
+import { validateNeptuneConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,11 +12,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { NeptuneConfig } from './types';
-import { createDefaultNeptuneConfig, getNeptuneDisplayName } from './defaults';
-import { validateNeptuneConfig } from './validate';
-import { NeptuneNode } from './neptune-node';
-import { NeptuneInspector } from './neptune-inspector';
-import { NeptuneIcon } from '@/components/icons';
 
 export const neptuneService: ServiceDefinition<NeptuneConfig> = {
   id: 'neptune',

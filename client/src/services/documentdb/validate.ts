@@ -1,6 +1,7 @@
+import { documentdbConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { DocumentDbConfig } from './types';
-import { documentdbConfigSchema } from '@/schemas/resources.schema';
 
 export function validateDocumentDbConfig(
   config: DocumentDbConfig,

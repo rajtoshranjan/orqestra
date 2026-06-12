@@ -1,13 +1,15 @@
 import { Shield } from 'lucide-react';
-import type { ServiceDefinition, ServicePlanResource } from '../types';
-import type { TrustBoundaryConfig } from './types';
+
+import { TrustBoundaryInspector } from './boundary-inspector';
+import { TrustBoundaryNode } from './boundary-node';
 import {
   createDefaultTrustBoundaryConfig,
   getTrustBoundaryDisplayName,
 } from './defaults';
 import { validateTrustBoundaryConfig } from './validate';
-import { TrustBoundaryNode } from './boundary-node';
-import { TrustBoundaryInspector } from './boundary-inspector';
+
+import type { ServiceDefinition, ServicePlanResource } from '../types';
+import type { TrustBoundaryConfig } from './types';
 
 export const trustBoundaryService: ServiceDefinition<TrustBoundaryConfig> = {
   id: 'trust-boundary',

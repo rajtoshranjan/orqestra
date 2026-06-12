@@ -1,9 +1,12 @@
 import { memo } from 'react';
-import type { NodeProps } from 'reactflow';
+
 import { ShieldCheck } from 'lucide-react';
+
+import { BaseContainerNode } from '@/components';
+
 import type { ServiceValidationErrors } from '../types';
 import type { AccountConfig } from './types';
-import { BaseContainerNode } from '@/components';
+import type { NodeProps } from 'reactflow';
 
 type AccountNodeData = {
   serviceId: string;

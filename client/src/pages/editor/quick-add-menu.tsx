@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
+
 import { Search } from 'lucide-react';
+
 import { registry } from '@/services';
 import { SERVICE_CATEGORY_LABELS } from '@/services/types';
 import { NODE_DRAG_TYPE } from '@/utils';

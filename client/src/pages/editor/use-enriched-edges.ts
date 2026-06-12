@@ -1,5 +1,7 @@
 import React from 'react';
+
 import { MarkerType } from 'reactflow';
+
 import type { DiagramNode, DiagramEdge } from '@/types';
 
 type UseEnrichedEdgesOptions = {

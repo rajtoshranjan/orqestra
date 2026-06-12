@@ -1,7 +1,17 @@
 import './assets/styles.css';
 import '@/services'; // Register all AWS service plugins at startup
 import { useEffect, useCallback } from 'react';
+
 import { Routes, Route, Navigate, Outlet, useParams } from 'react-router-dom';
+
+import { useCreateProject } from '@/api';
+import { CustomRouter } from '@/lib/custom-router';
+import { history } from '@/lib/utils';
+import { useAppSelector } from '@/store';
+
+import { AppSidebar, AppHeader } from './components';
+import { AuthGuard, GuestGuard } from './components/guards';
+import { Toaster } from './components/ui/toaster';
 import {
   Projects,
   Editor,
@@ -12,14 +22,7 @@ import {
   SignUpPage,
   AuthLayout,
 } from './pages';
-import { AppSidebar, AppHeader } from './components';
-import { Toaster } from './components/ui/toaster';
 import { createInitialDiagram } from './utils';
-import { AuthGuard, GuestGuard } from './components/guards';
-import { useCreateProject } from '@/api';
-import { useAppSelector } from '@/store';
-import { CustomRouter } from '@/lib/custom-router';
-import { history } from '@/lib/utils';
 
 /* App Layout */
 

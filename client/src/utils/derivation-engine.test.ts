@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { deriveGraphConfigurations } from './derivation-engine';
+
 import type { DiagramNode, DiagramEdge } from '@/types';
+
+import { deriveGraphConfigurations } from './derivation-engine';
 
 describe('derivation engine utility', () => {
   const makeNode = (

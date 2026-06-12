@@ -1,13 +1,15 @@
-import type { ServiceDefinition, ServicePlanResource } from '../types';
-import type { StepFunctionConfig } from './types';
+import { StepFunctionIcon } from '@/components/icons';
+
 import {
   createDefaultStepFunctionConfig,
   getStepFunctionDisplayName,
 } from './defaults';
-import { validateStepFunctionConfig } from './validate';
-import { StepFunctionNode } from './step-function-node';
 import { StepFunctionInspector } from './step-function-inspector';
-import { StepFunctionIcon } from '@/components/icons';
+import { StepFunctionNode } from './step-function-node';
+import { validateStepFunctionConfig } from './validate';
+
+import type { ServiceDefinition, ServicePlanResource } from '../types';
+import type { StepFunctionConfig } from './types';
 
 export const stepFunctionService: ServiceDefinition<StepFunctionConfig> = {
   id: 'step-function',

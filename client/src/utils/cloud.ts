@@ -1,10 +1,4 @@
-import {
-  makeId,
-  createProjectName,
-  withValidatedData,
-  createInitialDiagram,
-  DEFAULT_DEPLOYMENT_SETTINGS,
-} from './diagram';
+import { registry } from '@/services';
 import type {
   DiagramNode,
   DiagramEdge,
@@ -15,7 +9,14 @@ import type {
   DeploymentLogEntry,
   SavedProjectRecord,
 } from '@/types';
-import { registry } from '@/services';
+
+import {
+  makeId,
+  createProjectName,
+  withValidatedData,
+  createInitialDiagram,
+  DEFAULT_DEPLOYMENT_SETTINGS,
+} from './diagram';
 
 const STORAGE_KEY = 'orqestra.projects.v1';
 

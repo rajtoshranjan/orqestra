@@ -1,6 +1,7 @@
+import { bedrockConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { BedrockConfig } from './types';
-import { bedrockConfigSchema } from '@/schemas/resources.schema';
 
 export function validateBedrockConfig(
   config: BedrockConfig,

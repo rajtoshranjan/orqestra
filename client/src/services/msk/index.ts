@@ -1,3 +1,10 @@
+import { MskIcon } from '@/components/icons';
+
+import { createDefaultMskConfig, getMskDisplayName } from './defaults';
+import { MskInspector } from './msk-inspector';
+import { MskNode } from './msk-node';
+import { validateMskConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,11 +12,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { MskConfig } from './types';
-import { createDefaultMskConfig, getMskDisplayName } from './defaults';
-import { validateMskConfig } from './validate';
-import { MskNode } from './msk-node';
-import { MskInspector } from './msk-inspector';
-import { MskIcon } from '@/components/icons';
 
 export const mskService: ServiceDefinition<MskConfig> = {
   id: 'msk',

@@ -1,13 +1,15 @@
-import type { ServiceDefinition, ServicePlanResource } from '../types';
-import type { DynamoDBConfig } from './types';
+import { DynamodbIcon } from '@/components/icons';
+
 import {
   createDefaultDynamoDBConfig,
   getDynamoDBDisplayName,
 } from './defaults';
-import { validateDynamoDBConfig } from './validate';
-import { DynamoDBNode } from './dynamodb-node';
 import { DynamoDBInspector } from './dynamodb-inspector';
-import { DynamodbIcon } from '@/components/icons';
+import { DynamoDBNode } from './dynamodb-node';
+import { validateDynamoDBConfig } from './validate';
+
+import type { ServiceDefinition, ServicePlanResource } from '../types';
+import type { DynamoDBConfig } from './types';
 
 export const dynamodbService: ServiceDefinition<DynamoDBConfig> = {
   id: 'dynamodb',

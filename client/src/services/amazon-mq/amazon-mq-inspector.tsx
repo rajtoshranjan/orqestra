@@ -1,11 +1,14 @@
 import React from 'react';
-import { useForm } from 'react-hook-form';
+
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+
+import { InspectorSection, InspectorField } from '@/components';
+import { Input, Select } from '@/components/ui';
+import { amazonMqConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceInspectorProps } from '../types';
 import type { AmazonMqConfig } from './types';
-import { amazonMqConfigSchema } from '@/schemas/resources.schema';
-import { Input, Select } from '@/components/ui';
-import { InspectorSection, InspectorField } from '@/components';
 
 export function AmazonMqInspector({
   config,

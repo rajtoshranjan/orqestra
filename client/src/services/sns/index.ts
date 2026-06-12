@@ -1,10 +1,12 @@
+import { SnsIcon } from '@/components/icons';
+
+import { createDefaultSNSConfig, getSNSDisplayName } from './defaults';
+import { SNSInspector } from './sns-inspector';
+import { SNSNode } from './sns-node';
+import { validateSNSConfig } from './validate';
+
 import type { ServiceDefinition, ServicePlanResource } from '../types';
 import type { SNSConfig } from './types';
-import { createDefaultSNSConfig, getSNSDisplayName } from './defaults';
-import { validateSNSConfig } from './validate';
-import { SNSNode } from './sns-node';
-import { SNSInspector } from './sns-inspector';
-import { SnsIcon } from '@/components/icons';
 
 export const snsService: ServiceDefinition<SNSConfig> = {
   id: 'sns',

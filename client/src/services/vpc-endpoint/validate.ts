@@ -1,6 +1,7 @@
+import { vpcEndpointConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { VpcEndpointConfig } from './types';
-import { vpcEndpointConfigSchema } from '@/schemas/resources.schema';
 
 export function validateVpcEndpointConfig(
   config: VpcEndpointConfig,

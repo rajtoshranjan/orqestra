@@ -1,3 +1,13 @@
+import { CodePipelineIcon } from '@/components/icons';
+
+import { CodePipelineInspector } from './codepipeline-inspector';
+import { CodePipelineNode } from './codepipeline-node';
+import {
+  createDefaultCodePipelineConfig,
+  getCodePipelineDisplayName,
+} from './defaults';
+import { validateCodePipelineConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,14 +15,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { CodePipelineConfig } from './types';
-import {
-  createDefaultCodePipelineConfig,
-  getCodePipelineDisplayName,
-} from './defaults';
-import { validateCodePipelineConfig } from './validate';
-import { CodePipelineNode } from './codepipeline-node';
-import { CodePipelineInspector } from './codepipeline-inspector';
-import { CodePipelineIcon } from '@/components/icons';
 
 export const codepipelineService: ServiceDefinition<CodePipelineConfig> = {
   id: 'codepipeline',

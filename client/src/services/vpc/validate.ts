@@ -1,6 +1,7 @@
+import { vpcConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { VPCConfig } from './types';
-import { vpcConfigSchema } from '@/schemas/resources.schema';
 
 export function validateVPCConfig(config: VPCConfig): ServiceValidationErrors {
   const result = vpcConfigSchema.safeParse(config);

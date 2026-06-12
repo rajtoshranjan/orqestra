@@ -1,15 +1,18 @@
 import React from 'react';
-import { useForm } from 'react-hook-form';
+
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { ServiceInspectorProps } from '../types';
-import type { EventBridgeConfig } from './types';
-import { eventbridgeConfigSchema } from '@/schemas/resources.schema';
-import { Input } from '@/components/ui';
+import { useForm } from 'react-hook-form';
+
 import {
   InspectorSection,
   InspectorField,
   CodeEditorField,
 } from '@/components';
+import { Input } from '@/components/ui';
+import { eventbridgeConfigSchema } from '@/schemas/resources.schema';
+
+import type { ServiceInspectorProps } from '../types';
+import type { EventBridgeConfig } from './types';
 
 export function EventBridgeInspector({
   config,

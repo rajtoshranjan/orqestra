@@ -1,6 +1,8 @@
 import React from 'react';
-import { Handle, Position, NodeResizer } from 'reactflow';
+
 import { ChevronDown, ChevronRight } from 'lucide-react';
+import { Handle, Position, NodeResizer } from 'reactflow';
+
 import { cn } from '@/lib/utils';
 
 export type BaseContainerNodeProps = {

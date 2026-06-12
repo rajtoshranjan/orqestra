@@ -1,10 +1,12 @@
 import { ShieldCheck } from 'lucide-react';
-import type { ServiceDefinition, ServicePlanResource } from '../types';
-import type { AccountConfig } from './types';
+
+import { AccountInspector } from './account-inspector';
+import { AccountNode } from './account-node';
 import { createDefaultAccountConfig, getAccountDisplayName } from './defaults';
 import { validateAccountConfig } from './validate';
-import { AccountNode } from './account-node';
-import { AccountInspector } from './account-inspector';
+
+import type { ServiceDefinition, ServicePlanResource } from '../types';
+import type { AccountConfig } from './types';
 
 export const accountService: ServiceDefinition<AccountConfig> = {
   id: 'account',

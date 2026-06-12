@@ -1,6 +1,7 @@
+import { efsConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { EFSConfig } from './types';
-import { efsConfigSchema } from '@/schemas/resources.schema';
 
 export function validateEFSConfig(config: EFSConfig): ServiceValidationErrors {
   const result = efsConfigSchema.safeParse(config);

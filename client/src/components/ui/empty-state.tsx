@@ -1,8 +1,10 @@
 import * as React from 'react';
+
 import { LucideIcon } from 'lucide-react';
 
-import { Button } from './button';
 import { cn } from '@/lib/utils';
+
+import { Button } from './button';
 
 type EmptyStateProps = React.HTMLAttributes<HTMLDivElement> & {
   title: string;

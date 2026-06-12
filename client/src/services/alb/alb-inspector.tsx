@@ -1,12 +1,14 @@
 import React from 'react';
-import { useForm } from 'react-hook-form';
+
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+
+import { InspectorSection, InspectorField } from '@/components';
+import { Input, Select } from '@/components/ui';
 
 import type { ServiceInspectorProps } from '../types';
 import type { AlbConfig } from './types';
-import { Input, Select } from '@/components/ui';
-import { InspectorSection, InspectorField } from '@/components';
 
 const albConfigSchema = z.object({
   loadBalancerName: z.string().min(1, 'Load Balancer Name is required.'),

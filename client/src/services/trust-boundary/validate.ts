@@ -1,6 +1,7 @@
+import { trustBoundaryConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { TrustBoundaryConfig } from './types';
-import { trustBoundaryConfigSchema } from '@/schemas/resources.schema';
 
 export function validateTrustBoundaryConfig(
   config: TrustBoundaryConfig,

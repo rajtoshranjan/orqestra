@@ -1,15 +1,18 @@
 import React from 'react';
-import { useForm } from 'react-hook-form';
+
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+
+import { InspectorSection, InspectorField } from '@/components';
+import { Input, Select } from '@/components/ui';
+import { cloudfrontConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceInspectorProps } from '../types';
 import type {
   CloudFrontConfig,
   CloudFrontPriceClass,
   CloudFrontViewerProtocolPolicy,
 } from './types';
-import { cloudfrontConfigSchema } from '@/schemas/resources.schema';
-import { Input, Select } from '@/components/ui';
-import { InspectorSection, InspectorField } from '@/components';
 
 const PRICE_CLASS_OPTIONS: Array<{
   value: CloudFrontPriceClass;

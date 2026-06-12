@@ -1,6 +1,7 @@
+import { apiGatewayConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { APIGatewayConfig } from './types';
-import { apiGatewayConfigSchema } from '@/schemas/resources.schema';
 
 export function validateAPIGatewayConfig(
   config: APIGatewayConfig,

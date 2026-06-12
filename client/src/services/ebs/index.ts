@@ -1,3 +1,10 @@
+import { EbsIcon } from '@/components/icons';
+
+import { createDefaultEBSConfig, getEBSDisplayName } from './defaults';
+import { EBSInspector } from './ebs-inspector';
+import { EBSNode } from './ebs-node';
+import { validateEBSConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,11 +12,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { EBSConfig } from './types';
-import { createDefaultEBSConfig, getEBSDisplayName } from './defaults';
-import { validateEBSConfig } from './validate';
-import { EBSNode } from './ebs-node';
-import { EBSInspector } from './ebs-inspector';
-import { EbsIcon } from '@/components/icons';
 
 export const ebsService: ServiceDefinition<EBSConfig> = {
   id: 'ebs',

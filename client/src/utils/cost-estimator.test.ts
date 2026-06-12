@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { estimateMonthlyCost } from './cost-estimator';
+
 import type { DiagramNode, DiagramEdge } from '@/types';
+
+import { estimateMonthlyCost } from './cost-estimator';
 
 describe('cost estimator utility', () => {
   const emptyEdges: DiagramEdge[] = [];

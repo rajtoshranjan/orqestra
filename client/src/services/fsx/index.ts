@@ -1,3 +1,10 @@
+import { FsxIcon } from '@/components/icons';
+
+import { createDefaultFSxConfig, getFSxDisplayName } from './defaults';
+import { FSxInspector } from './fsx-inspector';
+import { FSxNode } from './fsx-node';
+import { validateFSxConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,11 +12,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { FSxConfig } from './types';
-import { createDefaultFSxConfig, getFSxDisplayName } from './defaults';
-import { validateFSxConfig } from './validate';
-import { FSxNode } from './fsx-node';
-import { FSxInspector } from './fsx-inspector';
-import { FsxIcon } from '@/components/icons';
 
 export const fsxService: ServiceDefinition<FSxConfig> = {
   id: 'fsx',

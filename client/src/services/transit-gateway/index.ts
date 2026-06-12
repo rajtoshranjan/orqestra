@@ -1,3 +1,13 @@
+import { TransitGatewayIcon } from '@/components/icons';
+
+import {
+  createDefaultTransitGatewayConfig,
+  getTransitGatewayDisplayName,
+} from './defaults';
+import { TransitGatewayInspector } from './transit-gateway-inspector';
+import { TransitGatewayNode } from './transit-gateway-node';
+import { validateTransitGatewayConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,14 +15,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { TransitGatewayConfig } from './types';
-import {
-  createDefaultTransitGatewayConfig,
-  getTransitGatewayDisplayName,
-} from './defaults';
-import { validateTransitGatewayConfig } from './validate';
-import { TransitGatewayNode } from './transit-gateway-node';
-import { TransitGatewayInspector } from './transit-gateway-inspector';
-import { TransitGatewayIcon } from '@/components/icons';
 
 export const transitGatewayService: ServiceDefinition<TransitGatewayConfig> = {
   id: 'transit-gateway',

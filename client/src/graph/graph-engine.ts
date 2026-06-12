@@ -1,5 +1,5 @@
-import type { DiagramNode, DiagramEdge } from '@/types';
 import { registry } from '@/services/registry';
+import type { DiagramNode, DiagramEdge } from '@/types';
 
 export type NodeGraphContext = {
   node: DiagramNode;

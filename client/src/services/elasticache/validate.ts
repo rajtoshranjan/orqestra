@@ -1,6 +1,7 @@
+import { elasticacheConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { ElastiCacheConfig } from './types';
-import { elasticacheConfigSchema } from '@/schemas/resources.schema';
 
 export function validateElastiCacheConfig(
   config: ElastiCacheConfig,

@@ -1,11 +1,11 @@
 import { memo } from 'react';
-import type { NodeProps } from 'reactflow';
+
+import { BaseServiceNode } from '@/components';
+import { AthenaIcon } from '@/components/icons';
 
 import type { ServiceValidationErrors } from '../types';
 import type { AthenaConfig } from './types';
-
-import { AthenaIcon } from '@/components/icons';
-import { BaseServiceNode } from '@/components';
+import type { NodeProps } from 'reactflow';
 
 type AthenaNodeDataShape = {
   serviceId: string;

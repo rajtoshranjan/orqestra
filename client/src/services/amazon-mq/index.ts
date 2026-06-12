@@ -1,3 +1,13 @@
+import { AmazonMqIcon } from '@/components/icons';
+
+import { AmazonMqInspector } from './amazon-mq-inspector';
+import { AmazonMqNode } from './amazon-mq-node';
+import {
+  createDefaultAmazonMqConfig,
+  getAmazonMqDisplayName,
+} from './defaults';
+import { validateAmazonMqConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,14 +15,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { AmazonMqConfig } from './types';
-import {
-  createDefaultAmazonMqConfig,
-  getAmazonMqDisplayName,
-} from './defaults';
-import { validateAmazonMqConfig } from './validate';
-import { AmazonMqNode } from './amazon-mq-node';
-import { AmazonMqInspector } from './amazon-mq-inspector';
-import { AmazonMqIcon } from '@/components/icons';
 
 export const amazonMqService: ServiceDefinition<AmazonMqConfig> = {
   id: 'amazon-mq',

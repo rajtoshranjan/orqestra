@@ -1,12 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+
 import { useSearchParams } from 'react-router-dom';
-import type { ReactFlowInstance } from 'reactflow';
-import {
-  hitTestEdgeAtFlowPosition,
-  hitTestNodeAtFlowPosition,
-  isAnnotationDetached,
-  resolvePinFlowPosition,
-} from './comments-utils';
+
 import {
   useAddComment,
   useCreateAnnotation,
@@ -24,16 +19,25 @@ import type {
   AnnotationTargetType,
   ClientAnnotation,
 } from '@/api';
-import { useProjectSubscription } from '@/hooks/use-project-subscription';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
+import { useProjectSubscription } from '@/hooks/use-project-subscription';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   setActiveAnnotationId,
   setAnnotationFilters,
   setCommentMode,
 } from '@/store/ui-slice';
-import { getNodeAbsolutePosition } from '@/utils';
 import type { DiagramEdge, DiagramNode, ServiceNodeData } from '@/types';
+import { getNodeAbsolutePosition } from '@/utils';
+
+import {
+  hitTestEdgeAtFlowPosition,
+  hitTestNodeAtFlowPosition,
+  isAnnotationDetached,
+  resolvePinFlowPosition,
+} from './comments-utils';
+
+import type { ReactFlowInstance } from 'reactflow';
 
 export type CommentDraft = {
   targetType: AnnotationTargetType;

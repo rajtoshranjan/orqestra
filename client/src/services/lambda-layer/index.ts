@@ -1,13 +1,15 @@
-import type { ServiceDefinition, ServicePlanResource } from '../types';
-import type { LambdaLayerConfig } from './types';
+import { LambdaLayerIcon } from '@/components/icons';
+
 import {
   createDefaultLambdaLayerConfig,
   getLambdaLayerDisplayName,
 } from './defaults';
-import { validateLambdaLayerConfig } from './validate';
-import { LambdaLayerNode } from './lambda-layer-node';
 import { LambdaLayerInspector } from './lambda-layer-inspector';
-import { LambdaLayerIcon } from '@/components/icons';
+import { LambdaLayerNode } from './lambda-layer-node';
+import { validateLambdaLayerConfig } from './validate';
+
+import type { ServiceDefinition, ServicePlanResource } from '../types';
+import type { LambdaLayerConfig } from './types';
 
 export const lambdaLayerService: ServiceDefinition<LambdaLayerConfig> = {
   id: 'lambda-layer',

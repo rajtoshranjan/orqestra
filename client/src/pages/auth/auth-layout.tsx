@@ -1,5 +1,5 @@
-import { Link, Outlet } from 'react-router-dom';
 import { Hexagon } from 'lucide-react';
+import { Link, Outlet } from 'react-router-dom';
 
 export const AuthLayout = () => {
   return (

@@ -1,6 +1,7 @@
+import { amazonMqConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { AmazonMqConfig } from './types';
-import { amazonMqConfigSchema } from '@/schemas/resources.schema';
 
 export function validateAmazonMqConfig(
   config: AmazonMqConfig,

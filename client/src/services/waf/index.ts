@@ -1,3 +1,10 @@
+import { WafIcon } from '@/components/icons';
+
+import { createDefaultWafConfig, getWafDisplayName } from './defaults';
+import { validateWafConfig } from './validate';
+import { WafInspector } from './waf-inspector';
+import { WafNode } from './waf-node';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,11 +12,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { WafConfig } from './types';
-import { createDefaultWafConfig, getWafDisplayName } from './defaults';
-import { validateWafConfig } from './validate';
-import { WafNode } from './waf-node';
-import { WafInspector } from './waf-inspector';
-import { WafIcon } from '@/components/icons';
 
 export const wafService: ServiceDefinition<WafConfig> = {
   id: 'waf',

@@ -1,3 +1,10 @@
+import { BedrockIcon } from '@/components/icons';
+
+import { BedrockInspector } from './bedrock-inspector';
+import { BedrockNode } from './bedrock-node';
+import { createDefaultBedrockConfig, getBedrockDisplayName } from './defaults';
+import { validateBedrockConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,11 +12,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { BedrockConfig } from './types';
-import { createDefaultBedrockConfig, getBedrockDisplayName } from './defaults';
-import { validateBedrockConfig } from './validate';
-import { BedrockNode } from './bedrock-node';
-import { BedrockInspector } from './bedrock-inspector';
-import { BedrockIcon } from '@/components/icons';
 
 export const bedrockService: ServiceDefinition<BedrockConfig> = {
   id: 'bedrock',

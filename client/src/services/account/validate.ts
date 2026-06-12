@@ -1,6 +1,7 @@
+import { accountConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { AccountConfig } from './types';
-import { accountConfigSchema } from '@/schemas/resources.schema';
 
 export function validateAccountConfig(
   config: AccountConfig,

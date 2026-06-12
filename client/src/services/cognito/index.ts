@@ -1,3 +1,10 @@
+import { CognitoIcon } from '@/components/icons';
+
+import { CognitoInspector } from './cognito-inspector';
+import { CognitoNode } from './cognito-node';
+import { createDefaultCognitoConfig, getCognitoDisplayName } from './defaults';
+import { validateCognitoConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,11 +12,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { CognitoConfig } from './types';
-import { createDefaultCognitoConfig, getCognitoDisplayName } from './defaults';
-import { validateCognitoConfig } from './validate';
-import { CognitoNode } from './cognito-node';
-import { CognitoInspector } from './cognito-inspector';
-import { CognitoIcon } from '@/components/icons';
 
 export const cognitoService: ServiceDefinition<CognitoConfig> = {
   id: 'cognito',

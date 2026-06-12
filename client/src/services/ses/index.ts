@@ -1,3 +1,10 @@
+import { SesIcon } from '@/components/icons';
+
+import { createDefaultSesConfig, getSesDisplayName } from './defaults';
+import { SesInspector } from './ses-inspector';
+import { SesNode } from './ses-node';
+import { validateSesConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,11 +12,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { SesConfig } from './types';
-import { createDefaultSesConfig, getSesDisplayName } from './defaults';
-import { validateSesConfig } from './validate';
-import { SesNode } from './ses-node';
-import { SesInspector } from './ses-inspector';
-import { SesIcon } from '@/components/icons';
 
 export const sesService: ServiceDefinition<SesConfig> = {
   id: 'ses',

@@ -1,9 +1,11 @@
 import React from 'react';
+
 import { Plus, Trash2 } from 'lucide-react';
-import type { UseFormRegister } from 'react-hook-form';
 
 import { Button, Input, Textarea } from '@/components/ui';
 import { cn } from '@/lib/utils';
+
+import type { UseFormRegister } from 'react-hook-form';
 
 /* Field Error Component */
 export type FieldErrorProps = {

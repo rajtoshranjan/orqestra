@@ -1,6 +1,7 @@
+import { sesConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { SesConfig } from './types';
-import { sesConfigSchema } from '@/schemas/resources.schema';
 
 export function validateSesConfig(config: SesConfig): ServiceValidationErrors {
   const result = sesConfigSchema.safeParse(config);

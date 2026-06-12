@@ -1,11 +1,14 @@
 import React from 'react';
-import { useForm } from 'react-hook-form';
+
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+
+import { InspectorSection, InspectorField } from '@/components';
+import { Input } from '@/components/ui';
+import { lambdaLayerConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceInspectorProps } from '../types';
 import type { LambdaLayerConfig } from './types';
-import { lambdaLayerConfigSchema } from '@/schemas/resources.schema';
-import { Input } from '@/components/ui';
-import { InspectorSection, InspectorField } from '@/components';
 
 const RUNTIME_ITEMS = ['nodejs20.x', 'nodejs22.x', 'python3.12'];
 const ARCH_ITEMS = ['x86_64', 'arm64'];

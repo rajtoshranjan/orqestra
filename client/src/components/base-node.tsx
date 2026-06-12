@@ -1,5 +1,7 @@
 import React from 'react';
+
 import { Handle, Position, NodeResizer } from 'reactflow';
+
 import { cn } from '@/lib/utils';
 
 export type BaseServiceNodeProps = {

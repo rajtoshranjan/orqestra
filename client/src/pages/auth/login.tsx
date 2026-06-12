@@ -1,8 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
+
+import { useLogin, useOrganisations } from '@/api/auth';
 import {
   Button,
   Card,
@@ -15,7 +16,6 @@ import {
 } from '@/components/ui';
 import { useFormErrorHandler } from '@/hooks';
 import { localStorageManager } from '@/lib/utils/local-storage-manager';
-import { useLogin, useOrganisations } from '@/api/auth';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),

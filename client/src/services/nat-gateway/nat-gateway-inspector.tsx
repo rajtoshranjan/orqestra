@@ -1,12 +1,14 @@
 import React from 'react';
-import { useForm } from 'react-hook-form';
+
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+
+import { InspectorSection, InspectorField } from '@/components';
+import { Input, Select } from '@/components/ui';
 
 import type { ServiceInspectorProps } from '../types';
 import type { NatGatewayConfig } from './types';
-import { Input, Select } from '@/components/ui';
-import { InspectorSection, InspectorField } from '@/components';
 
 const natGatewayConfigSchema = z.object({
   natGatewayName: z.string().min(1, 'NAT Gateway Name is required.'),

@@ -1,6 +1,7 @@
+import { codebuildConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { CodeBuildConfig } from './types';
-import { codebuildConfigSchema } from '@/schemas/resources.schema';
 
 export function validateCodeBuildConfig(
   config: CodeBuildConfig,

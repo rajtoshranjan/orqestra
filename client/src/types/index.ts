@@ -1,6 +1,7 @@
-import type { Node, Edge } from 'reactflow';
 import type { RelationshipKind } from '@/relationships';
 import type { ServiceValidationErrors } from '@/services/types';
+
+import type { Node, Edge } from 'reactflow';
 
 /* Re-export service types for convenience */
 

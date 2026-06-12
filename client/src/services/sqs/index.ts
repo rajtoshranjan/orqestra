@@ -1,10 +1,12 @@
+import { SqsIcon } from '@/components/icons';
+
+import { createDefaultSQSConfig, getSQSDisplayName } from './defaults';
+import { SQSInspector } from './sqs-inspector';
+import { SQSNode } from './sqs-node';
+import { validateSQSConfig } from './validate';
+
 import type { ServiceDefinition, ServicePlanResource } from '../types';
 import type { SQSConfig } from './types';
-import { createDefaultSQSConfig, getSQSDisplayName } from './defaults';
-import { validateSQSConfig } from './validate';
-import { SQSNode } from './sqs-node';
-import { SQSInspector } from './sqs-inspector';
-import { SqsIcon } from '@/components/icons';
 
 export const sqsService: ServiceDefinition<SQSConfig> = {
   id: 'sqs',

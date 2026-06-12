@@ -1,3 +1,5 @@
+import React from 'react';
+
 import {
   WandSparkles,
   CloudUpload,
@@ -8,19 +10,7 @@ import {
   BadgeDollarSign,
   AlertTriangle,
 } from 'lucide-react';
-import React from 'react';
-import type {
-  DeploymentSettings,
-  PlanSummary,
-  DeploymentResult,
-  DeploymentLogLevel,
-  ServicePlanResource,
-  PlanResourceAction,
-  DiagramNode,
-  DiagramEdge,
-} from '@/types';
-import { formatTimestamp } from '@/utils';
-import { cn } from '@/lib/utils';
+
 import {
   Button,
   Input,
@@ -35,6 +25,18 @@ import {
   TabsTrigger,
   TabsContent,
 } from '@/components/ui';
+import { cn } from '@/lib/utils';
+import type {
+  DeploymentSettings,
+  PlanSummary,
+  DeploymentResult,
+  DeploymentLogLevel,
+  ServicePlanResource,
+  PlanResourceAction,
+  DiagramNode,
+  DiagramEdge,
+} from '@/types';
+import { formatTimestamp } from '@/utils';
 import { estimateMonthlyCost } from '@/utils/cost-estimator';
 import { scanSecurityRisks } from '@/utils/security-scanner';
 

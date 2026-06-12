@@ -1,13 +1,16 @@
 import React from 'react';
+
 import { ReactFlowProvider } from 'reactflow';
-import { CanvasEditor } from './editor-canvas';
+
 import { useProject } from '@/api';
 import { useAppDispatch } from '@/store';
-import { setProject } from '@/store/editor-slice';
 import {
   setDeploymentSettings,
   setActiveDeploymentId,
 } from '@/store/deployment-slice';
+import { setProject } from '@/store/editor-slice';
+
+import { CanvasEditor } from './editor-canvas';
 
 type EditorProps = {
   projectId: string;

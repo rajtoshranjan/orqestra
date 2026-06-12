@@ -1,9 +1,12 @@
 import React from 'react';
+
 import { useForm } from 'react-hook-form';
+
+import { InspectorSection, InspectorField } from '@/components';
+import { Input, Select } from '@/components/ui';
+
 import type { ServiceInspectorProps } from '../types';
 import type { KMSConfig, KMSKeyUsage } from './types';
-import { Input, Select } from '@/components/ui';
-import { InspectorSection, InspectorField } from '@/components';
 
 const KEY_USAGE_OPTIONS: Array<{ value: KMSKeyUsage; label: string }> = [
   { value: 'ENCRYPT_DECRYPT', label: 'Encrypt / Decrypt' },

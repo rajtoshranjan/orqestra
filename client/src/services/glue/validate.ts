@@ -1,6 +1,7 @@
+import { glueConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { GlueConfig } from './types';
-import { glueConfigSchema } from '@/schemas/resources.schema';
 
 export function validateGlueConfig(
   config: GlueConfig,

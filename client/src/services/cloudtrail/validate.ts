@@ -1,6 +1,7 @@
+import { cloudtrailConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { CloudTrailConfig } from './types';
-import { cloudtrailConfigSchema } from '@/schemas/resources.schema';
 
 export function validateCloudTrailConfig(
   config: CloudTrailConfig,

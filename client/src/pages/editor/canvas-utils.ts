@@ -1,11 +1,12 @@
-import type { Node } from 'reactflow';
+import { registry } from '@/services';
 import type { ServiceNodeData, DiagramNode, DiagramEdge } from '@/types';
 import {
   countNodeErrors,
   getNodeAbsolutePosition,
   getNodeDimensions,
 } from '@/utils';
-import { registry } from '@/services';
+
+import type { Node } from 'reactflow';
 
 export const PRO_OPTIONS = { hideAttribution: true };
 export const CONTAINER_CHILD_PADDING = 24;

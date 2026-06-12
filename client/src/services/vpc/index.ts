@@ -1,10 +1,12 @@
-import type { ServiceDefinition, ServicePlanResource } from '../types';
-import type { VPCConfig } from './types';
+import { VpcIcon } from '@/components/icons';
+
 import { createDefaultVPCConfig, getVPCDisplayName } from './defaults';
 import { validateVPCConfig } from './validate';
-import { VPCNode } from './vpc-node';
 import { VPCInspector } from './vpc-inspector';
-import { VpcIcon } from '@/components/icons';
+import { VPCNode } from './vpc-node';
+
+import type { ServiceDefinition, ServicePlanResource } from '../types';
+import type { VPCConfig } from './types';
 
 export const vpcService: ServiceDefinition<VPCConfig> = {
   id: 'vpc',

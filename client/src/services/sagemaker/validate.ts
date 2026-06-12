@@ -1,6 +1,7 @@
+import { sagemakerConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { SageMakerConfig } from './types';
-import { sagemakerConfigSchema } from '@/schemas/resources.schema';
 
 export function validateSageMakerConfig(
   config: SageMakerConfig,

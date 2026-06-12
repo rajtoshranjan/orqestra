@@ -1,16 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+
 import { useViewport } from 'reactflow';
-import { CommentClusterPin, CommentPin } from './comment-pin';
+
+import type { DiagramEdge, DiagramNode } from '@/types';
+
 import { CommentComposer } from './comment-composer';
+import { CommentClusterPin, CommentPin } from './comment-pin';
 import { CommentThreadPopover } from './comment-thread-popover';
 import {
   CLUSTER_ZOOM_THRESHOLD,
   clusterPins,
   resolvePinFlowPosition,
 } from './comments-utils';
+
 import type { PinPlacement } from './comments-utils';
 import type { CommentsApi } from './use-comments';
-import type { DiagramEdge, DiagramNode } from '@/types';
 
 const POPOVER_WIDTH_PX = 320;
 const POPOVER_MAX_HEIGHT_PX = 420;

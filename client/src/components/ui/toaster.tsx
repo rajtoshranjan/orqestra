@@ -12,7 +12,7 @@ import {
   Trash2,
   Copy,
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+
 import {
   Toast,
   ToastClose,
@@ -21,6 +21,7 @@ import {
   ToastTitle,
   ToastViewport,
 } from '@/components/ui/toast';
+import { useToast } from '@/hooks/use-toast';
 
 // Selects an appropriate icon based on the toast title, description, and variant.
 function getToastIcon(title?: string, description?: string, variant?: string) {

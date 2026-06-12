@@ -1,11 +1,11 @@
 import { memo } from 'react';
-import type { NodeProps } from 'reactflow';
+
+import { BaseServiceNode } from '@/components';
+import { RdsIcon } from '@/components/icons';
 
 import type { ServiceValidationErrors } from '../types';
 import type { RDSConfig } from './types';
-
-import { RdsIcon } from '@/components/icons';
-import { BaseServiceNode } from '@/components';
+import type { NodeProps } from 'reactflow';
 
 type RDSNodeDataShape = {
   serviceId: string;

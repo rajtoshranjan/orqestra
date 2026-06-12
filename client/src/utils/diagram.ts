@@ -1,4 +1,4 @@
-import { validateNodeArchitectureRules } from './validation-engine';
+import { registry } from '@/services';
 import type {
   DiagramNode,
   DiagramEdge,
@@ -6,7 +6,8 @@ import type {
   DeploymentSettings,
   ServiceValidationErrors,
 } from '@/types';
-import { registry } from '@/services';
+
+import { validateNodeArchitectureRules } from './validation-engine';
 
 export const DEFAULT_DEPLOYMENT_SETTINGS: DeploymentSettings = {
   region: 'us-east-1',

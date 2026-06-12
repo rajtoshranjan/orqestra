@@ -1,6 +1,7 @@
+import { redshiftConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { RedshiftConfig } from './types';
-import { redshiftConfigSchema } from '@/schemas/resources.schema';
 
 export function validateRedshiftConfig(
   config: RedshiftConfig,

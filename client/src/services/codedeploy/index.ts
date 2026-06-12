@@ -1,3 +1,13 @@
+import { CodeDeployIcon } from '@/components/icons';
+
+import { CodeDeployInspector } from './codedeploy-inspector';
+import { CodeDeployNode } from './codedeploy-node';
+import {
+  createDefaultCodeDeployConfig,
+  getCodeDeployDisplayName,
+} from './defaults';
+import { validateCodeDeployConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,14 +15,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { CodeDeployConfig } from './types';
-import {
-  createDefaultCodeDeployConfig,
-  getCodeDeployDisplayName,
-} from './defaults';
-import { validateCodeDeployConfig } from './validate';
-import { CodeDeployNode } from './codedeploy-node';
-import { CodeDeployInspector } from './codedeploy-inspector';
-import { CodeDeployIcon } from '@/components/icons';
 
 export const codedeployService: ServiceDefinition<CodeDeployConfig> = {
   id: 'codedeploy',

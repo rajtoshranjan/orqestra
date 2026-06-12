@@ -1,3 +1,10 @@
+import { Route53Icon } from '@/components/icons';
+
+import { createDefaultRoute53Config, getRoute53DisplayName } from './defaults';
+import { Route53Inspector } from './route53-inspector';
+import { Route53Node } from './route53-node';
+import { validateRoute53Config } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,11 +12,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { Route53Config } from './types';
-import { createDefaultRoute53Config, getRoute53DisplayName } from './defaults';
-import { validateRoute53Config } from './validate';
-import { Route53Node } from './route53-node';
-import { Route53Inspector } from './route53-inspector';
-import { Route53Icon } from '@/components/icons';
 
 export const route53Service: ServiceDefinition<Route53Config> = {
   id: 'route53',

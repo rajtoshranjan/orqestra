@@ -1,3 +1,10 @@
+import { LambdaIcon } from '@/components/icons';
+
+import { createDefaultLambdaConfig, getLambdaDisplayName } from './defaults';
+import { LambdaInspector } from './lambda-inspector';
+import { LambdaNode } from './lambda-node';
+import { validateLambdaConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -7,11 +14,6 @@ import type {
   AIHints,
 } from '../types';
 import type { LambdaConfig } from './types';
-import { createDefaultLambdaConfig, getLambdaDisplayName } from './defaults';
-import { validateLambdaConfig } from './validate';
-import { LambdaNode } from './lambda-node';
-import { LambdaInspector } from './lambda-inspector';
-import { LambdaIcon } from '@/components/icons';
 
 export const lambdaService: ServiceDefinition<LambdaConfig> = {
   /* Identity. */

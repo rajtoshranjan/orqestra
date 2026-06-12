@@ -1,8 +1,10 @@
 import * as React from 'react';
+
 import { Search } from 'lucide-react';
 
-import { Input } from './input';
 import { cn } from '@/lib/utils';
+
+import { Input } from './input';
 
 type SearchBarProps = React.InputHTMLAttributes<HTMLInputElement> & {
   wrapperClassName?: string;

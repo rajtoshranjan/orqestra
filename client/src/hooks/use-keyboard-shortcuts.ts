@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+
 import { isInputElement } from '@/utils';
 
 export type ShortcutCategory = 'canvas' | 'edit' | 'view' | 'general';

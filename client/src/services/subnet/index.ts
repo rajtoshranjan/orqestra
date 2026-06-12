@@ -1,3 +1,10 @@
+import { SubnetIcon } from '@/components/icons';
+
+import { createDefaultSubnetConfig, getSubnetDisplayName } from './defaults';
+import { SubnetInspector } from './subnet-inspector';
+import { SubnetNode } from './subnet-node';
+import { validateSubnetConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,11 +12,6 @@ import type {
   AIHints,
 } from '../types';
 import type { SubnetConfig } from './types';
-import { createDefaultSubnetConfig, getSubnetDisplayName } from './defaults';
-import { validateSubnetConfig } from './validate';
-import { SubnetNode } from './subnet-node';
-import { SubnetInspector } from './subnet-inspector';
-import { SubnetIcon } from '@/components/icons';
 
 export const subnetService: ServiceDefinition<SubnetConfig> = {
   id: 'subnet',

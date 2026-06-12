@@ -1,3 +1,13 @@
+import { DocumentDbIcon } from '@/components/icons';
+
+import {
+  createDefaultDocumentDbConfig,
+  getDocumentDbDisplayName,
+} from './defaults';
+import { DocumentDbInspector } from './documentdb-inspector';
+import { DocumentDbNode } from './documentdb-node';
+import { validateDocumentDbConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,14 +15,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { DocumentDbConfig } from './types';
-import {
-  createDefaultDocumentDbConfig,
-  getDocumentDbDisplayName,
-} from './defaults';
-import { validateDocumentDbConfig } from './validate';
-import { DocumentDbNode } from './documentdb-node';
-import { DocumentDbInspector } from './documentdb-inspector';
-import { DocumentDbIcon } from '@/components/icons';
 
 export const documentDbService: ServiceDefinition<DocumentDbConfig> = {
   id: 'documentdb',

@@ -1,16 +1,15 @@
 import React from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ChevronDown, Sparkles } from 'lucide-react';
-import type { ServiceInspectorProps } from '../types';
-import type { LambdaConfig, LambdaRuntime } from './types';
-import { RUNTIME_OPTIONS } from './types';
+import { useForm, useFieldArray } from 'react-hook-form';
+
 import {
-  getDefaultHandlerForRuntime,
-  getDefaultCodeForRuntime,
-  makeEnvironmentVariable,
-} from './defaults';
-import { lambdaConfigSchema } from '@/schemas/lambda.schema';
+  InspectorSection,
+  InspectorField,
+  CodeEditorField,
+  KeyValueEditor,
+} from '@/components';
 import {
   Input,
   Button,
@@ -20,12 +19,17 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from '@/components/ui';
+import { lambdaConfigSchema } from '@/schemas/lambda.schema';
+
 import {
-  InspectorSection,
-  InspectorField,
-  CodeEditorField,
-  KeyValueEditor,
-} from '@/components';
+  getDefaultHandlerForRuntime,
+  getDefaultCodeForRuntime,
+  makeEnvironmentVariable,
+} from './defaults';
+import { RUNTIME_OPTIONS } from './types';
+
+import type { ServiceInspectorProps } from '../types';
+import type { LambdaConfig, LambdaRuntime } from './types';
 
 function isLambdaRuntime(value: string): value is LambdaRuntime {
   return RUNTIME_OPTIONS.some((opt) => opt.value === value);

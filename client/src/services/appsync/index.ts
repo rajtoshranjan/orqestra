@@ -1,3 +1,10 @@
+import { AppSyncIcon } from '@/components/icons';
+
+import { AppSyncInspector } from './appsync-inspector';
+import { AppSyncNode } from './appsync-node';
+import { createDefaultAppSyncConfig, getAppSyncDisplayName } from './defaults';
+import { validateAppSyncConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,11 +12,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { AppSyncConfig } from './types';
-import { createDefaultAppSyncConfig, getAppSyncDisplayName } from './defaults';
-import { validateAppSyncConfig } from './validate';
-import { AppSyncNode } from './appsync-node';
-import { AppSyncInspector } from './appsync-inspector';
-import { AppSyncIcon } from '@/components/icons';
 
 export const appSyncService: ServiceDefinition<AppSyncConfig> = {
   id: 'appsync',

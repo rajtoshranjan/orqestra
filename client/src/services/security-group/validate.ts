@@ -1,6 +1,7 @@
+import { securityGroupConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { SecurityGroupConfig } from './types';
-import { securityGroupConfigSchema } from '@/schemas/resources.schema';
 
 export function validateSecurityGroupConfig(
   config: SecurityGroupConfig,

@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
 import { api } from './client';
+
 import type { ServerResponse } from './types';
 
 export type NotificationVerb = 'mentioned' | 'replied' | 'resolved';

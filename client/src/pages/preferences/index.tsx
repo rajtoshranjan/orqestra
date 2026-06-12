@@ -1,5 +1,6 @@
 import { Moon, Sun } from 'lucide-react';
 
+import { PageLayout } from '@/components';
 import {
   Card,
   CardContent,
@@ -7,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui';
-import { PageLayout } from '@/components';
 import { cn } from '@/lib/utils';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setTheme } from '@/store/ui-slice';

@@ -1,11 +1,11 @@
 import { memo } from 'react';
-import type { NodeProps } from 'reactflow';
+
+import { BaseServiceNode } from '@/components';
+import { MskIcon } from '@/components/icons';
 
 import type { ServiceValidationErrors } from '../types';
 import type { MskConfig } from './types';
-
-import { MskIcon } from '@/components/icons';
-import { BaseServiceNode } from '@/components';
+import type { NodeProps } from 'reactflow';
 
 type MskNodeDataShape = {
   serviceId: string;

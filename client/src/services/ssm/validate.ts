@@ -1,6 +1,7 @@
+import { ssmConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { SsmConfig } from './types';
-import { ssmConfigSchema } from '@/schemas/resources.schema';
 
 export function validateSsmConfig(config: SsmConfig): ServiceValidationErrors {
   const result = ssmConfigSchema.safeParse(config);

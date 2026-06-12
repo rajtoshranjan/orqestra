@@ -1,11 +1,11 @@
 import { memo } from 'react';
-import type { NodeProps } from 'reactflow';
+
+import { BaseServiceNode } from '@/components';
+import { Ec2Icon } from '@/components/icons';
 
 import type { ServiceValidationErrors } from '../types';
 import type { EC2Config } from './types';
-
-import { Ec2Icon } from '@/components/icons';
-import { BaseServiceNode } from '@/components';
+import type { NodeProps } from 'reactflow';
 
 type EC2NodeDataShape = {
   serviceId: string;

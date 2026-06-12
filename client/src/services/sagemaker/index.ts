@@ -1,3 +1,13 @@
+import { SageMakerIcon } from '@/components/icons';
+
+import {
+  createDefaultSageMakerConfig,
+  getSageMakerDisplayName,
+} from './defaults';
+import { SageMakerInspector } from './sagemaker-inspector';
+import { SageMakerNode } from './sagemaker-node';
+import { validateSageMakerConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,14 +15,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { SageMakerConfig } from './types';
-import {
-  createDefaultSageMakerConfig,
-  getSageMakerDisplayName,
-} from './defaults';
-import { validateSageMakerConfig } from './validate';
-import { SageMakerNode } from './sagemaker-node';
-import { SageMakerInspector } from './sagemaker-inspector';
-import { SageMakerIcon } from '@/components/icons';
 
 export const sageMakerService: ServiceDefinition<SageMakerConfig> = {
   id: 'sagemaker',

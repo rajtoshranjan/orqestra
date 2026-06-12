@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react';
-import { getInitials } from './comments-utils';
-import { cn } from '@/lib/utils';
+
 import type { MentionableUser } from '@/api';
+import { cn } from '@/lib/utils';
+
+import { getInitials } from './comments-utils';
 
 type MentionAutocompleteProps = {
   users: MentionableUser[];

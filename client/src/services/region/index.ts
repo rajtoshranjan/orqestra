@@ -1,10 +1,12 @@
 import { Globe } from 'lucide-react';
+
+import { createDefaultRegionConfig, getRegionDisplayName } from './defaults';
+import { RegionInspector } from './region-inspector';
+import { RegionNode } from './region-node';
+import { validateRegionConfig } from './validate';
+
 import type { ServiceDefinition, ServicePlanResource } from '../types';
 import type { RegionConfig } from './types';
-import { createDefaultRegionConfig, getRegionDisplayName } from './defaults';
-import { validateRegionConfig } from './validate';
-import { RegionNode } from './region-node';
-import { RegionInspector } from './region-inspector';
 
 export const regionService: ServiceDefinition<RegionConfig> = {
   id: 'region',

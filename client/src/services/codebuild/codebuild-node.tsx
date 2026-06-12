@@ -1,11 +1,11 @@
 import { memo } from 'react';
-import type { NodeProps } from 'reactflow';
+
+import { BaseServiceNode } from '@/components';
+import { CodeBuildIcon } from '@/components/icons';
 
 import type { ServiceValidationErrors } from '../types';
 import type { CodeBuildConfig } from './types';
-
-import { CodeBuildIcon } from '@/components/icons';
-import { BaseServiceNode } from '@/components';
+import type { NodeProps } from 'reactflow';
 
 type CodeBuildNodeDataShape = {
   serviceId: string;

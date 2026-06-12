@@ -1,7 +1,9 @@
 import { Check } from 'lucide-react';
-import { getInitials } from './comments-utils';
-import { cn } from '@/lib/utils';
+
 import type { ClientAnnotation } from '@/api';
+import { cn } from '@/lib/utils';
+
+import { getInitials } from './comments-utils';
 
 type CommentPinProps = {
   annotation: ClientAnnotation;

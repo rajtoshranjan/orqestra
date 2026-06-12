@@ -1,10 +1,12 @@
+import { EcrIcon } from '@/components/icons';
+
+import { createDefaultECRConfig, getECRDisplayName } from './defaults';
+import { ECRInspector } from './ecr-inspector';
+import { ECRNode } from './ecr-node';
+import { validateECRConfig } from './validate';
+
 import type { ServiceDefinition, ServicePlanResource } from '../types';
 import type { ECRConfig } from './types';
-import { createDefaultECRConfig, getECRDisplayName } from './defaults';
-import { validateECRConfig } from './validate';
-import { ECRNode } from './ecr-node';
-import { ECRInspector } from './ecr-inspector';
-import { EcrIcon } from '@/components/icons';
 
 export const ecrService: ServiceDefinition<ECRConfig> = {
   id: 'ecr',

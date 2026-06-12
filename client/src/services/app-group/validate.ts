@@ -1,6 +1,7 @@
+import { appGroupConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { AppGroupConfig } from './types';
-import { appGroupConfigSchema } from '@/schemas/resources.schema';
 
 export function validateAppGroupConfig(
   config: AppGroupConfig,

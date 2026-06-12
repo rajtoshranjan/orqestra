@@ -1,3 +1,13 @@
+import { CloudTrailIcon } from '@/components/icons';
+
+import { CloudTrailInspector } from './cloudtrail-inspector';
+import { CloudTrailNode } from './cloudtrail-node';
+import {
+  createDefaultCloudTrailConfig,
+  getCloudTrailDisplayName,
+} from './defaults';
+import { validateCloudTrailConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,14 +15,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { CloudTrailConfig } from './types';
-import {
-  createDefaultCloudTrailConfig,
-  getCloudTrailDisplayName,
-} from './defaults';
-import { validateCloudTrailConfig } from './validate';
-import { CloudTrailNode } from './cloudtrail-node';
-import { CloudTrailInspector } from './cloudtrail-inspector';
-import { CloudTrailIcon } from '@/components/icons';
 
 export const cloudTrailService: ServiceDefinition<CloudTrailConfig> = {
   id: 'cloudtrail',

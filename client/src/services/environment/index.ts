@@ -1,13 +1,15 @@
 import { Layers } from 'lucide-react';
-import type { ServiceDefinition, ServicePlanResource } from '../types';
-import type { EnvironmentConfig } from './types';
+
 import {
   createDefaultEnvironmentConfig,
   getEnvironmentDisplayName,
 } from './defaults';
-import { validateEnvironmentConfig } from './validate';
-import { EnvNode } from './env-node';
 import { EnvInspector } from './env-inspector';
+import { EnvNode } from './env-node';
+import { validateEnvironmentConfig } from './validate';
+
+import type { ServiceDefinition, ServicePlanResource } from '../types';
+import type { EnvironmentConfig } from './types';
 
 export const environmentService: ServiceDefinition<EnvironmentConfig> = {
   id: 'environment',

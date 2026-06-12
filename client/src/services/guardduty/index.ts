@@ -1,3 +1,13 @@
+import { GuardDutyIcon } from '@/components/icons';
+
+import {
+  createDefaultGuardDutyConfig,
+  getGuardDutyDisplayName,
+} from './defaults';
+import { GuardDutyInspector } from './guardduty-inspector';
+import { GuardDutyNode } from './guardduty-node';
+import { validateGuardDutyConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,14 +15,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { GuardDutyConfig } from './types';
-import {
-  createDefaultGuardDutyConfig,
-  getGuardDutyDisplayName,
-} from './defaults';
-import { validateGuardDutyConfig } from './validate';
-import { GuardDutyNode } from './guardduty-node';
-import { GuardDutyInspector } from './guardduty-inspector';
-import { GuardDutyIcon } from '@/components/icons';
 
 export const guardDutyService: ServiceDefinition<GuardDutyConfig> = {
   id: 'guardduty',

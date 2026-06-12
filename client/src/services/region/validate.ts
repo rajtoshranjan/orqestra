@@ -1,6 +1,7 @@
+import { regionConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { RegionConfig } from './types';
-import { regionConfigSchema } from '@/schemas/resources.schema';
 
 export function validateRegionConfig(
   config: RegionConfig,

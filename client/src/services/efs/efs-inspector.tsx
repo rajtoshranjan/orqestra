@@ -1,10 +1,10 @@
 import React from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ChevronDown, Plus, Trash2 } from 'lucide-react';
-import type { ServiceInspectorProps } from '../types';
-import type { EFSConfig } from './types';
-import { efsConfigSchema } from '@/schemas/resources.schema';
+import { useForm, useFieldArray } from 'react-hook-form';
+
+import { InspectorSection, InspectorField } from '@/components';
 import {
   Input,
   Button,
@@ -14,7 +14,10 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from '@/components/ui';
-import { InspectorSection, InspectorField } from '@/components';
+import { efsConfigSchema } from '@/schemas/resources.schema';
+
+import type { ServiceInspectorProps } from '../types';
+import type { EFSConfig } from './types';
 
 export function EFSInspector({
   config,

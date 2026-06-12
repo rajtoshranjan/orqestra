@@ -1,6 +1,7 @@
+import { neptuneConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { NeptuneConfig } from './types';
-import { neptuneConfigSchema } from '@/schemas/resources.schema';
 
 export function validateNeptuneConfig(
   config: NeptuneConfig,

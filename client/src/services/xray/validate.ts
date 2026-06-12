@@ -1,6 +1,7 @@
+import { xrayConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { XRayConfig } from './types';
-import { xrayConfigSchema } from '@/schemas/resources.schema';
 
 export function validateXRayConfig(
   config: XRayConfig,

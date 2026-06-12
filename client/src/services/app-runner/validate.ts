@@ -1,6 +1,7 @@
+import { appRunnerConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { AppRunnerConfig } from './types';
-import { appRunnerConfigSchema } from '@/schemas/resources.schema';
 
 export function validateAppRunnerConfig(
   config: AppRunnerConfig,

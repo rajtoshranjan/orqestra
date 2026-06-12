@@ -1,6 +1,13 @@
 import { useState } from 'react';
+
 import { AtSign, Bell, Check, MessageSquare, Reply } from 'lucide-react';
-import { commentBodyToPlainText } from './comments-utils';
+
+import {
+  useMarkNotificationsRead,
+  useNotifications,
+  useUnreadNotificationCount,
+} from '@/api';
+import type { ClientNotification, NotificationVerb } from '@/api';
 import {
   Button,
   Popover,
@@ -9,12 +16,8 @@ import {
 } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { formatRelativeTime } from '@/utils';
-import {
-  useMarkNotificationsRead,
-  useNotifications,
-  useUnreadNotificationCount,
-} from '@/api';
-import type { ClientNotification, NotificationVerb } from '@/api';
+
+import { commentBodyToPlainText } from './comments-utils';
 
 const VERB_META: Record<
   NotificationVerb,

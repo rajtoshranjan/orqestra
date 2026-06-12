@@ -1,6 +1,7 @@
+import { eventbridgeConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { EventBridgeConfig } from './types';
-import { eventbridgeConfigSchema } from '@/schemas/resources.schema';
 
 export function validateEventBridgeConfig(
   config: EventBridgeConfig,

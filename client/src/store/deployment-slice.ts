@@ -1,6 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
-import type { PayloadAction } from '@reduxjs/toolkit';
+
 import type { DeploymentSettings } from '@/types';
+
+import type { PayloadAction } from '@reduxjs/toolkit';
 
 type DeploymentState = {
   settings: DeploymentSettings;

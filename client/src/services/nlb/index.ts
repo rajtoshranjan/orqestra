@@ -1,3 +1,10 @@
+import { NlbIcon } from '@/components/icons';
+
+import { createDefaultNlbConfig, getNlbDisplayName } from './defaults';
+import { NlbInspector } from './nlb-inspector';
+import { NlbNode } from './nlb-node';
+import { validateNlbConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,11 +12,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { NlbConfig } from './types';
-import { createDefaultNlbConfig, getNlbDisplayName } from './defaults';
-import { validateNlbConfig } from './validate';
-import { NlbNode } from './nlb-node';
-import { NlbInspector } from './nlb-inspector';
-import { NlbIcon } from '@/components/icons';
 
 export const nlbService: ServiceDefinition<NlbConfig> = {
   id: 'nlb',

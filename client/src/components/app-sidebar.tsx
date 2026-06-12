@@ -1,6 +1,5 @@
 import { useEffect, useState, type ComponentType } from 'react';
-import { useLocation } from 'react-router-dom';
-import { useLocalStorage } from 'usehooks-ts';
+
 import { useQueryClient } from '@tanstack/react-query';
 import {
   Check,
@@ -13,7 +12,21 @@ import {
   Settings,
   Users,
 } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { useLocalStorage } from 'usehooks-ts';
 
+import { useCreateOrganisation, useOrganisations } from '@/api/auth';
+import { cn } from '@/lib/utils';
+import { localStorageManager } from '@/lib/utils/local-storage-manager';
+
+import { Button } from './ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from './ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,19 +35,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from './ui/dialog';
-import { Button } from './ui/button';
 import { Input } from './ui/input';
-
-import { useCreateOrganisation, useOrganisations } from '@/api/auth';
-import { cn } from '@/lib/utils';
-import { localStorageManager } from '@/lib/utils/local-storage-manager';
 
 export type AppShellView = 'projects' | 'settings' | 'members';
 

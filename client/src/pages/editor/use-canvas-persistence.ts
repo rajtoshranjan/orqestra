@@ -1,11 +1,13 @@
 import React from 'react';
-import { isDiagramStructureEqual } from './canvas-utils';
-import type { DiagramNode, DiagramEdge, DeploymentSettings } from '@/types';
-import { serializeDiagram } from '@/utils';
-import { setLastSavedAt } from '@/store/editor-slice';
-import { useAppDispatch } from '@/store';
+
 import { useUpdateProject } from '@/api';
 import { toast } from '@/hooks/use-toast';
+import { useAppDispatch } from '@/store';
+import { setLastSavedAt } from '@/store/editor-slice';
+import type { DiagramNode, DiagramEdge, DeploymentSettings } from '@/types';
+import { serializeDiagram } from '@/utils';
+
+import { isDiagramStructureEqual } from './canvas-utils';
 
 export type OriginalProjectSnapshot = {
   nodes: DiagramNode[];

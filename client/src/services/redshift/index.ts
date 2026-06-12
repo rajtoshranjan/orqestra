@@ -1,3 +1,13 @@
+import { RedshiftIcon } from '@/components/icons';
+
+import {
+  createDefaultRedshiftConfig,
+  getRedshiftDisplayName,
+} from './defaults';
+import { RedshiftInspector } from './redshift-inspector';
+import { RedshiftNode } from './redshift-node';
+import { validateRedshiftConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,14 +15,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { RedshiftConfig } from './types';
-import {
-  createDefaultRedshiftConfig,
-  getRedshiftDisplayName,
-} from './defaults';
-import { validateRedshiftConfig } from './validate';
-import { RedshiftNode } from './redshift-node';
-import { RedshiftInspector } from './redshift-inspector';
-import { RedshiftIcon } from '@/components/icons';
 
 export const redshiftService: ServiceDefinition<RedshiftConfig> = {
   id: 'redshift',

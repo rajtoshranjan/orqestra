@@ -1,8 +1,15 @@
 import { useEffect, useState } from 'react';
-import { useLocalStorage } from 'usehooks-ts';
-import { Building2, Cloud, History, Search } from 'lucide-react';
 
-import { AWSAccountsTab } from './aws-accounts-tab';
+import { Building2, Cloud, History, Search } from 'lucide-react';
+import { useLocalStorage } from 'usehooks-ts';
+
+import {
+  useOrganisations,
+  useUpdateOrganisation,
+  useAuditLogs,
+  useDeleteOrganisation,
+} from '@/api';
+import { PageLayout } from '@/components';
 import {
   Card,
   CardContent,
@@ -29,15 +36,10 @@ import {
   TableHead,
   TableCell,
 } from '@/components/ui';
-import { PageLayout } from '@/components';
-import {
-  useOrganisations,
-  useUpdateOrganisation,
-  useAuditLogs,
-  useDeleteOrganisation,
-} from '@/api';
-import { localStorageManager } from '@/lib/utils/local-storage-manager';
 import { toast } from '@/hooks/use-toast';
+import { localStorageManager } from '@/lib/utils/local-storage-manager';
+
+import { AWSAccountsTab } from './aws-accounts-tab';
 
 export function OrgSettings() {
   const isAuthenticated = localStorageManager.hasToken();

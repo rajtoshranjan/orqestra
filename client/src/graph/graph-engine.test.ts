@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { GraphEngine } from './graph-engine';
+
 import type { DiagramNode, DiagramEdge } from '@/types';
+
+import { GraphEngine } from './graph-engine';
 
 /* Mock the service registry so tests don't depend on real service definitions. */
 vi.mock('@/services/registry', () => ({

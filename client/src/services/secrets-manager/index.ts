@@ -1,3 +1,13 @@
+import { SecretsManagerIcon } from '@/components/icons';
+
+import {
+  createDefaultSecretsManagerConfig,
+  getSecretsManagerDisplayName,
+} from './defaults';
+import { SecretsManagerInspector } from './secrets-manager-inspector';
+import { SecretsManagerNode } from './secrets-manager-node';
+import { validateSecretsManagerConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,14 +15,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { SecretsManagerConfig } from './types';
-import {
-  createDefaultSecretsManagerConfig,
-  getSecretsManagerDisplayName,
-} from './defaults';
-import { validateSecretsManagerConfig } from './validate';
-import { SecretsManagerNode } from './secrets-manager-node';
-import { SecretsManagerInspector } from './secrets-manager-inspector';
-import { SecretsManagerIcon } from '@/components/icons';
 
 export const secretsManagerService: ServiceDefinition<SecretsManagerConfig> = {
   id: 'secrets-manager',

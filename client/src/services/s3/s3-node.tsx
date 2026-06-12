@@ -1,11 +1,11 @@
 import { memo } from 'react';
-import type { NodeProps } from 'reactflow';
+
+import { BaseServiceNode } from '@/components';
+import { S3Icon } from '@/components/icons';
 
 import type { ServiceValidationErrors } from '../types';
 import type { S3Config } from './types';
-
-import { S3Icon } from '@/components/icons';
-import { BaseServiceNode } from '@/components';
+import type { NodeProps } from 'reactflow';
 
 type S3NodeDataShape = {
   serviceId: string;

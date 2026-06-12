@@ -1,7 +1,7 @@
 import type { ClientAnnotation } from '@/api';
+import { registry } from '@/services';
 import type { DiagramEdge, DiagramNode } from '@/types';
 import { getNodeAbsolutePosition, getNodeDimensions } from '@/utils';
-import { registry } from '@/services';
 
 /* Pin positioning */
 

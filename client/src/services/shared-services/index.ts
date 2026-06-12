@@ -1,13 +1,15 @@
 import { Share2 } from 'lucide-react';
-import type { ServiceDefinition, ServicePlanResource } from '../types';
-import type { SharedServicesConfig } from './types';
+
 import {
   createDefaultSharedServicesConfig,
   getSharedServicesDisplayName,
 } from './defaults';
-import { validateSharedServicesConfig } from './validate';
-import { SharedServicesNode } from './services-node';
 import { SharedServicesInspector } from './services-inspector';
+import { SharedServicesNode } from './services-node';
+import { validateSharedServicesConfig } from './validate';
+
+import type { ServiceDefinition, ServicePlanResource } from '../types';
+import type { SharedServicesConfig } from './types';
 
 export const sharedServicesService: ServiceDefinition<SharedServicesConfig> = {
   id: 'shared-services',

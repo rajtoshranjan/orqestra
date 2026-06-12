@@ -1,11 +1,11 @@
 import { memo } from 'react';
-import type { NodeProps } from 'reactflow';
+
+import { BaseContainerNode } from '@/components';
+import { SubnetIcon } from '@/components/icons';
 
 import type { ServiceValidationErrors } from '../types';
 import type { SubnetConfig } from './types';
-
-import { SubnetIcon } from '@/components/icons';
-import { BaseContainerNode } from '@/components';
+import type { NodeProps } from 'reactflow';
 
 type SubnetNodeDataShape = {
   serviceId: string;

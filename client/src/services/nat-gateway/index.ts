@@ -1,3 +1,13 @@
+import { NatGatewayIcon } from '@/components/icons';
+
+import {
+  createDefaultNatGatewayConfig,
+  getNatGatewayDisplayName,
+} from './defaults';
+import { NatGatewayInspector } from './nat-gateway-inspector';
+import { NatGatewayNode } from './nat-gateway-node';
+import { validateNatGatewayConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,14 +15,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { NatGatewayConfig } from './types';
-import {
-  createDefaultNatGatewayConfig,
-  getNatGatewayDisplayName,
-} from './defaults';
-import { validateNatGatewayConfig } from './validate';
-import { NatGatewayNode } from './nat-gateway-node';
-import { NatGatewayInspector } from './nat-gateway-inspector';
-import { NatGatewayIcon } from '@/components/icons';
 
 export const natGatewayService: ServiceDefinition<NatGatewayConfig> = {
   id: 'nat-gateway',

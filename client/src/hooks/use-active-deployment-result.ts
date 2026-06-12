@@ -1,13 +1,15 @@
 import React from 'react';
+
 import { useQueryClient } from '@tanstack/react-query';
+
 import { useDeployment, useProjectDeploymentState } from '@/api';
 import type { ClientDeployment } from '@/api';
-import type { DeploymentResult, DeploymentLogEntry } from '@/types';
-import { DeploymentStatus } from '@/types';
+import { useDeploymentSubscription } from '@/hooks/use-deployment-subscription';
+import { toast } from '@/hooks/use-toast';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { setActiveDeploymentId } from '@/store/deployment-slice';
-import { toast } from '@/hooks/use-toast';
-import { useDeploymentSubscription } from '@/hooks/use-deployment-subscription';
+import type { DeploymentResult, DeploymentLogEntry } from '@/types';
+import { DeploymentStatus } from '@/types';
 
 const ACTIVE_SERVER_STATUSES = new Set([
   'pending',

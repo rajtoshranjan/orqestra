@@ -1,3 +1,10 @@
+import { RdsIcon } from '@/components/icons';
+
+import { createDefaultRDSConfig, getRDSDisplayName } from './defaults';
+import { RDSInspector } from './rds-inspector';
+import { RDSNode } from './rds-node';
+import { validateRDSConfig } from './validate';
+
 import type {
   ServiceDefinition,
   ServicePlanResource,
@@ -5,11 +12,6 @@ import type {
   DeploymentHints,
 } from '../types';
 import type { RDSConfig } from './types';
-import { createDefaultRDSConfig, getRDSDisplayName } from './defaults';
-import { validateRDSConfig } from './validate';
-import { RDSNode } from './rds-node';
-import { RDSInspector } from './rds-inspector';
-import { RdsIcon } from '@/components/icons';
 
 export const rdsService: ServiceDefinition<RDSConfig> = {
   id: 'rds',

@@ -1,10 +1,12 @@
+import { KinesisIcon } from '@/components/icons';
+
+import { createDefaultKinesisConfig, getKinesisDisplayName } from './defaults';
+import { KinesisInspector } from './kinesis-inspector';
+import { KinesisNode } from './kinesis-node';
+import { validateKinesisConfig } from './validate';
+
 import type { ServiceDefinition, ServicePlanResource } from '../types';
 import type { KinesisConfig } from './types';
-import { createDefaultKinesisConfig, getKinesisDisplayName } from './defaults';
-import { validateKinesisConfig } from './validate';
-import { KinesisNode } from './kinesis-node';
-import { KinesisInspector } from './kinesis-inspector';
-import { KinesisIcon } from '@/components/icons';
 
 export const kinesisService: ServiceDefinition<KinesisConfig> = {
   id: 'kinesis',

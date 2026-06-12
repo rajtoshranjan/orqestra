@@ -1,6 +1,7 @@
+import { stepFunctionConfigSchema } from '@/schemas/resources.schema';
+
 import type { ServiceValidationErrors } from '../types';
 import type { StepFunctionConfig } from './types';
-import { stepFunctionConfigSchema } from '@/schemas/resources.schema';
 
 export function validateStepFunctionConfig(
   config: StepFunctionConfig,

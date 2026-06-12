@@ -1,9 +1,12 @@
 import { memo } from 'react';
-import type { NodeProps } from 'reactflow';
+
 import { Layers } from 'lucide-react';
+
+import { BaseContainerNode } from '@/components';
+
 import type { ServiceValidationErrors } from '../types';
 import type { EnvironmentConfig } from './types';
-import { BaseContainerNode } from '@/components';
+import type { NodeProps } from 'reactflow';
 
 type EnvNodeData = {
   serviceId: string;
