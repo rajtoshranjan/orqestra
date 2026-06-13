@@ -210,7 +210,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                     className={cn(
                       'group flex w-full min-w-0 items-center justify-center gap-2 rounded-lg border-none bg-transparent p-1 text-left shadow-none transition-all duration-200',
                       !isCollapsed &&
-                      'md:justify-start md:border-none md:bg-[var(--color-bg-elevated)] md:p-2 md:shadow-none md:hover:bg-[var(--color-bg-hover)]',
+                        'md:justify-start md:border-none md:bg-[var(--color-bg-elevated)] md:p-2 md:shadow-none md:hover:bg-[var(--color-bg-hover)]',
                     )}
                     aria-label={
                       activeOrganisation
@@ -328,7 +328,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                   'group relative flex h-8 items-center rounded-md text-xs font-medium transition-colors',
                   'mx-auto w-8 justify-center',
                   !isCollapsed &&
-                  'md:mx-0 md:w-full md:justify-start md:gap-2 md:px-2',
+                    'md:mx-0 md:w-full md:justify-start md:gap-2 md:px-2',
                   active
                     ? 'bg-accent/20 font-semibold text-primary'
                     : 'text-muted-foreground hover:bg-accent/20 hover:text-foreground',
@@ -362,7 +362,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
               'flex h-8 items-center rounded-md text-[12px] font-medium text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground',
               'mx-auto w-8 justify-center',
               !isCollapsed &&
-              'md:mx-0 md:w-full md:justify-start md:gap-2 md:px-2',
+                'md:mx-0 md:w-full md:justify-start md:gap-2 md:px-2',
             )}
           >
             {isCollapsed ? (
