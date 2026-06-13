@@ -177,6 +177,8 @@ The orchestration layer is provider-agnostic by design. AWS support is implement
 
 ## Getting Started
 
+For a comprehensive, step-by-step onboarding guide, refer to the [Getting Started Guide](./docs/getting-started.md).
+
 ### Prerequisites
 
 * [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/)
@@ -235,6 +237,7 @@ orqestra/
 
 ## Documentation
 
+* [docs/getting-started.md](./docs/getting-started.md) - Step-by-step guide to run and configure Orqestra for the first time
 * [docs/architecture.md](./docs/architecture.md) - Platform architecture and core domain model
 * [AGENTS.md](./AGENTS.md) - Guidelines for contributors and AI coding agents
 * [docs/](./docs) - Additional reference documentation
