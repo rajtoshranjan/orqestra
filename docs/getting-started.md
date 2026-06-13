@@ -84,10 +84,7 @@ Now you are ready to design and deploy architecture:
 1. Navigate to the **Projects** dashboard and click **New Project**.
 2. Give your project a name (e.g., `My First Infrastructure`).
 3. Click on the project settings (gear icon) and select the `Local Emulator` account from the **AWS Account** dropdown. Save settings.
-4. Use the canvas editor to drag and drop cloud resources:
-   - Add a resource node (e.g., a **VPC** container).
-   - Nest subnets or add components like a **Lambda Function**.
-   - Create edge connections to define resource dependencies (e.g., drag an edge from a Lambda function to an IAM role to represent capability requirements).
+4. Use the canvas editor to drag and drop cloud resources
 5. Click **Deploy** in the top right corner.
 6. Track deployment execution logs in real-time as OpenTofu plans and applies the resources to the emulator.
 
@@ -95,31 +92,3 @@ Now you are ready to design and deploy architecture:
 To verify that your resources were provisioned successfully in the emulator:
 - Open the Stackport console at [http://localhost:8082](http://localhost:8082).
 - View provisioned AWS resources like Lambda functions, IAM roles, S3 buckets, or network subnets created by the deployment.
-
----
-
-## Developer Operations
-
-If you need to interact with the Django backend or run utility tasks, use the following Docker commands:
-
-### Running Database Migrations
-Migrations are automatically applied on server startup. If you write new models or migrations, apply them manually using:
-```bash
-docker compose run --rm server python manage.py migrate
-```
-
-### Creating an Admin / Superuser
-To create a Django superuser for the Django admin dashboard:
-```bash
-docker compose run --rm server python manage.py createsuperuser
-```
-
-### Running Backend Checks & Tests
-Execute project checks and run the test suite:
-```bash
-# Verify Django settings and configurations
-docker compose run --rm server python manage.py check
-
-# Run Django test suite
-docker compose run --rm server python manage.py test
-```
