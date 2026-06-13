@@ -8,11 +8,7 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from .constants import OrganisationMemberRole
 from .helpers import get_active_organisation, log_action
 from .models import AWSAccount, Organisation, OrganisationMember
-from .permissions import (
-    CanManageOrganisation,
-    IsNonGuestMember,
-    IsOrganisationMember,
-)
+from .permissions import CanManageOrganisation, IsNonGuestMember, IsOrganisationMember
 from .serializers import (
     AuditLogSerializer,
     AWSAccountSerializer,
