@@ -13,7 +13,7 @@ import {
   Unlock,
 } from 'lucide-react';
 
-import { CommentMarker, OrqestraMark } from '@/components/icons';
+import { CommentMarker } from '@/components/icons';
 import {
   Badge,
   Button,
@@ -139,7 +139,6 @@ function EditorToolbarComponent({
           </Button>
 
           <span className="hidden select-none items-center gap-1.5 px-1.5 font-sans text-sm font-bold tracking-tight text-foreground sm:inline-flex">
-            <OrqestraMark variant="color" size={16} />
             Orqestra
           </span>
 
