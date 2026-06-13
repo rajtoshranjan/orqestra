@@ -8,10 +8,8 @@ import {
   Users,
   Check,
 } from 'lucide-react';
-import { useLocalStorage } from 'usehooks-ts';
 
 import {
-  useOrganisations,
   useOrganisationMembers,
   useAddOrganisationMember,
   useRemoveOrganisationMember,
@@ -34,6 +32,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui';
+import { usePermissions, useActiveOrganisation } from '@/hooks';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { localStorageManager } from '@/lib/utils/local-storage-manager';
@@ -75,20 +74,20 @@ const getInitials = (name?: string): string => {
 export function OrgMembers() {
   const isAuthenticated = localStorageManager.hasToken();
 
-  // Fetch backend query states and active mutations.
+  const { canManage: canManageMembers, isGuest } = usePermissions();
+
+  // Fetch backend query states and active mutations. The member directory is
+  // hidden from guests, so skip the request for them.
   const { data: user } = useGetUserInfo(isAuthenticated);
-  const { data: organisations } = useOrganisations(isAuthenticated);
-  const { data: members, isLoading: isMembersLoading } =
-    useOrganisationMembers(isAuthenticated);
+  const { data: members, isLoading: isMembersLoading } = useOrganisationMembers(
+    isAuthenticated && !isGuest,
+  );
 
   const inviteMutation = useAddOrganisationMember();
   const removeMutation = useRemoveOrganisationMember();
   const updateRoleMutation = useUpdateOrganisationMember();
 
-  const [activeOrgId] = useLocalStorage<string | null>('activeOrgId', null);
-  const activeOrganisation =
-    organisations?.find((organisation) => organisation.id === activeOrgId) ||
-    organisations?.[0];
+  const activeOrganisation = useActiveOrganisation();
 
   // Manage invite field state.
   const [inviteEmail, setInviteEmail] = useState<string>('');
@@ -185,28 +184,49 @@ export function OrgMembers() {
     );
   };
 
-  const canManageMembers =
-    activeOrganisation?.role === 'owner' ||
-    activeOrganisation?.role === 'admin';
-
-  // Prepend the organisation owner to the directory manually.
-  const ownerEntry =
-    activeOrganisation?.role === 'owner' && user
-      ? [
-          {
-            id: 'owner',
-            userName: user.name,
-            userEmail: user.email,
-            role: 'owner' as const,
-          },
-        ]
-      : [];
+  // Prepend the organisation owner to the directory. The owner is not a member
+  // row, so surface it from the org payload for every viewer (not just the
+  // owner) — otherwise admins never see who owns the organisation.
+  const ownerEntry = activeOrganisation?.ownerEmail
+    ? [
+        {
+          id: 'owner',
+          userName: activeOrganisation.ownerName ?? 'Owner',
+          userEmail: activeOrganisation.ownerEmail,
+          role: 'owner' as const,
+        },
+      ]
+    : [];
 
   const displayedMembers = [...ownerEntry, ...(members ?? [])];
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const isEmailEmpty = !inviteEmail.trim();
   const isValidEmail = isEmailEmpty || emailRegex.test(inviteEmail.trim());
+
+  // Guests have read-only access and cannot view the member directory.
+  if (isGuest) {
+    return (
+      <PageLayout
+        title="Organisation members"
+        description="Manage your organisation members, invite new colleagues, and assign roles."
+        maxWidthClass="max-w-4xl"
+      >
+        <Card className="border-border/80 bg-[var(--color-bg-surface)] shadow-none">
+          <CardContent className="flex h-40 flex-col items-center justify-center gap-2 text-center">
+            <Shield className="size-5 text-muted-foreground" />
+            <p className="text-sm font-semibold text-foreground">
+              Restricted access
+            </p>
+            <p className="max-w-xs text-xs text-muted-foreground">
+              You have read-only access to this organisation and cannot view the
+              members directory.
+            </p>
+          </CardContent>
+        </Card>
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout

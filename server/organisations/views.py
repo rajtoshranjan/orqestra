@@ -10,7 +10,7 @@ from .helpers import get_active_organisation, log_action
 from .models import AWSAccount, Organisation, OrganisationMember
 from .permissions import (
     CanManageOrganisation,
-    CanWriteOrganisation,
+    IsNonGuestMember,
     IsOrganisationMember,
 )
 from .serializers import (
@@ -106,7 +106,8 @@ class OrganisationMemberViewSet(ModelViewSet):
 
     def get_permissions(self):
         if self.action in ["list", "retrieve"]:
-            self.permission_classes = [IsOrganisationMember]
+            # The member directory is hidden from guests.
+            self.permission_classes = [IsNonGuestMember]
         else:
             self.permission_classes = [CanManageOrganisation]
         return super().get_permissions()
@@ -159,7 +160,8 @@ class OrganisationMemberViewSet(ModelViewSet):
 
 class AuditLogViewSet(ReadOnlyModelViewSet):
     serializer_class = AuditLogSerializer
-    permission_classes = [IsOrganisationMember]
+    # Audit logs are hidden from guests.
+    permission_classes = [IsNonGuestMember]
 
     def get_queryset(self):
         org = get_active_organisation(self.request)
@@ -171,9 +173,12 @@ class AWSAccountViewSet(ModelViewSet):
 
     def get_permissions(self):
         if self.action in ["list", "retrieve"]:
-            self.permission_classes = [IsOrganisationMember]
+            # AWS accounts are hidden from guests entirely.
+            self.permission_classes = [IsNonGuestMember]
         else:
-            self.permission_classes = [CanWriteOrganisation]
+            # AWS-account management is restricted to owners/admins because it
+            # exposes cloud credentials; regular members may not mutate it.
+            self.permission_classes = [CanManageOrganisation]
         return super().get_permissions()
 
     def get_queryset(self):

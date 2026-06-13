@@ -24,6 +24,7 @@ import { useLocalStorage } from 'usehooks-ts';
 
 import { useProjectDeploymentState, useCreateDeployment } from '@/api';
 import { ConfirmDialog } from '@/components/ui';
+import { usePermissions } from '@/hooks';
 import { useActiveDeploymentResult } from '@/hooks/use-active-deployment-result';
 import { toast } from '@/hooks/use-toast';
 import { registry } from '@/services';
@@ -113,9 +114,17 @@ export function CanvasEditor({
     projectDescription,
     awsAccountId,
     snapToGrid,
-    isLocked,
+    isLocked: reduxIsLocked,
     clipboard,
   } = useAppSelector((state) => state.editor);
+
+  // Read-only roles (guests) can view, pan, and comment, but cannot mutate the
+  // canvas. Folding read-only into the existing canvas lock means every handler,
+  // ReactFlow interactivity prop, and keyboard shortcut that already respects
+  // `isLocked` automatically respects read-only too.
+  const { canWrite } = usePermissions();
+  const readOnly = !canWrite;
+  const isLocked = reduxIsLocked || readOnly;
 
   const { settings: deploymentSettings, activeDeploymentId } = useAppSelector(
     (state) => state.deployment,
@@ -272,6 +281,7 @@ export function CanvasEditor({
     edges,
     deploymentSettings,
     originalProjectRef,
+    readOnly,
   });
 
   /* Sync nodes/edges to Redux */
@@ -741,6 +751,7 @@ export function CanvasEditor({
   );
 
   const handleDeploy = React.useCallback(async () => {
+    if (readOnly) return;
     if (!awsAccountId) {
       toast({
         title: 'AWS account required',
@@ -810,6 +821,7 @@ export function CanvasEditor({
     persistDiagram,
     createDeploymentMutation,
     dispatch,
+    readOnly,
   ]);
 
   const handleTriggerAutoLayout = React.useCallback(() => {
@@ -832,6 +844,7 @@ export function CanvasEditor({
 
   const handleApplyStarter = React.useCallback(
     (starter: { nodes: DiagramNode[]; edges: DiagramEdge[] }) => {
+      if (readOnly) return;
       updateNodesWithValidation(() =>
         autoLayoutDiagram(starter.nodes, starter.edges),
       );
@@ -842,7 +855,7 @@ export function CanvasEditor({
           'Arranged template resources into clean grids and boundaries.',
       });
     },
-    [updateNodesWithValidation, setEdges],
+    [updateNodesWithValidation, setEdges, readOnly],
   );
 
   const handleSelectNode = React.useCallback(
@@ -1020,6 +1033,7 @@ export function CanvasEditor({
         commentMode={commentMode}
         onToggleCommentMode={toggleCommentMode}
         onOpenAnnotation={handleOpenAnnotation}
+        readOnly={readOnly}
       />
 
       <div className="flex flex-1 overflow-hidden">
@@ -1085,7 +1099,10 @@ export function CanvasEditor({
           </ReactFlow>
 
           {nodes.length === 0 && (
-            <CanvasEmptyState onApplyStarter={handleApplyStarter} />
+            <CanvasEmptyState
+              onApplyStarter={handleApplyStarter}
+              readOnly={readOnly}
+            />
           )}
 
           {contextMenu && (
@@ -1176,6 +1193,7 @@ export function CanvasEditor({
         awsAccountId={awsAccountId}
         nodes={nodes}
         edges={edges}
+        readOnly={readOnly}
       />
 
       <CanvasShortcutsDialog

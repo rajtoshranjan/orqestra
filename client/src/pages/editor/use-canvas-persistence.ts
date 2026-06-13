@@ -27,6 +27,8 @@ type UseCanvasPersistenceOptions = {
   edges: DiagramEdge[];
   deploymentSettings: DeploymentSettings;
   originalProjectRef: React.MutableRefObject<OriginalProjectSnapshot>;
+  /** When true (read-only roles), persistence is disabled entirely. */
+  readOnly?: boolean;
 };
 
 export function useCanvasPersistence({
@@ -38,6 +40,7 @@ export function useCanvasPersistence({
   edges,
   deploymentSettings,
   originalProjectRef,
+  readOnly = false,
 }: UseCanvasPersistenceOptions) {
   const dispatch = useAppDispatch();
   const updateProjectMutation = useUpdateProject();
@@ -53,6 +56,9 @@ export function useCanvasPersistence({
       nextSettings: DeploymentSettings,
       silent = false,
     ) => {
+      // Read-only roles cannot persist; the server would reject the write.
+      if (readOnly) return;
+
       const timestamp = new Date().toISOString();
       const payload = serializeDiagram({
         projectId: nextProjectId,
@@ -99,11 +105,13 @@ export function useCanvasPersistence({
         }
       }
     },
-    [dispatch, updateProjectMutation, originalProjectRef],
+    [dispatch, updateProjectMutation, originalProjectRef, readOnly],
   );
 
   /* Autosave: debounced 1s after any diagram change. */
   React.useEffect(() => {
+    if (readOnly) return;
+
     const orig = originalProjectRef.current;
     if (
       isDiagramStructureEqual(nodes, orig.nodes, edges, orig.edges) &&
@@ -139,6 +147,7 @@ export function useCanvasPersistence({
     currentProjectId,
     persistDiagram,
     originalProjectRef,
+    readOnly,
   ]);
 
   return { persistDiagram, isSaving: updateProjectMutation.isPending };

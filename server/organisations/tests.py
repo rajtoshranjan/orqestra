@@ -131,6 +131,95 @@ class OrganisationSecurityTests(BaseTestCase):
         response = self.client.post(url, {"name": "Guest Project"}, format="json")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    def _add_member(self, email, role):
+        member_user = User.objects.create_user(
+            email=email,
+            password="MemberPassword123!",
+            name=email.split("@")[0],
+        )
+        OrganisationMember.objects.create(
+            organisation=self.organisation,
+            user=member_user,
+            role=role,
+        )
+        return member_user
+
+    def test_regular_member_cannot_manage_aws_accounts(self):
+        # AWS-account management is locked to owners/admins.
+        regular_user = self._add_member(
+            "regularaws@example.com", OrganisationMemberRole.REGULAR.value
+        )
+        self.client.force_authenticate(user=regular_user)
+        self.client.credentials(HTTP_X_ACTIVE_ORG_ID=str(self.organisation.id))
+
+        url = reverse("organisation-aws-account-list")
+        response = self.client.post(
+            url,
+            {
+                "name": "prod",
+                "access_key_id": "AKIAEXAMPLE",
+                "secret_access_key": "examplesecret",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_admin_member_can_manage_aws_accounts(self):
+        admin_user = self._add_member(
+            "adminaws@example.com", OrganisationMemberRole.ADMIN.value
+        )
+        self.client.force_authenticate(user=admin_user)
+        self.client.credentials(HTTP_X_ACTIVE_ORG_ID=str(self.organisation.id))
+
+        url = reverse("organisation-aws-account-list")
+        response = self.client.post(
+            url,
+            {
+                "name": "prod",
+                "access_key_id": "AKIAEXAMPLE",
+                "secret_access_key": "examplesecret",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_guest_cannot_view_members_audit_logs_or_aws_accounts(self):
+        guest_user = self._add_member(
+            "guestview@example.com", OrganisationMemberRole.GUEST.value
+        )
+        self.client.force_authenticate(user=guest_user)
+        self.client.credentials(HTTP_X_ACTIVE_ORG_ID=str(self.organisation.id))
+
+        for url_name in [
+            "organisation-member-list",
+            "organisation-audit-log-list",
+            "organisation-aws-account-list",
+        ]:
+            response = self.client.get(reverse(url_name))
+            self.assertEqual(
+                response.status_code,
+                status.HTTP_403_FORBIDDEN,
+                msg=f"{url_name} should be forbidden for guests",
+            )
+
+    def test_regular_member_can_view_audit_logs_and_aws_accounts(self):
+        regular_user = self._add_member(
+            "regularview@example.com", OrganisationMemberRole.REGULAR.value
+        )
+        self.client.force_authenticate(user=regular_user)
+        self.client.credentials(HTTP_X_ACTIVE_ORG_ID=str(self.organisation.id))
+
+        for url_name in [
+            "organisation-audit-log-list",
+            "organisation-aws-account-list",
+        ]:
+            response = self.client.get(reverse(url_name))
+            self.assertEqual(
+                response.status_code,
+                status.HTTP_200_OK,
+                msg=f"{url_name} should be visible to regular members",
+            )
+
     def test_audit_logs_recorded(self):
         # Create a project as admin/owner.
         url = reverse("project-list")

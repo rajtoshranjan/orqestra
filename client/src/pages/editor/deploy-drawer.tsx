@@ -60,6 +60,7 @@ export type DeployDrawerProps = {
   awsAccountId: string | null;
   nodes: DiagramNode[];
   edges: DiagramEdge[];
+  readOnly?: boolean;
 };
 
 const STATUS_STYLES: Record<
@@ -140,6 +141,7 @@ export function DeployDrawer({
   awsAccountId,
   nodes,
   edges,
+  readOnly = false,
 }: DeployDrawerProps) {
   const status = deploymentResult.status;
   const isRunning = status === 'in-progress';
@@ -258,7 +260,8 @@ export function DeployDrawer({
                       onChange={(event) =>
                         patchSettings({ region: event.target.value })
                       }
-                      className="h-8 border-border/80 bg-background/50 text-xs"
+                      disabled={readOnly}
+                      className="h-8 border-border/80 bg-background/50 text-xs disabled:opacity-60"
                     />
                   </div>
                 </div>
@@ -383,7 +386,9 @@ export function DeployDrawer({
               <section className="border-t border-border/60 pt-2">
                 <Button
                   onClick={onDeploy}
-                  disabled={isRunning || !hasChanges || !awsAccountId}
+                  disabled={
+                    isRunning || !hasChanges || !awsAccountId || readOnly
+                  }
                   className="flex h-9 w-full items-center justify-center gap-2 bg-gradient-to-r from-primary to-[#6366f1] text-xs font-semibold text-white shadow-md hover:brightness-105 disabled:opacity-50"
                   size="default"
                 >
@@ -394,7 +399,13 @@ export function DeployDrawer({
                   )}
                   {isRunning ? 'Deploying…' : 'Deploy to AWS'}
                 </Button>
-                {!awsAccountId && (
+                {readOnly && (
+                  <p className="mt-1.5 text-center text-[10px] text-warning/80">
+                    You have read-only access. Deploying requires write
+                    permission.
+                  </p>
+                )}
+                {!readOnly && !awsAccountId && (
                   <p className="mt-1.5 text-center text-[10px] text-warning/80">
                     Link an AWS account in project settings to deploy.
                   </p>

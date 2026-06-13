@@ -102,10 +102,11 @@ const deleteAWSAccount = async (accountId: string): Promise<void> => {
   await api.delete(`/organisations/aws-accounts/${accountId}/`);
 };
 
-export const useAWSAccounts = () => {
+export const useAWSAccounts = (enabled = true) => {
   return useQuery({
     queryKey: ['aws-accounts'],
     queryFn: fetchAWSAccounts,
+    enabled,
   });
 };
 

@@ -18,6 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui';
+import { usePermissions } from '@/hooks';
 import { formatRelativeTime } from '@/utils';
 
 import { CommentBody } from './comment-body';
@@ -52,18 +53,23 @@ const TARGET_LABELS: Record<ClientAnnotation['targetType'], string> = {
 function ThreadComment({
   comment,
   currentUserId,
+  canModerate,
   onEditComment,
   onDeleteComment,
   onToggleReaction,
 }: {
   comment: ClientComment;
   currentUserId: string | undefined;
+  canModerate: boolean;
   onEditComment: (commentId: string, body: string) => void;
   onDeleteComment: (commentId: string) => void;
   onToggleReaction: (commentId: string, emoji: string) => void;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const isOwn = comment.authorId !== null && comment.authorId === currentUserId;
+  // Authors may edit/delete their own comment; owners/admins may moderate
+  // (delete) anyone's. Non-authors without moderation get no menu.
+  const canDelete = isOwn || canModerate;
 
   return (
     <div className="group space-y-1.5 px-3 py-2">
@@ -79,7 +85,7 @@ function ThreadComment({
           {comment.editedAt && ' (edited)'}
         </span>
 
-        {isOwn && !isEditing && (
+        {canDelete && !isEditing && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
@@ -91,9 +97,11 @@ function ThreadComment({
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setIsEditing(true)}>
-                <Pencil size={12} className="mr-2" /> Edit
-              </DropdownMenuItem>
+              {isOwn && (
+                <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                  <Pencil size={12} className="mr-2" /> Edit
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive"
                 onClick={() => onDeleteComment(comment.id)}
@@ -142,9 +150,14 @@ export function CommentThreadPopover({
   onDeleteComment,
   onToggleReaction,
 }: CommentThreadPopoverProps) {
+  const { canWrite, canModerate } = usePermissions();
   const isResolved = annotation.status === 'resolved';
   const isOwn =
     annotation.authorId !== null && annotation.authorId === currentUserId;
+  // Write-roles may resolve/reopen any thread; guests only their own.
+  const canResolve = canWrite || isOwn;
+  // Thread authors may delete their thread; owners/admins may moderate any.
+  const canDeleteThread = isOwn || canModerate;
 
   return (
     <div
@@ -168,29 +181,30 @@ export function CommentThreadPopover({
         )}
 
         <div className="ml-auto flex items-center gap-1">
-          {isResolved ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              type="button"
-              className="h-6 gap-1 px-2 text-[11px]"
-              onClick={onReopen}
-            >
-              <RotateCcw size={12} /> Reopen
-            </Button>
-          ) : (
-            <Button
-              variant="ghost"
-              size="sm"
-              type="button"
-              className="h-6 gap-1 px-2 text-[11px] text-success hover:text-success"
-              onClick={onResolve}
-            >
-              <Check size={12} /> Resolve
-            </Button>
-          )}
+          {canResolve &&
+            (isResolved ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                type="button"
+                className="h-6 gap-1 px-2 text-[11px]"
+                onClick={onReopen}
+              >
+                <RotateCcw size={12} /> Reopen
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                type="button"
+                className="h-6 gap-1 px-2 text-[11px] text-success hover:text-success"
+                onClick={onResolve}
+              >
+                <Check size={12} /> Resolve
+              </Button>
+            ))}
 
-          {isOwn && (
+          {canDeleteThread && (
             <Button
               variant="ghost"
               size="sm"
@@ -222,6 +236,7 @@ export function CommentThreadPopover({
             key={comment.id}
             comment={comment}
             currentUserId={currentUserId}
+            canModerate={canModerate}
             onEditComment={onEditComment}
             onDeleteComment={onDeleteComment}
             onToggleReaction={onToggleReaction}

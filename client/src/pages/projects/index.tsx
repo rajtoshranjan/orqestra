@@ -9,6 +9,7 @@ import {
   Search,
   ChevronDown,
   SearchX,
+  Lock,
 } from 'lucide-react';
 
 import { useProjects, useDeleteProject, useAWSAccounts } from '@/api';
@@ -34,6 +35,7 @@ import {
   Select,
   Textarea,
 } from '@/components/ui';
+import { usePermissions } from '@/hooks';
 import { formatRelativeTime } from '@/utils';
 
 type ProjectsProps = {
@@ -47,7 +49,8 @@ type ProjectsProps = {
 
 export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
   const { data: projects = [], isLoading } = useProjects();
-  const { data: awsAccounts = [] } = useAWSAccounts();
+  const { canWrite } = usePermissions();
+  const { data: awsAccounts = [] } = useAWSAccounts(canWrite);
   const deleteProjectMutation = useDeleteProject();
 
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -198,15 +201,23 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
               </div>
 
               <div className="flex flex-wrap items-center gap-2.5">
-                {/* Create Project Button. */}
-                <Button
-                  type="button"
-                  onClick={() => setNewProjectOpen(true)}
-                  className="flex h-8 items-center gap-1 rounded-md border border-primary/35 bg-primary px-3 text-xs font-semibold text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary/90 hover:shadow-md hover:shadow-primary/20"
-                >
-                  <Plus className="size-3.5" />
-                  New Project
-                </Button>
+                {canWrite ? (
+                  /* Create Project Button. */
+                  <Button
+                    type="button"
+                    onClick={() => setNewProjectOpen(true)}
+                    className="flex h-8 items-center gap-1 rounded-md border border-primary/35 bg-primary px-3 text-xs font-semibold text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary/90 hover:shadow-md hover:shadow-primary/20"
+                  >
+                    <Plus className="size-3.5" />
+                    New Project
+                  </Button>
+                ) : (
+                  /* Read-only roles (guests) cannot create projects. */
+                  <span className="inline-flex h-8 select-none items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 text-xs font-medium text-[var(--color-text-secondary)]">
+                    <Lock className="size-3.5" />
+                    Read-only access
+                  </span>
+                )}
               </div>
             </div>
             {/* No projects for applied filters */}
@@ -262,20 +273,22 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
                         Open Canvas
                       </span>
 
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          setProjectToDelete(project.projectId);
-                          setConfirmOpen(true);
-                        }}
-                        className="size-7 rounded text-muted-foreground opacity-45 transition-all duration-200 hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
-                        aria-label={`Delete ${project.projectName}`}
-                      >
-                        <Trash2 className="size-3.5" />
-                      </Button>
+                      {canWrite && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setProjectToDelete(project.projectId);
+                            setConfirmOpen(true);
+                          }}
+                          className="size-7 rounded text-muted-foreground opacity-45 transition-all duration-200 hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+                          aria-label={`Delete ${project.projectName}`}
+                        >
+                          <Trash2 className="size-3.5" />
+                        </Button>
+                      )}
                     </div>
                   </Card>
                 );
@@ -287,10 +300,14 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
           <div className="animate-fade-in mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center pb-20">
             <EmptyState
               title="No projects found"
-              description="You haven't created any architectures yet. Click below to start designing on the canvas."
+              description={
+                canWrite
+                  ? "You haven't created any architectures yet. Click below to start designing on the canvas."
+                  : 'No projects have been created in this organisation yet. You have read-only access.'
+              }
               icon={LayoutDashboard}
-              actionText="Create Project"
-              onAction={() => setNewProjectOpen(true)}
+              actionText={canWrite ? 'Create Project' : undefined}
+              onAction={canWrite ? () => setNewProjectOpen(true) : undefined}
               className="py-12"
             />
           </div>

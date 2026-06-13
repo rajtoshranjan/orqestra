@@ -14,9 +14,13 @@ type CanvasEmptyStateProps = {
     nodes: DiagramNode[];
     edges: DiagramEdge[];
   }) => void;
+  readOnly?: boolean;
 };
 
-export function CanvasEmptyState({ onApplyStarter }: CanvasEmptyStateProps) {
+export function CanvasEmptyState({
+  onApplyStarter,
+  readOnly = false,
+}: CanvasEmptyStateProps) {
   const lambdaSvc = registry.find('lambda');
   const s3Svc = registry.find('s3');
   const vpcSvc = registry.find('vpc');
@@ -67,36 +71,41 @@ export function CanvasEmptyState({ onApplyStarter }: CanvasEmptyStateProps) {
       <div className="pointer-events-auto flex w-full max-w-5xl select-text flex-col items-center text-center">
         <div className="mb-8 text-center">
           <h1 className="bg-gradient-to-r from-primary to-accent bg-clip-text text-3xl font-extrabold tracking-tight text-foreground">
-            Design Your Cloud Infrastructure
+            {readOnly
+              ? 'This Project Is Empty'
+              : 'Design Your Cloud Infrastructure'}
           </h1>
           <p className="mx-auto mt-2 max-w-lg text-sm text-muted-foreground">
-            Choose a production-grade starter template below to begin designing
-            your architecture.
+            {readOnly
+              ? 'No resources have been added yet. You have read-only access to this organisation.'
+              : 'Choose a production-grade starter template below to begin designing your architecture.'}
           </p>
         </div>
 
-        <div className="mt-12 grid w-full max-w-5xl grid-cols-1 gap-4 text-left sm:grid-cols-2 lg:grid-cols-4">
-          {starters.map(({ title, description, Icon, color, create }) => (
-            <div
-              key={title}
-              onClick={() => onApplyStarter(create())}
-              className="group relative flex cursor-pointer flex-col items-start rounded-2xl border border-border bg-card/60 p-5 shadow-sm transition-all duration-300 hover:border-primary/50 hover:bg-accent/10"
-            >
+        {!readOnly && (
+          <div className="mt-12 grid w-full max-w-5xl grid-cols-1 gap-4 text-left sm:grid-cols-2 lg:grid-cols-4">
+            {starters.map(({ title, description, Icon, color, create }) => (
               <div
-                className="mb-4 flex size-10 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110"
-                style={{ backgroundColor: `${color}18`, color }}
+                key={title}
+                onClick={() => onApplyStarter(create())}
+                className="group relative flex cursor-pointer flex-col items-start rounded-2xl border border-border bg-card/60 p-5 shadow-sm transition-all duration-300 hover:border-primary/50 hover:bg-accent/10"
               >
-                <Icon size={20} />
+                <div
+                  className="mb-4 flex size-10 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110"
+                  style={{ backgroundColor: `${color}18`, color }}
+                >
+                  <Icon size={20} />
+                </div>
+                <h3 className="text-sm font-bold text-foreground transition-colors group-hover:text-primary">
+                  {title}
+                </h3>
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground/80">
+                  {description}
+                </p>
               </div>
-              <h3 className="text-sm font-bold text-foreground transition-colors group-hover:text-primary">
-                {title}
-              </h3>
-              <p className="mt-2 text-xs leading-relaxed text-muted-foreground/80">
-                {description}
-              </p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -65,6 +65,7 @@ export type EditorToolbarProps = {
   commentMode?: boolean;
   onToggleCommentMode?: () => void;
   onOpenAnnotation?: (annotationId: string, projectId: string) => void;
+  readOnly?: boolean;
 };
 
 function EditorToolbarComponent({
@@ -79,6 +80,7 @@ function EditorToolbarComponent({
   commentMode = false,
   onToggleCommentMode,
   onOpenAnnotation,
+  readOnly = false,
 }: EditorToolbarProps) {
   const dispatch = useAppDispatch();
 
@@ -153,7 +155,8 @@ function EditorToolbarComponent({
                   variant="ghost"
                   size="icon"
                   onClick={() => dispatch(setProjectSettingsOpen(true))}
-                  className="size-5 text-muted-foreground hover:bg-accent hover:text-foreground"
+                  disabled={readOnly}
+                  className="size-5 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-40"
                 >
                   <PencilLine size={11} />
                 </Button>
@@ -287,32 +290,55 @@ function EditorToolbarComponent({
 
         {/* RIGHT: Icon actions + Plan + Deploy */}
         <div className="flex items-center gap-0.5">
-          {/* Lock/Unlock Editor */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => dispatch(setIsLocked(!isLocked))}
-                aria-label={isLocked ? 'Unlock editor' : 'Lock editor'}
-                className={cn(
-                  'h-8 w-8 text-muted-foreground transition-all duration-200',
-                  isLocked &&
-                    'bg-warning/20 text-warning hover:bg-warning/30 hover:text-warning',
-                )}
-                title={
-                  isLocked
-                    ? 'Unlock Editor (⌥Shift+L)'
-                    : 'Lock Editor (⌥Shift+L)'
-                }
-              >
-                {isLocked ? <Lock size={15} /> : <Unlock size={15} />}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="text-xs">
-              {isLocked ? 'Unlock Editor (⌥Shift+L)' : 'Lock Editor (⌥Shift+L)'}
-            </TooltipContent>
-          </Tooltip>
+          {/* Read-only indicator for guests */}
+          {readOnly && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  variant="outline"
+                  className="mr-1 cursor-default gap-1 border-warning/30 bg-warning/10 px-1.5 py-0.5 text-[10px] font-semibold text-warning"
+                >
+                  <Lock size={11} />
+                  Read-only
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">
+                You have read-only access to this organisation. Editing and
+                deploying are disabled.
+              </TooltipContent>
+            </Tooltip>
+          )}
+
+          {/* Lock/Unlock Editor (hidden for read-only roles) */}
+          {!readOnly && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => dispatch(setIsLocked(!isLocked))}
+                  aria-label={isLocked ? 'Unlock editor' : 'Lock editor'}
+                  className={cn(
+                    'h-8 w-8 text-muted-foreground transition-all duration-200',
+                    isLocked &&
+                      'bg-warning/20 text-warning hover:bg-warning/30 hover:text-warning',
+                  )}
+                  title={
+                    isLocked
+                      ? 'Unlock Editor (⌥Shift+L)'
+                      : 'Lock Editor (⌥Shift+L)'
+                  }
+                >
+                  {isLocked ? <Lock size={15} /> : <Unlock size={15} />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">
+                {isLocked
+                  ? 'Unlock Editor (⌥Shift+L)'
+                  : 'Lock Editor (⌥Shift+L)'}
+              </TooltipContent>
+            </Tooltip>
+          )}
 
           {/* Snap to Grid */}
           <Tooltip>
@@ -379,7 +405,8 @@ function EditorToolbarComponent({
             >
               <DropdownMenuItem
                 onClick={onAutoLayout}
-                className="flex cursor-pointer items-center justify-between text-xs"
+                disabled={readOnly}
+                className="flex cursor-pointer items-center justify-between text-xs disabled:opacity-50"
               >
                 <span>Auto Layout</span>
                 <kbd className="rounded border border-border/60 bg-muted px-1.5 text-[9px] opacity-65">
@@ -388,7 +415,7 @@ function EditorToolbarComponent({
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={onClearCanvas}
-                disabled={isLocked}
+                disabled={isLocked || readOnly}
                 className="cursor-pointer text-xs text-destructive hover:text-destructive/80 focus:text-destructive/80 disabled:opacity-50"
               >
                 Clear Canvas
@@ -418,8 +445,13 @@ function EditorToolbarComponent({
           <Button
             onClick={onPlan}
             size="sm"
-            className="flex items-center gap-1.5 font-semibold text-white shadow-sm"
-            title="Open Plan & Deploy (⌥D)"
+            disabled={readOnly}
+            className="flex items-center gap-1.5 font-semibold text-white shadow-sm disabled:opacity-50"
+            title={
+              readOnly
+                ? 'Read-only access — deploying requires write permission'
+                : 'Open Plan & Deploy (⌥D)'
+            }
           >
             {isDeploying ? (
               <Loader2 size={13} className="animate-spin" />

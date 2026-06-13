@@ -12,6 +12,7 @@ import {
   Input,
   Select,
 } from '@/components/ui';
+import { usePermissions } from '@/hooks';
 import { useAppDispatch, useAppSelector } from '@/store';
 import {
   setProjectName,
@@ -32,7 +33,9 @@ export function ProjectSettingsModal({
   const { projectName, projectDescription, awsAccountId } = useAppSelector(
     (state) => state.editor,
   );
-  const { data: awsAccounts = [] } = useAWSAccounts();
+  const { canWrite } = usePermissions();
+  // AWS accounts are not visible to read-only roles; skip the request for them.
+  const { data: awsAccounts = [] } = useAWSAccounts(canWrite);
 
   const [editName, setEditName] = React.useState('');
   const [editDesc, setEditDesc] = React.useState('');

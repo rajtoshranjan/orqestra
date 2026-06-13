@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react';
 
-import { Building2, Cloud, History, Search } from 'lucide-react';
-import { useLocalStorage } from 'usehooks-ts';
+import { Building2, Cloud, History, Lock, Search } from 'lucide-react';
 
 import {
-  useOrganisations,
   useUpdateOrganisation,
   useAuditLogs,
   useDeleteOrganisation,
@@ -36,25 +34,19 @@ import {
   TableHead,
   TableCell,
 } from '@/components/ui';
+import { usePermissions, useActiveOrganisation } from '@/hooks';
 import { toast } from '@/hooks/use-toast';
-import { localStorageManager } from '@/lib/utils/local-storage-manager';
 
 import { AWSAccountsTab } from './aws-accounts-tab';
 
 export function OrgSettings() {
-  const isAuthenticated = localStorageManager.hasToken();
+  const activeOrganisation = useActiveOrganisation();
+  const { isOwner, isGuest, canManage } = usePermissions();
 
-  const { data: organisations } = useOrganisations(isAuthenticated);
-
-  const [activeOrganisationId] = useLocalStorage<string | null>(
-    'activeOrgId',
-    null,
+  // AWS accounts and audit logs are hidden from guests.
+  const { data: auditLogs = [] } = useAuditLogs(
+    !!activeOrganisation && !isGuest,
   );
-  const activeOrganisation =
-    organisations?.find((org) => org.id === activeOrganisationId) ||
-    organisations?.[0];
-
-  const { data: auditLogs = [] } = useAuditLogs(!!activeOrganisation);
 
   const updateOrganisationMutation = useUpdateOrganisation();
   const deleteOrgMutation = useDeleteOrganisation();
@@ -73,10 +65,6 @@ export function OrgSettings() {
   useEffect(() => {
     setCurrentPage(1);
   }, [logSearch]);
-
-  const isOwner = activeOrganisation?.role === 'owner';
-  const isAdmin = activeOrganisation?.role === 'admin';
-  const canManage = isOwner || isAdmin;
 
   const handleUpdateOrgName = (event: React.FormEvent): void => {
     event.preventDefault();
@@ -177,6 +165,30 @@ export function OrgSettings() {
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE,
   );
+
+  // Guests have read-only access and cannot view organisation settings.
+  if (isGuest) {
+    return (
+      <PageLayout
+        title="Organisation Settings"
+        description="Manage organisation details, role-based access control permissions, and operational logs."
+        maxWidthClass="max-w-6xl"
+      >
+        <Card className="max-w-2xl rounded-lg border-border bg-[var(--color-bg-surface)] shadow-none">
+          <CardContent className="flex h-40 flex-col items-center justify-center gap-2 text-center">
+            <Lock className="size-5 text-muted-foreground" />
+            <p className="text-sm font-semibold text-foreground">
+              Restricted access
+            </p>
+            <p className="max-w-xs text-xs text-muted-foreground">
+              You have read-only access to this organisation and cannot view its
+              settings.
+            </p>
+          </CardContent>
+        </Card>
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout

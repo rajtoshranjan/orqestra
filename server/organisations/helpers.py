@@ -1,4 +1,31 @@
+from .constants import OrganisationMemberRole
 from .models import Organisation, OrganisationMember
+
+
+def is_org_manager(organisation, user):
+    """Whether the user may manage the organisation (its owner or an admin)."""
+    if organisation.owner_id == user.id:
+        return True
+    return organisation.members.filter(
+        user=user, role=OrganisationMemberRole.ADMIN.value
+    ).exists()
+
+
+def is_non_guest_member(organisation, user):
+    """Whether the user is a non-guest member (owner, admin, or regular).
+
+    These roles may mutate organisation resources and may view organisation
+    data hidden from guests (members directory, audit logs, AWS accounts).
+    """
+    if organisation.owner_id == user.id:
+        return True
+    return organisation.members.filter(
+        user=user,
+        role__in=[
+            OrganisationMemberRole.ADMIN.value,
+            OrganisationMemberRole.REGULAR.value,
+        ],
+    ).exists()
 
 
 def get_active_organisation(request, raise_exception=True):
