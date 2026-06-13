@@ -16,7 +16,7 @@ export const AuthLayout = () => {
           to="/"
           className="flex items-center gap-2.5 self-center text-lg font-bold tracking-tight text-foreground transition-opacity hover:opacity-90"
         >
-          <OrqestraMark variant="color" size={28} />
+          <OrqestraMark variant="color" size={22} />
           Orqestra
         </Link>
         <div className="flex flex-col gap-6">
