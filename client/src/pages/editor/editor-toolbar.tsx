@@ -13,7 +13,7 @@ import {
   Unlock,
 } from 'lucide-react';
 
-import { CommentMarker } from '@/components/icons';
+import { CommentMarker, OrqestraMark } from '@/components/icons';
 import {
   Badge,
   Button,
@@ -138,7 +138,8 @@ function EditorToolbarComponent({
             <ArrowLeft size={16} />
           </Button>
 
-          <span className="hidden select-none px-1.5 font-sans text-sm font-bold tracking-tight text-foreground sm:inline-block">
+          <span className="hidden select-none items-center gap-1.5 px-1.5 font-sans text-sm font-bold tracking-tight text-foreground sm:inline-flex">
+            <OrqestraMark variant="color" size={16} />
             Orqestra
           </span>
 
@@ -321,7 +322,7 @@ function EditorToolbarComponent({
                   className={cn(
                     'h-8 w-8 text-muted-foreground transition-all duration-200',
                     isLocked &&
-                      'bg-warning/20 text-warning hover:bg-warning/30 hover:text-warning',
+                    'bg-warning/20 text-warning hover:bg-warning/30 hover:text-warning',
                   )}
                   title={
                     isLocked
@@ -351,7 +352,7 @@ function EditorToolbarComponent({
                 className={cn(
                   'h-8 w-8 text-muted-foreground transition-all duration-200',
                   snapToGrid &&
-                    'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
+                  'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
                 )}
                 title="Toggle Snap to Grid (⌥G)"
               >
@@ -375,7 +376,7 @@ function EditorToolbarComponent({
                 className={cn(
                   'h-8 w-8 text-muted-foreground transition-all duration-200',
                   commentMode &&
-                    'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
+                  'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
                 )}
                 title="Toggle Comments Panel"
               >

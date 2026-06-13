@@ -1,5 +1,6 @@
-import { Hexagon } from 'lucide-react';
 import { Link, Outlet } from 'react-router-dom';
+
+import { OrqestraMark } from '@/components/icons';
 
 export const AuthLayout = () => {
   return (
@@ -15,9 +16,7 @@ export const AuthLayout = () => {
           to="/"
           className="flex items-center gap-2.5 self-center text-lg font-bold tracking-tight text-foreground transition-opacity hover:opacity-90"
         >
-          <span className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-sm shadow-primary/20">
-            <Hexagon className="animate-spin-slow size-4" />
-          </span>
+          <OrqestraMark variant="color" size={28} />
           Orqestra
         </Link>
         <div className="flex flex-col gap-6">

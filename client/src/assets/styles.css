@@ -24,18 +24,18 @@
     --color-text-inverse: #0f172a;
 
     /* Accent (Futuristic Vapor Indigo) */
-    --color-accent: #6366f1;
-    --color-accent-hover: #818cf8;
-    --color-accent-subtle: rgba(99, 102, 241, 0.12);
-    --color-accent-glow: rgba(99, 102, 241, 0.25);
+    --color-accent: #7156FB;
+    --color-accent-hover: #9C86FF;
+    --color-accent-subtle: rgba(113, 86, 251, 0.12);
+    --color-accent-glow: rgba(113, 86, 251, 0.25);
 
     /* Cyan */
     --color-cyan: #06b6d4;
     --color-cyan-subtle: rgba(6, 182, 212, 0.1);
 
     /* Success / Warning / Error */
-    --color-success: #10b981;
-    --color-success-subtle: rgba(16, 185, 129, 0.1);
+    --color-success: #18B26B;
+    --color-success-subtle: rgba(24, 178, 107, 0.1);
     --color-warning: #f59e0b;
     --color-warning-subtle: rgba(245, 158, 11, 0.1);
     --color-error: #ef4444;
@@ -55,7 +55,7 @@
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
     --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.5);
     --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.6);
-    --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.15);
+    --shadow-glow: 0 0 40px rgba(113, 86, 251, 0.15);
 
     /* Radii */
     --radius-sm: 6px;
@@ -108,10 +108,10 @@
     --color-text-inverse: #ffffff;
 
     /* Accent (Futuristic Vapor Indigo) */
-    --color-accent: #4f46e5;
-    --color-accent-hover: #4338ca;
-    --color-accent-subtle: rgba(79, 70, 229, 0.08);
-    --color-accent-glow: rgba(79, 70, 229, 0.15);
+    --color-accent: #5B3FE0;
+    --color-accent-hover: #4733B5;
+    --color-accent-subtle: rgba(91, 63, 224, 0.08);
+    --color-accent-glow: rgba(91, 63, 224, 0.15);
 
     /* Cyan */
     --color-cyan: #0891b2;
@@ -139,7 +139,7 @@
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-    --shadow-glow: 0 0 30px rgba(79, 70, 229, 0.08);
+    --shadow-glow: 0 0 30px rgba(91, 63, 224, 0.08);
 
     /* Edge path stroke for light mode */
     --edge-stroke: rgba(0, 0, 0, 0.15);
@@ -151,7 +151,7 @@
     --card-foreground: 222.2 47.4% 11.2%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 47.4% 11.2%;
-    --primary: 243.4 75.4% 58.6%;
+    --primary: 250 95% 66%;
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -163,7 +163,7 @@
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 243.4 75.4% 58.6%;
+    --ring: 250 95% 66%;
   }
 }
 
@@ -200,7 +200,7 @@
   }
 
   ::selection {
-    background: rgba(59, 130, 246, 0.25);
+    background: rgba(113, 86, 251, 0.25);
     color: #fff;
   }
 
@@ -256,7 +256,7 @@
   }
 
   .text-gradient {
-    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+    background: linear-gradient(135deg, #7156FB 0%, #9C86FF 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -265,8 +265,8 @@
   .border-gradient {
     border-image: linear-gradient(
         135deg,
-        rgba(59, 130, 246, 0.4),
-        rgba(6, 182, 212, 0.4)
+        rgba(113, 86, 251, 0.4),
+        rgba(156, 134, 255, 0.4)
       )
       1;
   }
@@ -335,11 +335,11 @@
 @keyframes pulse-glow {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    box-shadow: 0 0 0 0 rgba(113, 86, 251, 0);
   }
 
   50% {
-    box-shadow: 0 0 20px 4px rgba(59, 130, 246, 0.15);
+    box-shadow: 0 0 20px 4px rgba(113, 86, 251, 0.15);
   }
 }
 
@@ -472,8 +472,8 @@
 }
 
 .react-flow__minimap-mask {
-  fill: rgba(59, 130, 246, 0.08) !important;
-  stroke: rgba(59, 130, 246, 0.3) !important;
+  fill: rgba(113, 86, 251, 0.08) !important;
+  stroke: rgba(113, 86, 251, 0.3) !important;
   stroke-width: 1 !important;
 }
 
@@ -494,12 +494,12 @@
 
 .react-flow__handle:hover {
   background: var(--color-accent-hover) !important;
-  box-shadow: 0 0 12px rgba(59, 130, 246, 0.5) !important;
+  box-shadow: 0 0 12px rgba(113, 86, 251, 0.5) !important;
 }
 
 .react-flow__selection {
-  background: rgba(59, 130, 246, 0.06) !important;
-  border: 1px solid rgba(59, 130, 246, 0.4) !important;
+  background: rgba(113, 86, 251, 0.06) !important;
+  border: 1px solid rgba(113, 86, 251, 0.4) !important;
 }
 
 /* Attribution hide */

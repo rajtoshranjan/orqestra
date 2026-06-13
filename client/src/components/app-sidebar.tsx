@@ -4,7 +4,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import {
   Check,
   ChevronDown,
-  Hexagon,
   LayoutDashboard,
   PanelLeftClose,
   PanelLeftOpen,
@@ -12,6 +11,8 @@ import {
   Settings,
   Users,
 } from 'lucide-react';
+
+import { OrqestraMark } from './icons';
 import { useLocation } from 'react-router-dom';
 import { useLocalStorage } from 'usehooks-ts';
 
@@ -186,9 +187,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
             aria-label="Go to projects"
             className="flex min-w-0 items-center gap-2"
           >
-            <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <Hexagon className="size-3.5" />
-            </span>
+            <OrqestraMark variant="color" size={20} className="shrink-0" />
             <span
               className={cn(
                 'hidden truncate text-sm font-bold tracking-tight md:block',
