@@ -10,7 +10,6 @@ import { cn } from '@/lib/utils';
 import { MentionAutocomplete } from './mention-autocomplete';
 import {
   getMentionQueryAtCaret,
-  insertLineBreakAtCaret,
   insertMentionChip,
   placeCaretAtEnd,
   renderMentionValue,
@@ -130,15 +129,12 @@ export function CommentComposer({
       }
     }
 
-    if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+    if (event.key === 'Enter') {
+      if (event.shiftKey) {
+        return;
+      }
       event.preventDefault();
       submit();
-      return;
-    }
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      insertLineBreakAtCaret(editorRef.current!);
-      setIsEmpty(false);
       return;
     }
     if (event.key === 'Escape' && onCancel) {

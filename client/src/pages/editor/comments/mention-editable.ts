@@ -61,31 +61,6 @@ export const serializeMentionValue = (root: HTMLElement): string => {
   return result;
 };
 
-/** Inserts a `<br>` line break at the caret, keeping the trailing line visible. */
-export const insertLineBreakAtCaret = (root: HTMLElement) => {
-  const selection = window.getSelection();
-  if (!selection || selection.rangeCount === 0) return;
-  const range = selection.getRangeAt(0);
-  if (!root.contains(range.commonAncestorContainer)) return;
-
-  range.deleteContents();
-  const br = document.createElement('br');
-  range.insertNode(br);
-
-  let caretTarget: Node = br;
-  if (!br.nextSibling) {
-    const trailing = document.createElement('br');
-    br.after(trailing);
-    caretTarget = trailing;
-  }
-
-  const next = document.createRange();
-  next.setStartBefore(caretTarget);
-  next.collapse(true);
-  selection.removeAllRanges();
-  selection.addRange(next);
-};
-
 /** Replaces the `@query` text spanning [start, end) of `node` with a mention chip. */
 export const insertMentionChip = (
   node: Text,
