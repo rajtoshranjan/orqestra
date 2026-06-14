@@ -13,6 +13,7 @@ import type { ClientAnnotation, ClientComment } from '@/api';
 import {
   Badge,
   Button,
+  ConfirmDialog,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -151,6 +152,7 @@ export function CommentThreadPopover({
   onToggleReaction,
 }: CommentThreadPopoverProps) {
   const { canWrite, canModerate } = usePermissions();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const isResolved = annotation.status === 'resolved';
   const isOwn =
     annotation.authorId !== null && annotation.authorId === currentUserId;
@@ -262,7 +264,7 @@ export function CommentThreadPopover({
               size="sm"
               type="button"
               className="size-6 p-0 text-muted-foreground hover:text-destructive"
-              onClick={onDeleteAnnotation}
+              onClick={() => setShowDeleteConfirm(true)}
               aria-label="Delete thread"
             >
               <Trash2 size={12} />
@@ -309,6 +311,16 @@ export function CommentThreadPopover({
           onSubmit={onReply}
         />
       </div>
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        title="Delete Thread"
+        description="Are you sure you want to delete this comment thread? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="destructive"
+        onConfirm={onDeleteAnnotation}
+      />
     </div>
   );
 }
