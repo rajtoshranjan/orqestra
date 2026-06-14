@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import {
   Check,
@@ -159,6 +159,58 @@ export function CommentThreadPopover({
   // Thread authors may delete their thread; owners/admins may moderate any.
   const canDeleteThread = isOwn || canModerate;
 
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isAtBottomRef = useRef(true);
+  const prevCommentsLengthRef = useRef(annotation.comments.length);
+
+  const scrollToBottom = (behavior: ScrollBehavior = 'auto') => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior,
+      });
+    }
+  };
+
+  const handleScroll = () => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const threshold = 15;
+    const isAtBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight <=
+      threshold;
+    isAtBottomRef.current = isAtBottom;
+  };
+
+  // Scroll to bottom on mount or when switching active annotations
+  useEffect(() => {
+    scrollToBottom('auto');
+    isAtBottomRef.current = true;
+    prevCommentsLengthRef.current = annotation.comments.length;
+  }, [annotation.id]);
+
+  // Scroll to bottom when a new comment is added, if appropriate
+  useEffect(() => {
+    const prevLength = prevCommentsLengthRef.current;
+    const currentLength = annotation.comments.length;
+    prevCommentsLengthRef.current = currentLength;
+
+    if (currentLength > prevLength) {
+      const lastComment = annotation.comments[currentLength - 1];
+      const isOwnNewComment =
+        lastComment && lastComment.authorId === currentUserId;
+
+      if (isAtBottomRef.current || isOwnNewComment) {
+        const timeoutId = setTimeout(() => {
+          scrollToBottom('smooth');
+          isAtBottomRef.current = true;
+        }, 50);
+        return () => clearTimeout(timeoutId);
+      }
+    }
+  }, [annotation.comments.length, currentUserId]);
+
   return (
     <div
       className="glass animate-scale-in flex max-h-[420px] w-80 flex-col overflow-hidden rounded-lg border border-border/80 bg-popover shadow-lg"
@@ -230,7 +282,11 @@ export function CommentThreadPopover({
         </div>
       </div>
 
-      <div className="flex-1 divide-y divide-border/40 overflow-y-auto">
+      <div
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 divide-y divide-border/40 overflow-y-auto"
+      >
         {annotation.comments.map((comment) => (
           <ThreadComment
             key={comment.id}
