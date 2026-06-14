@@ -6,6 +6,7 @@ import { useGetUserInfo, useOrganisations } from '@/api/auth';
 import { logout } from '@/api/client';
 import { history } from '@/lib/utils';
 import { localStorageManager } from '@/lib/utils/local-storage-manager';
+import { getInitials } from '@/utils';
 
 import { NotificationsBell } from './notifications-bell';
 import {
@@ -39,19 +40,6 @@ const getCurrentSectionLabel = (): string => {
 
 const shouldShowOrganisationContext = (pathname: string): boolean => {
   return pathname !== '/preferences';
-};
-
-const getInitials = (name?: string): string => {
-  if (!name) {
-    return 'U';
-  }
-
-  return name
-    .split(' ')
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
 };
 
 export function AppHeader() {
@@ -96,7 +84,7 @@ export function AppHeader() {
               className="group flex h-8 items-center gap-2 rounded-full border border-border bg-[var(--color-bg-surface)] pl-1.5 pr-3 text-xs font-semibold text-muted-foreground shadow-sm transition-all hover:bg-accent/50 hover:text-foreground"
             >
               <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-[10px] font-bold text-primary">
-                {getInitials(user?.name)}
+                {getInitials(user?.name || 'U')}
               </span>
               <span className="hidden max-w-[100px] truncate text-left font-medium text-foreground sm:inline">
                 {user ? user.name : 'Profile'}

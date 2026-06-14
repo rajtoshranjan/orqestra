@@ -34,15 +34,78 @@ export const OrqestraMark = React.forwardRef<SVGSVGElement, OrqestraMarkProps>(
         className={className}
         {...props}
       >
-        <rect x="14" y="14" width="18" height="18" rx="4.5" fill={fills.primary} />
-        <rect x="40" y="14" width="18" height="18" rx="4.5" fill={fills.primary} />
-        <rect x="66" y="14" width="18" height="18" rx="4.5" fill={fills.primary} />
-        <rect x="14" y="40" width="18" height="18" rx="4.5" fill={fills.primary} />
-        <rect x="66" y="40" width="18" height="18" rx="4.5" fill={fills.accent} />
-        <rect x="14" y="66" width="18" height="18" rx="4.5" fill={fills.primary} />
-        <rect x="40" y="66" width="18" height="18" rx="4.5" fill={fills.primary} />
-        <rect x="66" y="66" width="18" height="18" rx="4.5" fill={fills.primary} />
-        <rect x="88" y="88" width="18" height="18" rx="4.5" fill={fills.primary} />
+        <rect
+          x="14"
+          y="14"
+          width="18"
+          height="18"
+          rx="4.5"
+          fill={fills.primary}
+        />
+        <rect
+          x="40"
+          y="14"
+          width="18"
+          height="18"
+          rx="4.5"
+          fill={fills.primary}
+        />
+        <rect
+          x="66"
+          y="14"
+          width="18"
+          height="18"
+          rx="4.5"
+          fill={fills.primary}
+        />
+        <rect
+          x="14"
+          y="40"
+          width="18"
+          height="18"
+          rx="4.5"
+          fill={fills.primary}
+        />
+        <rect
+          x="66"
+          y="40"
+          width="18"
+          height="18"
+          rx="4.5"
+          fill={fills.accent}
+        />
+        <rect
+          x="14"
+          y="66"
+          width="18"
+          height="18"
+          rx="4.5"
+          fill={fills.primary}
+        />
+        <rect
+          x="40"
+          y="66"
+          width="18"
+          height="18"
+          rx="4.5"
+          fill={fills.primary}
+        />
+        <rect
+          x="66"
+          y="66"
+          width="18"
+          height="18"
+          rx="4.5"
+          fill={fills.primary}
+        />
+        <rect
+          x="88"
+          y="88"
+          width="18"
+          height="18"
+          rx="4.5"
+          fill={fills.primary}
+        />
       </svg>
     );
   },

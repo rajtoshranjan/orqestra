@@ -28,7 +28,14 @@ const VERB_META: Record<
  * active organisation; clicking jumps into the relevant project's
  * canvas and opens the discussion thread.
  */
-export function NotificationsBell() {
+type NotificationsBellProps = {
+  /** Optional callback to jump to the annotation when inside the project/canvas editor. */
+  onOpenAnnotation?: (annotationId: string, projectId: string) => void;
+};
+
+export function NotificationsBell({
+  onOpenAnnotation,
+}: NotificationsBellProps = {}) {
   const [open, setOpen] = useState(false);
   const { data: notifications = [] } = useNotifications(open);
   const { data: unreadCount = 0 } = useUnreadNotificationCount();
@@ -38,11 +45,15 @@ export function NotificationsBell() {
     if (!notification.readAt) {
       markReadMutation.mutate({ ids: [notification.id] });
     }
-    setOpen(false);
     if (notification.annotationId) {
-      history.push(
-        `/editor/${encodeURIComponent(notification.projectId)}?annotation=${encodeURIComponent(notification.annotationId)}`,
-      );
+      if (onOpenAnnotation) {
+        onOpenAnnotation(notification.annotationId, notification.projectId);
+      } else {
+        history.push(
+          `/editor/${encodeURIComponent(notification.projectId)}?annotation=${encodeURIComponent(notification.annotationId)}`,
+        );
+      }
+      setOpen(false);
     }
   };
 

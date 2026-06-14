@@ -73,7 +73,7 @@ Orqestra requires AWS credentials linked to your organization to perform cloud d
    - **Account Name**: `Local Emulator` (or `ministack`)
    - **Access Key ID**: `mock-access-key`
    - **Secret Access Key**: `mock-secret-key`
-   - **Endpoint URL**: `http://ministack:4566` 
+   - **Endpoint URL**: `http://ministack:4566`
      > [!IMPORTANT]
      > You must use `http://ministack:4566` as the endpoint URL instead of `localhost`. Because Orqestra services run within the Docker Compose network, containers access the emulator using its container host name (`ministack`).
 5. Save the account settings.

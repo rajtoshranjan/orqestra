@@ -36,6 +36,7 @@ import { usePermissions, useActiveOrganisation } from '@/hooks';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { localStorageManager } from '@/lib/utils/local-storage-manager';
+import { getInitials } from '@/utils';
 
 /**
  * Computes the first letters of the user or organisation name to render custom avatars.
@@ -57,19 +58,6 @@ const ROLE_OPTIONS = [
     desc: 'Read-only access to browse projects. Cannot make edits or trigger deployments.',
   },
 ];
-
-const getInitials = (name?: string): string => {
-  if (!name) {
-    return 'U';
-  }
-
-  return name
-    .split(' ')
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
-};
 
 export function OrgMembers() {
   const isAuthenticated = localStorageManager.hasToken();
@@ -389,7 +377,7 @@ export function OrgMembers() {
                           <td className="py-3 pr-4">
                             <div className="flex items-center gap-3">
                               <span className="flex size-8 shrink-0 items-center justify-center rounded-full border border-primary/10 bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 text-xs font-bold uppercase text-primary">
-                                {getInitials(member.userName)}
+                                {getInitials(member.userName || 'U')}
                               </span>
                               <div className="min-w-0">
                                 <span className="block text-xs font-semibold leading-none text-foreground">

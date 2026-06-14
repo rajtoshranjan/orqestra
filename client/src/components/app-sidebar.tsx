@@ -11,8 +11,6 @@ import {
   Settings,
   Users,
 } from 'lucide-react';
-
-import { OrqestraMark } from './icons';
 import { useLocation } from 'react-router-dom';
 import { useLocalStorage } from 'usehooks-ts';
 
@@ -20,6 +18,7 @@ import { useCreateOrganisation, useOrganisations } from '@/api/auth';
 import { cn } from '@/lib/utils';
 import { localStorageManager } from '@/lib/utils/local-storage-manager';
 
+import { OrqestraMark } from './icons';
 import { Button } from './ui/button';
 import {
   Dialog,

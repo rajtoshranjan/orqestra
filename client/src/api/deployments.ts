@@ -190,11 +190,7 @@ export const useCreateDeployment = () => {
   });
 };
 
-export const useDeployment = (
-  deploymentId: string | null,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _enablePolling = false,
-) => {
+export const useDeployment = (deploymentId: string | null) => {
   return useQuery({
     queryKey: ['deployment', deploymentId],
     queryFn: () => fetchDeployment(deploymentId!),
