@@ -167,7 +167,9 @@ class AnnotationUpdateSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         instance = self.instance
-        target_type = attrs.get("target_type", instance.target_type if instance else None)
+        target_type = attrs.get(
+            "target_type", instance.target_type if instance else None
+        )
         target_id = attrs.get("target_id", instance.target_id if instance else "")
         position = attrs.get("position", instance.position if instance else {}) or {}
 
