@@ -102,4 +102,3 @@ class AccountsTests(BaseTestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("current_password", response.data)
-
