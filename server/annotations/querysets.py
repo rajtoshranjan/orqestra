@@ -20,9 +20,6 @@ class AnnotationQuerySet(models.QuerySet):
     def apply_filters(self, params, user):
         queryset = self
 
-        if params.get("include_archived") != "true":
-            queryset = queryset.filter(archived=False)
-
         status = params.get("status")
         if status in [choice.value for choice in AnnotationStatus]:
             queryset = queryset.filter(status=status)

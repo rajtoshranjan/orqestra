@@ -151,7 +151,7 @@ class AnnotationViewSet(viewsets.ModelViewSet):
         except Exception as error:
             logger.error(f"Failed to emit annotation event on delete: {error}")
 
-    def _transition(self, annotation, *, status_value, archived, event_type):
+    def _transition(self, annotation, *, status_value, event_type):
         with transaction.atomic():
             if status_value == AnnotationStatus.RESOLVED.value:
                 annotation.status = status_value
@@ -161,8 +161,6 @@ class AnnotationViewSet(viewsets.ModelViewSet):
                 annotation.status = status_value
                 annotation.resolved_by = None
                 annotation.resolved_at = None
-            if archived is not None:
-                annotation.archived = archived
             annotation.save()
             AnnotationEvent.objects.create(
                 annotation=annotation,
@@ -194,7 +192,6 @@ class AnnotationViewSet(viewsets.ModelViewSet):
         response = self._transition(
             annotation,
             status_value=AnnotationStatus.RESOLVED.value,
-            archived=None,
             event_type=AnnotationEventType.RESOLVED.value,
         )
         if annotation.author and annotation.author != request.user:
@@ -233,30 +230,7 @@ class AnnotationViewSet(viewsets.ModelViewSet):
         return self._transition(
             annotation,
             status_value=AnnotationStatus.OPEN.value,
-            archived=None,
             event_type=AnnotationEventType.REOPENED.value,
-        )
-
-    @action(detail=True, methods=["post"])
-    def archive(self, request, pk=None):
-        annotation = self.get_object()
-        self._check_resolution_permission(annotation)
-        return self._transition(
-            annotation,
-            status_value=None,
-            archived=True,
-            event_type=AnnotationEventType.ARCHIVED.value,
-        )
-
-    @action(detail=True, methods=["post"])
-    def unarchive(self, request, pk=None):
-        annotation = self.get_object()
-        self._check_resolution_permission(annotation)
-        return self._transition(
-            annotation,
-            status_value=None,
-            archived=False,
-            event_type=AnnotationEventType.UNARCHIVED.value,
         )
 
     @action(detail=True, methods=["get"])

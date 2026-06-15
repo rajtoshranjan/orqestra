@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useViewport } from 'reactflow';
 
 import type { DiagramEdge, DiagramNode } from '@/types';
+import { getNodeAbsolutePosition } from '@/utils';
 
 import { CommentComposer } from './comment-composer';
 import { CommentClusterPin, CommentPin } from './comment-pin';
@@ -72,10 +73,48 @@ export function CommentLayer({
   const containerRef = useRef<HTMLDivElement>(null);
   const containerSize = useContainerSize(containerRef);
 
+  const [localPositions, setLocalPositions] = useState<
+    Record<string, { x: number; y: number }>
+  >({});
+
   const placements = useMemo<PinPlacement[]>(() => {
     return comments.pinnedAnnotations.flatMap((annotation) => {
       const position = resolvePinFlowPosition(annotation, nodes, edges);
-      return position ? [{ annotation, ...position }] : [];
+      if (!position) return [];
+      const override = localPositions[annotation.id];
+      return [
+        {
+          annotation,
+          x: override ? override.x : position.x,
+          y: override ? override.y : position.y,
+        },
+      ];
+    });
+  }, [comments.pinnedAnnotations, nodes, edges, localPositions]);
+
+  // Clear local position override when the database annotation position matches or is close to the local override position
+  useEffect(() => {
+    setLocalPositions((prev) => {
+      let hasChanges = false;
+      const next = { ...prev };
+      for (const [id, localPos] of Object.entries(prev)) {
+        const annotation = comments.pinnedAnnotations.find((a) => a.id === id);
+        if (annotation) {
+          const resolved = resolvePinFlowPosition(annotation, nodes, edges);
+          if (
+            resolved &&
+            Math.abs(resolved.x - localPos.x) < 1 &&
+            Math.abs(resolved.y - localPos.y) < 1
+          ) {
+            delete next[id];
+            hasChanges = true;
+          }
+        } else {
+          delete next[id];
+          hasChanges = true;
+        }
+      }
+      return hasChanges ? next : prev;
     });
   }, [comments.pinnedAnnotations, nodes, edges]);
 
@@ -117,6 +156,97 @@ export function CommentLayer({
     ? resolvePinFlowPosition(comments.activeAnnotation, nodes, edges)
     : null;
 
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [dragStartMouse, setDragStartMouse] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+  const [dragStartPinFlow, setDragStartPinFlow] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+  const [dragCurrentPinFlow, setDragCurrentPinFlow] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+  const [hasDragged, setHasDragged] = useState(false);
+
+  const handlePointerDown = (
+    event: React.PointerEvent,
+    annotationId: string,
+    initialFlowX: number,
+    initialFlowY: number,
+  ) => {
+    if (event.button !== 0) return;
+    event.stopPropagation();
+
+    const target = event.currentTarget as HTMLElement;
+    target.setPointerCapture(event.pointerId);
+
+    setDraggedId(annotationId);
+    setDragStartMouse({ x: event.clientX, y: event.clientY });
+    setDragStartPinFlow({ x: initialFlowX, y: initialFlowY });
+    setDragCurrentPinFlow({ x: initialFlowX, y: initialFlowY });
+    setHasDragged(false);
+  };
+
+  const handlePointerMove = (event: React.PointerEvent) => {
+    if (!draggedId || !dragStartMouse || !dragStartPinFlow) return;
+    event.stopPropagation();
+
+    const deltaX = event.clientX - dragStartMouse.x;
+    const deltaY = event.clientY - dragStartMouse.y;
+
+    const flowDeltaX = deltaX / viewport.zoom;
+    const flowDeltaY = deltaY / viewport.zoom;
+
+    if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+      setHasDragged(true);
+    }
+
+    setDragCurrentPinFlow({
+      x: dragStartPinFlow.x + flowDeltaX,
+      y: dragStartPinFlow.y + flowDeltaY,
+    });
+  };
+
+  const handlePointerUp = (event: React.PointerEvent, annotation: any) => {
+    if (!draggedId) return;
+    event.stopPropagation();
+
+    const target = event.currentTarget as HTMLElement;
+    target.releasePointerCapture(event.pointerId);
+
+    if (hasDragged && dragCurrentPinFlow) {
+      let finalPosition = {};
+      if (annotation.targetType === 'canvas') {
+        finalPosition = { x: dragCurrentPinFlow.x, y: dragCurrentPinFlow.y };
+      } else if (annotation.targetType === 'node') {
+        const node = nodes.find((n) => n.id === annotation.targetId);
+        if (node) {
+          const nodeAbsolute = getNodeAbsolutePosition(node, nodes);
+          finalPosition = {
+            dx: dragCurrentPinFlow.x - nodeAbsolute.x,
+            dy: dragCurrentPinFlow.y - nodeAbsolute.y,
+          };
+        }
+      }
+      setLocalPositions((prev) => ({
+        ...prev,
+        [draggedId]: { x: dragCurrentPinFlow.x, y: dragCurrentPinFlow.y },
+      }));
+      void comments.updatePosition(draggedId, finalPosition);
+    } else {
+      comments.openThread(draggedId);
+    }
+
+    setDraggedId(null);
+    setDragStartMouse(null);
+    setDragStartPinFlow(null);
+    setDragCurrentPinFlow(null);
+    setHasDragged(false);
+  };
+
   return (
     <div
       ref={containerRef}
@@ -144,23 +274,48 @@ export function CommentLayer({
         {shouldCluster
           ? clusters.map((cluster) =>
               cluster.placements.length === 1 ? (
-                <div
-                  key={cluster.key}
-                  className="absolute"
-                  style={{ left: cluster.x, top: cluster.y }}
-                >
-                  <CommentPin
-                    annotation={cluster.placements[0].annotation}
-                    isActive={
-                      cluster.placements[0].annotation.id ===
-                      comments.activeAnnotation?.id
-                    }
-                    zoom={viewport.zoom}
-                    onClick={() =>
-                      comments.openThread(cluster.placements[0].annotation.id)
-                    }
-                  />
-                </div>
+                (() => {
+                  const placement = cluster.placements[0];
+                  const isDragging = placement.annotation.id === draggedId;
+                  const x =
+                    isDragging && dragCurrentPinFlow
+                      ? dragCurrentPinFlow.x
+                      : cluster.x;
+                  const y =
+                    isDragging && dragCurrentPinFlow
+                      ? dragCurrentPinFlow.y
+                      : cluster.y;
+
+                  return (
+                    <div
+                      key={cluster.key}
+                      className="absolute"
+                      style={{ left: x, top: y }}
+                      onPointerDown={(event) =>
+                        handlePointerDown(
+                          event,
+                          placement.annotation.id,
+                          cluster.x,
+                          cluster.y,
+                        )
+                      }
+                      onPointerMove={handlePointerMove}
+                      onPointerUp={(event) =>
+                        handlePointerUp(event, placement.annotation)
+                      }
+                    >
+                      <CommentPin
+                        annotation={placement.annotation}
+                        isActive={
+                          placement.annotation.id ===
+                          comments.activeAnnotation?.id
+                        }
+                        zoom={viewport.zoom}
+                        onClick={() => {}}
+                      />
+                    </div>
+                  );
+                })()
               ) : (
                 <div
                   key={cluster.key}
@@ -179,22 +334,46 @@ export function CommentLayer({
                 </div>
               ),
             )
-          : placements.map((placement) => (
-              <div
-                key={placement.annotation.id}
-                className="absolute"
-                style={{ left: placement.x, top: placement.y }}
-              >
-                <CommentPin
-                  annotation={placement.annotation}
-                  isActive={
-                    placement.annotation.id === comments.activeAnnotation?.id
+          : placements.map((placement) => {
+              const isDragging = placement.annotation.id === draggedId;
+              const x =
+                isDragging && dragCurrentPinFlow
+                  ? dragCurrentPinFlow.x
+                  : placement.x;
+              const y =
+                isDragging && dragCurrentPinFlow
+                  ? dragCurrentPinFlow.y
+                  : placement.y;
+
+              return (
+                <div
+                  key={placement.annotation.id}
+                  className="absolute"
+                  style={{ left: x, top: y }}
+                  onPointerDown={(event) =>
+                    handlePointerDown(
+                      event,
+                      placement.annotation.id,
+                      placement.x,
+                      placement.y,
+                    )
                   }
-                  zoom={viewport.zoom}
-                  onClick={() => comments.openThread(placement.annotation.id)}
-                />
-              </div>
-            ))}
+                  onPointerMove={handlePointerMove}
+                  onPointerUp={(event) =>
+                    handlePointerUp(event, placement.annotation)
+                  }
+                >
+                  <CommentPin
+                    annotation={placement.annotation}
+                    isActive={
+                      placement.annotation.id === comments.activeAnnotation?.id
+                    }
+                    zoom={viewport.zoom}
+                    onClick={() => {}}
+                  />
+                </div>
+              );
+            })}
 
         {/* Draft marker. */}
         {comments.draft && (

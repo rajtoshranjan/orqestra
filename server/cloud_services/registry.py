@@ -32,10 +32,6 @@ class ServiceRegistry:
             raise ValueError(f"Service handler '{service_id}' is not registered.")
         return self._handlers[service_id]
 
-    def get_all(self) -> Dict[str, BaseServiceHandler]:
-        """Get all registered handlers."""
-        return self._handlers.copy()
-
     def is_registered(self, service_id: str) -> bool:
         """Check if a handler is registered."""
         return service_id in self._handlers

@@ -83,7 +83,6 @@ class AnnotationSerializer(serializers.ModelSerializer):
             "target_id",
             "position",
             "status",
-            "archived",
             "author",
             "author_name",
             "author_type",

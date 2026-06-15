@@ -14,7 +14,6 @@ import {
   makeId,
   createProjectName,
   withValidatedData,
-  createInitialDiagram,
   DEFAULT_DEPLOYMENT_SETTINGS,
 } from './diagram';
 
@@ -189,22 +188,6 @@ export function readProjectCollection(): SavedProjectRecord[] {
   } catch {
     return [];
   }
-}
-
-export function readPersistedDiagram(): PersistedDiagram {
-  const projects = readProjectCollection();
-  if (projects.length === 0) return createInitialDiagram();
-
-  const [latestProject] = [...projects].sort((a, b) =>
-    b.updatedAt.localeCompare(a.updatedAt),
-  );
-  return normalizePersistedDiagram(latestProject);
-}
-
-export function readProjectById(projectId: string): PersistedDiagram | null {
-  const projects = readProjectCollection();
-  const found = projects.find((p) => p.projectId === projectId);
-  return found ? normalizePersistedDiagram(found) : null;
 }
 
 export function createLog(

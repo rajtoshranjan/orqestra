@@ -12,6 +12,7 @@ import {
   useReopenAnnotation,
   useResolveAnnotation,
   useToggleReaction,
+  useUpdateAnnotationPosition,
   useUpdateComment,
 } from '@/api';
 import type {
@@ -77,6 +78,7 @@ export const useComments = ({
   const deleteAnnotationMutation = useDeleteAnnotation(projectId);
   const resolveMutation = useResolveAnnotation(projectId);
   const reopenMutation = useReopenAnnotation(projectId);
+  const updatePositionMutation = useUpdateAnnotationPosition(projectId);
   const toggleReactionMutation = useToggleReaction(projectId);
 
   const activeAnnotation = useMemo(
@@ -376,6 +378,11 @@ export const useComments = ({
     reopen: useCallback(
       (annotationId: string) => reopenMutation.mutate(annotationId),
       [reopenMutation],
+    ),
+    updatePosition: useCallback(
+      (annotationId: string, position: AnnotationPosition) =>
+        updatePositionMutation.mutate({ annotationId, position }),
+      [updatePositionMutation],
     ),
     editComment: useCallback(
       (commentId: string, body: string) =>

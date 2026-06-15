@@ -50,7 +50,6 @@ class Annotation(BaseModel):
         choices=AnnotationStatus.choices(),
         default=AnnotationStatus.OPEN.value,
     )
-    archived = models.BooleanField(default=False)
     resolved_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,

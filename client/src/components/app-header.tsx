@@ -1,9 +1,11 @@
+import { useState } from 'react';
+
 import { ChevronDown, LogOut, Settings as SettingsIcon } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useLocalStorage } from 'usehooks-ts';
 
-import { useGetUserInfo, useOrganisations } from '@/api/auth';
-import { logout } from '@/api/client';
+import { useGetUserInfo, useOrganisations, useLogout } from '@/api/auth';
+import { logout as localLogout } from '@/api/client';
 import { history } from '@/lib/utils';
 import { localStorageManager } from '@/lib/utils/local-storage-manager';
 import { getInitials } from '@/utils';
@@ -44,16 +46,33 @@ const shouldShowOrganisationContext = (pathname: string): boolean => {
 
 export function AppHeader() {
   const location = useLocation();
-  const isAuthenticated = localStorageManager.hasToken();
+
+  // Stages.
+  const [isAuthenticated] = useState(() => localStorageManager.hasToken());
+
+  // Hooks.
+  const logoutMutation = useLogout();
   const { data: user } = useGetUserInfo(isAuthenticated);
   const { data: organisations } = useOrganisations(isAuthenticated);
   const [activeOrgId] = useLocalStorage<string | null>('activeOrgId', null);
+
+  // Computed states.
   const activeOrganisation =
     organisations?.find((organisation) => organisation.id === activeOrgId) ||
     organisations?.[0];
   const showOrganisationContext = shouldShowOrganisationContext(
     location.pathname,
   );
+
+  // Handlers.
+  const onLogoutClick = () => {
+    const refreshToken = localStorageManager.getRefreshToken() || '';
+    logoutMutation.mutate(refreshToken, {
+      onSettled: () => {
+        localLogout();
+      },
+    });
+  };
 
   if (!isAuthenticated) {
     return null;
@@ -118,7 +137,8 @@ export function AppHeader() {
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-border" />
             <DropdownMenuItem
-              onClick={logout}
+              onClick={onLogoutClick}
+              disabled={logoutMutation.isPending}
               className="flex cursor-pointer items-center gap-2 px-2.5 py-2 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive focus:bg-destructive/10 focus:text-destructive"
             >
               <LogOut className="size-3.5" />

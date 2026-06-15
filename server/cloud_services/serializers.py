@@ -37,20 +37,6 @@ class RequestPayloadSerializer(serializers.Serializer):
     diagram = DiagramSerializer()
 
 
-# --- Output Serializers ---
-
-
-class PlanResourceSerializer(serializers.Serializer):
-    id = serializers.CharField()
-    type = serializers.CharField()
-    name = serializers.CharField()
-    runtime = serializers.CharField()
-    memory_size = serializers.IntegerField()
-    timeout = serializers.IntegerField()
-    environment_variable_count = serializers.IntegerField()
-    connection_count = serializers.IntegerField()
-
-
 class DeploymentLogSerializer(serializers.Serializer):
     level = serializers.CharField()
     message = serializers.CharField()

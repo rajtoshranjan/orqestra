@@ -364,18 +364,6 @@ class AnnotationWorkflowTests(AnnotationBaseTestCase):
         self.assertIsNone(annotation.resolved_by)
         self.assertIsNone(annotation.resolved_at)
 
-    def test_archive_excludes_from_default_list(self):
-        annotation = self._create_annotation()
-        self.client.post(f"/annotations/{annotation.id}/archive/")
-
-        response = self.client.get(f"/annotations/?project={self.project.id}")
-        self.assertEqual(response.json()["data"], [])
-
-        response = self.client.get(
-            f"/annotations/?project={self.project.id}&include_archived=true"
-        )
-        self.assertEqual(len(response.json()["data"]), 1)
-
     def test_events_timeline(self):
         annotation = self._create_annotation()
         AnnotationEvent.objects.create(

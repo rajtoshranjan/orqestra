@@ -16,7 +16,7 @@ def can_moderate(role):
 
 
 def can_resolve(role, annotation, user):
-    """Regular+ may resolve/reopen/archive any annotation; guests only their own."""
+    """Regular+ may resolve/reopen any annotation; guests only their own."""
     if role in (
         "owner",
         OrganisationMemberRole.ADMIN.value,

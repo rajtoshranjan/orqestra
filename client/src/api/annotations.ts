@@ -284,8 +284,48 @@ const useAnnotationsInvalidatingMutation = <TInput, TResult>(
 export const useCreateAnnotation = (projectId: string | null) =>
   useAnnotationsInvalidatingMutation(projectId, createAnnotation);
 
-export const useUpdateAnnotationPosition = (projectId: string | null) =>
-  useAnnotationsInvalidatingMutation(projectId, updateAnnotationPosition);
+export const useUpdateAnnotationPosition = (projectId: string | null) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateAnnotationPosition,
+    onMutate: async (variables) => {
+      if (!projectId) return;
+      await queryClient.cancelQueries({
+        queryKey: annotationsQueryKey(projectId),
+      });
+      const previousAnnotations = queryClient.getQueryData<ClientAnnotation[]>(
+        annotationsQueryKey(projectId),
+      );
+      if (previousAnnotations) {
+        queryClient.setQueryData<ClientAnnotation[]>(
+          annotationsQueryKey(projectId),
+          previousAnnotations.map((anno) => {
+            if (anno.id === variables.annotationId) {
+              return { ...anno, position: variables.position };
+            }
+            return anno;
+          }),
+        );
+      }
+      return { previousAnnotations };
+    },
+    onError: (_err, _variables, context) => {
+      if (projectId && context?.previousAnnotations) {
+        queryClient.setQueryData(
+          annotationsQueryKey(projectId),
+          context.previousAnnotations,
+        );
+      }
+    },
+    onSettled: () => {
+      if (projectId) {
+        void queryClient.invalidateQueries({
+          queryKey: annotationsQueryKey(projectId),
+        });
+      }
+    },
+  });
+};
 
 export const useDeleteAnnotation = (projectId: string | null) =>
   useAnnotationsInvalidatingMutation(projectId, deleteAnnotation);
@@ -298,11 +338,6 @@ export const useResolveAnnotation = (projectId: string | null) =>
 export const useReopenAnnotation = (projectId: string | null) =>
   useAnnotationsInvalidatingMutation(projectId, (annotationId: string) =>
     postAnnotationAction(annotationId, 'reopen'),
-  );
-
-export const useArchiveAnnotation = (projectId: string | null) =>
-  useAnnotationsInvalidatingMutation(projectId, (annotationId: string) =>
-    postAnnotationAction(annotationId, 'archive'),
   );
 
 export const useAddComment = (projectId: string | null) =>

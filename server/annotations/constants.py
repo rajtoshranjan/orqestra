@@ -37,8 +37,6 @@ class AnnotationEventType(Enum):
     CREATED = "created"
     RESOLVED = "resolved"
     REOPENED = "reopened"
-    ARCHIVED = "archived"
-    UNARCHIVED = "unarchived"
     MOVED = "moved"
     COMMENT_ADDED = "comment_added"
     COMMENT_DELETED = "comment_deleted"

@@ -3,9 +3,4 @@ export type WebSocketConnectionState =
   | 'connected'
   | 'disconnected';
 
-export interface WebSocketMessage {
-  type: string;
-  payload: any;
-}
-
 export type WebSocketEventListener = (payload: any) => void;
