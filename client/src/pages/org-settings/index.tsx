@@ -1,11 +1,22 @@
 import { useEffect, useState } from 'react';
 
-import { Building2, Cloud, History, Lock, Search } from 'lucide-react';
+import {
+  AlertTriangle,
+  Building2,
+  Check,
+  ChevronRight,
+  Cloud,
+  Copy,
+  History,
+  Lock,
+  Search,
+} from 'lucide-react';
 
 import {
   useUpdateOrganisation,
   useAuditLogs,
   useDeleteOrganisation,
+  type AuditLogEntry,
 } from '@/api';
 import { PageLayout } from '@/components';
 import {
@@ -33,11 +44,60 @@ import {
   TableRow,
   TableHead,
   TableCell,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
 } from '@/components/ui';
 import { usePermissions, useActiveOrganisation } from '@/hooks';
 import { toast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 import { AWSAccountsTab } from './aws-accounts-tab';
+
+interface CopyButtonProps {
+  value: string;
+  className?: string;
+}
+
+function CopyButton({ value, className }: CopyButtonProps) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+  };
+
+  return (
+    <Button
+      variant="outline"
+      size="icon"
+      onClick={handleCopy}
+      className={cn(
+        'size-6 h-6 rounded border-border bg-background text-muted-foreground hover:bg-muted',
+        className,
+      )}
+      title="Copy to clipboard"
+    >
+      {copied ? (
+        <Check className="size-3 text-success animate-in fade-in zoom-in" />
+      ) : (
+        <Copy className="size-3 animate-in fade-in" />
+      )}
+    </Button>
+  );
+}
 
 export function OrgSettings() {
   const activeOrganisation = useActiveOrganisation();
@@ -52,6 +112,7 @@ export function OrgSettings() {
   const [logSearch, setLogSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedLog, setSelectedLog] = useState<AuditLogEntry | null>(null);
   const ITEMS_PER_PAGE = 8;
 
   // AWS accounts and audit logs are hidden from guests; the log list is
@@ -125,34 +186,152 @@ export function OrgSettings() {
     });
   };
 
-  const getActionBadgeClass = (action: string): string => {
-    if (action.includes('deployment'))
-      return 'border-success/20 bg-success/10 text-success';
-    if (action.includes('aws'))
-      return 'border-warning/20 bg-warning/10 text-warning';
-    if (action.includes('organisation') || action.includes('project'))
-      return 'border-primary/20 bg-primary/10 text-primary';
-    return 'border-border bg-muted/30 text-muted-foreground';
+  const renderActionBadge = (action: string, hasError: boolean) => {
+    let baseColor = 'border-border bg-muted/30 text-muted-foreground';
+    let dotColor = 'bg-muted-foreground/50';
+
+    if (
+      hasError ||
+      action.includes('delete') ||
+      action.includes('remove') ||
+      action.includes('failed')
+    ) {
+      baseColor = 'border-destructive/20 bg-destructive/10 text-destructive';
+      dotColor = 'bg-destructive';
+    } else if (
+      action.includes('complete') ||
+      action.includes('success') ||
+      action.includes('resolve')
+    ) {
+      baseColor = 'border-success/20 bg-success/10 text-success';
+      dotColor = 'bg-success';
+    } else if (
+      action.includes('trigger') ||
+      action.includes('create') ||
+      action.includes('add')
+    ) {
+      baseColor = 'border-primary/20 bg-primary/10 text-primary';
+      dotColor = 'bg-primary';
+    } else if (action.includes('update') || action.includes('edit')) {
+      baseColor = 'border-warning/20 bg-warning/10 text-warning';
+      dotColor = 'bg-warning';
+    } else if (action.includes('aws')) {
+      baseColor = 'border-warning/20 bg-warning/10 text-warning';
+      dotColor = 'bg-warning';
+    }
+
+    return (
+      <Badge
+        variant="outline"
+        className={`inline-flex items-center gap-1.5 border px-1.5 py-0.5 font-mono text-[9px] font-medium leading-none ${baseColor}`}
+      >
+        <span className={`size-1 rounded-full ${dotColor}`} />
+        {action}
+      </Badge>
+    );
   };
 
-  const renderLogDetails = (
+  const getRelativeTime = (dateString: string): string => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHr = Math.floor(diffMin / 60);
+    const diffDay = Math.floor(diffHr / 24);
+
+    if (diffSec < 10) return 'just now';
+    if (diffSec < 60) return `${diffSec}s ago`;
+    if (diffMin < 60) return `${diffMin}m ago`;
+    if (diffHr < 24) return `${diffHr}h ago`;
+    if (diffDay === 1) return 'yesterday';
+    if (diffDay < 7) return `${diffDay}d ago`;
+
+    return date.toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
+  const renderTimeCell = (createdAt: string) => {
+    const fullDate = new Date(createdAt).toLocaleString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+
+    return (
+      <TooltipProvider delayDuration={150}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="cursor-default whitespace-nowrap border-b border-dashed border-muted-foreground/30 pb-0.5 text-xs text-muted-foreground">
+              {getRelativeTime(createdAt)}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent
+            side="top"
+            align="end"
+            className="font-mono text-[10px]"
+          >
+            {fullDate}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  };
+
+  const renderLogDetailsPreview = (
     details: Record<string, unknown>,
   ): React.ReactNode => {
     if (!details || Object.keys(details).length === 0) {
       return <span className="text-muted-foreground">-</span>;
     }
+
+    const entries = Object.entries(details);
+    const hasError = 'error' in details || details.status === 'failed';
+    const errorVal = details.error;
+
+    // Filter out error key for preview badges
+    const regularEntries = entries.filter(([key]) => key !== 'error');
+
     return (
-      <div className="flex flex-wrap gap-1">
-        {Object.entries(details).map(([key, value]) => (
+      <div className="flex flex-wrap items-center gap-1.5">
+        {hasError && (
           <Badge
-            key={key}
             variant="outline"
-            className="border-border bg-background/50 px-1.5 py-0.5 font-mono text-[9px] font-normal text-muted-foreground"
+            className="max-w-[250px] truncate border-destructive/20 bg-destructive/10 px-1.5 py-0.5 font-mono text-[9px] font-medium text-destructive"
+            title={String(errorVal || 'Failed')}
           >
-            {key}:{' '}
-            {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+            <span className="mr-1 inline-block size-1 rounded-full bg-destructive" />
+            error: {typeof errorVal === 'string' ? errorVal : 'failed'}
           </Badge>
-        ))}
+        )}
+        {regularEntries.slice(0, 2).map(([key, value]) => {
+          const valString =
+            typeof value === 'object' ? JSON.stringify(value) : String(value);
+          const truncatedValue =
+            valString.length > 20
+              ? `${valString.substring(0, 20)}...`
+              : valString;
+          return (
+            <Badge
+              key={key}
+              variant="outline"
+              className="max-w-[180px] truncate border-border bg-background/50 px-1.5 py-0.5 font-mono text-[9px] font-normal text-muted-foreground"
+              title={`${key}: ${valString}`}
+            >
+              {key}: {truncatedValue}
+            </Badge>
+          );
+        })}
+        {regularEntries.length > 2 && (
+          <span className="font-mono text-[9px] text-muted-foreground">
+            +{regularEntries.length - 2} more
+          </span>
+        )}
       </div>
     );
   };
@@ -339,8 +518,8 @@ export function OrgSettings() {
                   <TableRow>
                     <TableHead className="w-1/4">Action</TableHead>
                     <TableHead className="w-1/4">Actor</TableHead>
-                    <TableHead className="w-1/3">Parameters</TableHead>
-                    <TableHead className="w-1/6 text-right">Time</TableHead>
+                    <TableHead className="w-5/12">Parameters</TableHead>
+                    <TableHead className="w-1/12 text-right">Time</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -354,41 +533,43 @@ export function OrgSettings() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    auditLogs.map((log) => (
-                      <TableRow key={log.id}>
-                        <TableCell className="font-semibold">
-                          <Badge
-                            variant="outline"
-                            className={`border px-1.5 py-0 font-mono text-[9px] ${getActionBadgeClass(log.action)}`}
-                          >
-                            {log.action}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="font-semibold text-foreground">
-                            {log.actorName || 'System'}
-                          </div>
-                          {log.actorEmail && (
-                            <div className="text-[10px] text-muted-foreground">
-                              {log.actorEmail}
+                    auditLogs.map((log) => {
+                      const hasError =
+                        'error' in (log.details || {}) ||
+                        log.details?.status === 'failed';
+                      return (
+                        <TableRow
+                          key={log.id}
+                          className="group cursor-pointer transition-colors hover:bg-muted/40"
+                          onClick={() => setSelectedLog(log)}
+                        >
+                          <TableCell className="font-semibold">
+                            {renderActionBadge(log.action, hasError)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="font-semibold text-foreground transition-colors group-hover:text-primary">
+                              {log.actorName || 'System'}
                             </div>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {renderLogDetails(
-                            log.details as Record<string, unknown>,
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right text-muted-foreground">
-                          {new Date(log.createdAt).toLocaleString(undefined, {
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </TableCell>
-                      </TableRow>
-                    ))
+                            {log.actorEmail && (
+                              <div className="text-[10px] text-muted-foreground">
+                                {log.actorEmail}
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {renderLogDetailsPreview(
+                              log.details as Record<string, unknown>,
+                            )}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap pr-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              {renderTimeCell(log.createdAt)}
+                              <ChevronRight className="size-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                   )}
                 </TableBody>
               </Table>
@@ -487,6 +668,124 @@ export function OrgSettings() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Audit Log Details Drawer */}
+      <Sheet
+        open={!!selectedLog}
+        onOpenChange={(open) => !open && setSelectedLog(null)}
+      >
+        <SheetContent className="overflow-y-auto border-l border-border bg-[var(--color-bg-surface)] text-foreground sm:max-w-lg">
+          <SheetHeader className="space-y-1 border-b border-border pb-4">
+            <div className="flex items-center gap-2">
+              {selectedLog &&
+                renderActionBadge(
+                  selectedLog.action,
+                  'error' in (selectedLog.details || {}) ||
+                    selectedLog.details?.status === 'failed',
+                )}
+              {selectedLog &&
+                ('error' in (selectedLog.details || {}) ||
+                  selectedLog.details?.status === 'failed') && (
+                  <Badge
+                    variant="outline"
+                    className="border-destructive/20 bg-destructive/10 text-[9px] text-destructive"
+                  >
+                    Failed
+                  </Badge>
+                )}
+            </div>
+            <SheetTitle className="text-base font-bold tracking-tight text-foreground">
+              Audit Log Details
+            </SheetTitle>
+            <SheetDescription className="text-xs text-muted-foreground">
+              Detailed logs and parameters for this action.
+            </SheetDescription>
+          </SheetHeader>
+
+          {selectedLog && (
+            <div className="space-y-6 py-6">
+              {/* Info Grid */}
+              <div className="grid grid-cols-2 gap-4 rounded-lg border border-border bg-background/30 p-4 text-xs">
+                <div>
+                  <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Actor
+                  </span>
+                  <span className="font-medium text-foreground">
+                    {selectedLog.actorName || 'System'}
+                  </span>
+                  {selectedLog.actorEmail && (
+                    <span className="mt-0.5 block text-[10px] text-muted-foreground">
+                      {selectedLog.actorEmail}
+                    </span>
+                  )}
+                </div>
+                <div>
+                  <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Timestamp
+                  </span>
+                  <span className="font-mono text-foreground">
+                    {new Date(selectedLog.createdAt).toLocaleString(undefined, {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit',
+                    })}
+                  </span>
+                </div>
+                <div className="col-span-2 flex items-center justify-between border-t border-border/60 pt-3">
+                  <div>
+                    <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Log ID
+                    </span>
+                    <span className="break-all font-mono text-[10px] text-muted-foreground">
+                      {selectedLog.id}
+                    </span>
+                  </div>
+                  <CopyButton value={selectedLog.id} className="size-7 h-7" />
+                </div>
+              </div>
+
+              {/* Error Section if exists */}
+              {('error' in selectedLog.details ||
+                selectedLog.details.status === 'failed') && (
+                <div className="space-y-2 rounded-lg border border-destructive/25 bg-destructive/5 p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-destructive">
+                      <AlertTriangle className="size-4" />
+                      <span>Execution Error</span>
+                    </div>
+                    <CopyButton
+                      value={String(
+                        selectedLog.details.error || 'Execution failed',
+                      )}
+                    />
+                  </div>
+                  <pre className="max-h-60 overflow-x-auto whitespace-pre-wrap break-all rounded border border-destructive/10 bg-destructive/10 p-2.5 font-mono text-[10px] text-destructive/90">
+                    {String(selectedLog.details.error || 'Execution failed')}
+                  </pre>
+                </div>
+              )}
+
+              {/* Full Details Payload */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-foreground">
+                    Log Parameters
+                  </span>
+                  <CopyButton
+                    value={JSON.stringify(selectedLog.details, null, 2)}
+                  />
+                </div>
+                <pre className="max-h-96 overflow-x-auto rounded-lg border border-border bg-background/50 p-4 font-mono text-[10.5px] text-muted-foreground">
+                  {JSON.stringify(selectedLog.details, null, 2)}
+                </pre>
+              </div>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </PageLayout>
   );
 }
