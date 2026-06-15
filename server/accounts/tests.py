@@ -62,3 +62,44 @@ class AccountsTests(BaseTestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_205_RESET_CONTENT)
+
+    def test_update_profile_success(self):
+        url = reverse("user-me")
+        payload = {
+            "name": "Updated Name",
+        }
+        response = self.client.patch(url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["data"]["name"], "Updated Name")
+
+        # Verify database has updated
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.name, "Updated Name")
+
+    def test_change_password_success(self):
+        url = reverse("user-change-password")
+        payload = {
+            "current_password": "TestPassword123!",
+            "new_password": "NewSecurePassword123!",
+        }
+        response = self.client.post(url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["message"], "Password changed successfully.")
+
+        # Verify password changed
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password("NewSecurePassword123!"))
+
+    def test_change_password_incorrect_current(self):
+        url = reverse("user-change-password")
+        payload = {
+            "current_password": "WrongPassword123!",
+            "new_password": "NewSecurePassword123!",
+        }
+        response = self.client.post(url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("current_password", response.data)
+

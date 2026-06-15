@@ -35,6 +35,7 @@ class UserViewSet(ModelViewSet):
                 "data": serializer.data,
             }
             return Response(response, status=status.HTTP_200_OK)
+
         elif request.method == "PATCH":
             serializer = self.serializer_class(
                 request.user, data=request.data, partial=True
