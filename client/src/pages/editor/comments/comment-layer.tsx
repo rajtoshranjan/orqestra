@@ -2,8 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useViewport } from 'reactflow';
 
+import type { AnnotationTargetType } from '@/api';
 import type { DiagramEdge, DiagramNode } from '@/types';
-import { getNodeAbsolutePosition } from '@/utils';
+import { getNodeAbsolutePosition, getNodeDimensions } from '@/utils';
 
 import { CommentComposer } from './comment-composer';
 import { CommentClusterPin, CommentPin } from './comment-pin';
@@ -12,6 +13,7 @@ import {
   CLUSTER_ZOOM_THRESHOLD,
   clusterPins,
   resolvePinFlowPosition,
+  hitTestNodeAtFlowPosition,
 } from './comments-utils';
 
 import type { PinPlacement } from './comments-utils';
@@ -171,6 +173,11 @@ export function CommentLayer({
   } | null>(null);
   const [hasDragged, setHasDragged] = useState(false);
 
+  const hoveredNode = useMemo(() => {
+    if (!draggedId || !dragCurrentPinFlow) return null;
+    return hitTestNodeAtFlowPosition(dragCurrentPinFlow, nodes);
+  }, [draggedId, dragCurrentPinFlow, nodes]);
+
   const handlePointerDown = (
     event: React.PointerEvent,
     annotationId: string,
@@ -210,7 +217,7 @@ export function CommentLayer({
     });
   };
 
-  const handlePointerUp = (event: React.PointerEvent, annotation: any) => {
+  const handlePointerUp = (event: React.PointerEvent) => {
     if (!draggedId) return;
     event.stopPropagation();
 
@@ -218,24 +225,38 @@ export function CommentLayer({
     target.releasePointerCapture(event.pointerId);
 
     if (hasDragged && dragCurrentPinFlow) {
+      const hitNode = hitTestNodeAtFlowPosition(dragCurrentPinFlow, nodes);
       let finalPosition = {};
-      if (annotation.targetType === 'canvas') {
-        finalPosition = { x: dragCurrentPinFlow.x, y: dragCurrentPinFlow.y };
-      } else if (annotation.targetType === 'node') {
-        const node = nodes.find((n) => n.id === annotation.targetId);
-        if (node) {
-          const nodeAbsolute = getNodeAbsolutePosition(node, nodes);
-          finalPosition = {
-            dx: dragCurrentPinFlow.x - nodeAbsolute.x,
-            dy: dragCurrentPinFlow.y - nodeAbsolute.y,
-          };
-        }
+      let targetType: AnnotationTargetType = 'canvas';
+      let targetId = '';
+
+      if (hitNode) {
+        targetType = 'node';
+        targetId = hitNode.id;
+        const nodeAbsolute = getNodeAbsolutePosition(hitNode, nodes);
+        finalPosition = {
+          dx: dragCurrentPinFlow.x - nodeAbsolute.x,
+          dy: dragCurrentPinFlow.y - nodeAbsolute.y,
+        };
+      } else {
+        targetType = 'canvas';
+        targetId = '';
+        finalPosition = {
+          x: dragCurrentPinFlow.x,
+          y: dragCurrentPinFlow.y,
+        };
       }
+
       setLocalPositions((prev) => ({
         ...prev,
         [draggedId]: { x: dragCurrentPinFlow.x, y: dragCurrentPinFlow.y },
       }));
-      void comments.updatePosition(draggedId, finalPosition);
+      void comments.updatePosition(
+        draggedId,
+        finalPosition,
+        targetType,
+        targetId,
+      );
     } else {
       comments.openThread(draggedId);
     }
@@ -271,6 +292,25 @@ export function CommentLayer({
           transformOrigin: '0 0',
         }}
       >
+        {/* Drop zone highlight for nodes when dragging a comment pin */}
+        {hoveredNode &&
+          (() => {
+            const absPos = getNodeAbsolutePosition(hoveredNode, nodes);
+            const { width, height } = getNodeDimensions(hoveredNode);
+            return (
+              <div
+                className="pointer-events-none absolute animate-pulse rounded-lg border-2 border-dashed border-primary bg-primary/5 transition-all duration-150"
+                style={{
+                  left: absPos.x - 4,
+                  top: absPos.y - 4,
+                  width: width + 8,
+                  height: height + 8,
+                  zIndex: 0,
+                }}
+              />
+            );
+          })()}
+
         {shouldCluster
           ? clusters.map((cluster) =>
               cluster.placements.length === 1 ? (
@@ -300,9 +340,7 @@ export function CommentLayer({
                         )
                       }
                       onPointerMove={handlePointerMove}
-                      onPointerUp={(event) =>
-                        handlePointerUp(event, placement.annotation)
-                      }
+                      onPointerUp={(event) => handlePointerUp(event)}
                     >
                       <CommentPin
                         annotation={placement.annotation}
@@ -359,9 +397,7 @@ export function CommentLayer({
                     )
                   }
                   onPointerMove={handlePointerMove}
-                  onPointerUp={(event) =>
-                    handlePointerUp(event, placement.annotation)
-                  }
+                  onPointerUp={(event) => handlePointerUp(event)}
                 >
                   <CommentPin
                     annotation={placement.annotation}

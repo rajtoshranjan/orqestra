@@ -163,7 +163,31 @@ class AnnotationCreateSerializer(serializers.ModelSerializer):
 class AnnotationUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Annotation
-        fields = ["position"]
+        fields = ["position", "target_type", "target_id"]
+
+    def validate(self, attrs):
+        instance = self.instance
+        target_type = attrs.get("target_type", instance.target_type if instance else None)
+        target_id = attrs.get("target_id", instance.target_id if instance else "")
+        position = attrs.get("position", instance.position if instance else {}) or {}
+
+        errors = {}
+        if target_type == AnnotationTargetType.CANVAS.value:
+            x = position.get("x")
+            y = position.get("y")
+            if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
+                errors[
+                    "position"
+                ] = "Canvas annotations require a position with numeric x and y."
+        else:
+            if not target_id:
+                errors[
+                    "target_id"
+                ] = f"Annotations targeting a {target_type} require a target_id."
+
+        if errors:
+            raise serializers.ValidationError(errors)
+        return attrs
 
 
 class AnnotationEventSerializer(serializers.ModelSerializer):

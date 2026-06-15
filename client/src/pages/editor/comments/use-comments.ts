@@ -380,8 +380,18 @@ export const useComments = ({
       [reopenMutation],
     ),
     updatePosition: useCallback(
-      (annotationId: string, position: AnnotationPosition) =>
-        updatePositionMutation.mutate({ annotationId, position }),
+      (
+        annotationId: string,
+        position: AnnotationPosition,
+        targetType?: AnnotationTargetType,
+        targetId?: string,
+      ) =>
+        updatePositionMutation.mutate({
+          annotationId,
+          position,
+          targetType,
+          targetId,
+        }),
       [updatePositionMutation],
     ),
     editComment: useCallback(

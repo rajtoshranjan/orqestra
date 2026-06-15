@@ -185,9 +185,13 @@ export const createAnnotation = async (
 export const updateAnnotationPosition = async (input: {
   annotationId: string;
   position: AnnotationPosition;
+  targetType?: AnnotationTargetType;
+  targetId?: string;
 }): Promise<void> => {
   await api.patch(`/annotations/${input.annotationId}/`, {
     position: input.position,
+    target_type: input.targetType,
+    target_id: input.targetId,
   });
 };
 
@@ -301,7 +305,12 @@ export const useUpdateAnnotationPosition = (projectId: string | null) => {
           annotationsQueryKey(projectId),
           previousAnnotations.map((anno) => {
             if (anno.id === variables.annotationId) {
-              return { ...anno, position: variables.position };
+              return {
+                ...anno,
+                position: variables.position,
+                targetType: variables.targetType ?? anno.targetType,
+                targetId: variables.targetId ?? anno.targetId,
+              };
             }
             return anno;
           }),
