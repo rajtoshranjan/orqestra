@@ -19,8 +19,8 @@ def get_user_from_token(token_str):
         token = AccessToken(token_str)
         user_id = token["user_id"]
         return User.objects.get(id=user_id)
-    except Exception as e:
-        logger.warning(f"WebSocket auth failed: {str(e)}")
+    except Exception as error:
+        logger.warning(f"WebSocket auth failed: {str(error)}")
         return None
 
 
@@ -33,8 +33,8 @@ def verify_org_access(user, org_id):
                 organisation_id=org_id, user=user
             ).exists()
         )
-    except Exception as e:
-        logger.error(f"Error verifying org access: {e}")
+    except Exception as error:
+        logger.error(f"Error verifying org access: {error}")
         return False
 
 
@@ -47,8 +47,8 @@ def verify_project_access(user, project_id):
             org.owner == user
             or OrganisationMember.objects.filter(organisation=org, user=user).exists()
         )
-    except Exception as e:
-        logger.error(f"Error verifying project access: {e}")
+    except Exception as error:
+        logger.error(f"Error verifying project access: {error}")
         return False
 
 
@@ -63,8 +63,8 @@ def verify_deployment_access(user, deployment_id):
             org.owner == user
             or OrganisationMember.objects.filter(organisation=org, user=user).exists()
         )
-    except Exception as e:
-        logger.error(f"Error verifying deployment access: {e}")
+    except Exception as error:
+        logger.error(f"Error verifying deployment access: {error}")
         return False
 
 
@@ -109,8 +109,8 @@ class OrqestraConsumer(AsyncJsonWebsocketConsumer):
         for group_name in list(self.joined_groups):
             try:
                 await self.channel_layer.group_discard(group_name, self.channel_name)
-            except Exception as e:
-                logger.error(f"Error leaving group {group_name} on disconnect: {e}")
+            except Exception as error:
+                logger.error(f"Error leaving group {group_name} on disconnect: {error}")
         self.joined_groups.clear()
 
     async def receive_json(self, content, **kwargs):

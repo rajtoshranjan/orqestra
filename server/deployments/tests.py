@@ -8,7 +8,7 @@ from rest_framework import status
 from utils.encryption import encrypt_val
 
 from .models import Deployment, DeploymentStatus, ProjectDeploymentState
-from .services import _generate_callback_token
+from .services import generate_callback_token
 
 
 class DeploymentTests(BaseTestCase):
@@ -86,7 +86,8 @@ class DeploymentTests(BaseTestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
-        self.assertIn("already in progress", response.data["error"])
+        self.assertIn("already in progress", response.data["detail"])
+        self.assertIn("active_deployment_id", response.data)
 
     def test_deployment_detail_view(self):
         deployment = Deployment.objects.create(
@@ -140,7 +141,7 @@ class DeploymentTests(BaseTestCase):
             "outputs": {},
         }
 
-        token = _generate_callback_token(deployment.id)
+        token = generate_callback_token(deployment.id)
         url = (
             reverse("deployment-callback", kwargs={"pk": str(deployment.id)})
             + f"?token={token}"
@@ -189,7 +190,7 @@ class DeploymentTests(BaseTestCase):
             "outputs": {},
         }
 
-        token = _generate_callback_token(deployment.id)
+        token = generate_callback_token(deployment.id)
         url = (
             reverse("deployment-callback", kwargs={"pk": str(deployment.id)})
             + f"?token={token}"
@@ -204,22 +205,6 @@ class DeploymentTests(BaseTestCase):
         self.assertFalse(
             ProjectDeploymentState.objects.filter(project=self.project).exists()
         )
-
-    def test_project_deployments_list(self):
-        deployment1 = Deployment.objects.create(
-            project=self.project, status=DeploymentStatus.SUCCEEDED, graph_snapshot={}
-        )
-        deployment2 = Deployment.objects.create(
-            project=self.project, status=DeploymentStatus.FAILED, graph_snapshot={}
-        )
-
-        url = reverse(
-            "project-deployments", kwargs={"project_id": str(self.project.id)}
-        )
-        response = self.client.get(url)
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
 
     def test_project_deployment_state_empty(self):
         url = reverse(

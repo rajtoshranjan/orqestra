@@ -1,3 +1,4 @@
+from organisations.helpers import get_active_organisation
 from rest_framework import serializers
 
 from .models import Project
@@ -24,8 +25,6 @@ class ProjectSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         aws_account = attrs.get("aws_account")
         if aws_account:
-            from organisations.helpers import get_active_organisation
-
             active_org = get_active_organisation(request)
             if aws_account.organisation != active_org:
                 raise serializers.ValidationError(
@@ -34,3 +33,25 @@ class ProjectSerializer(serializers.ModelSerializer):
                     }
                 )
         return attrs
+
+
+class ProjectListSerializer(serializers.ModelSerializer):
+    """Lightweight serializer for the project list — omits the full graph."""
+
+    node_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Project
+        fields = [
+            "id",
+            "name",
+            "description",
+            "aws_account",
+            "node_count",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = fields
+
+    def get_node_count(self, project):
+        return len(project.nodes or [])

@@ -1,3 +1,5 @@
+import logging
+
 from django.db import transaction
 from django.utils import timezone
 from organisations.helpers import get_active_organisation, log_action
@@ -29,6 +31,8 @@ from .serializers import (
     NotificationSerializer,
     ReactionSerializer,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class AnnotationViewSet(viewsets.ModelViewSet):
@@ -79,8 +83,8 @@ class AnnotationViewSet(viewsets.ModelViewSet):
                 event_type="updated",
                 payload={"annotation_id": str(annotation.id), "action": "create"},
             )
-        except Exception as e:
-            logger.error(f"Failed to emit annotation event on create: {e}")
+        except Exception as error:
+            logger.error(f"Failed to emit annotation event on create: {error}")
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -113,8 +117,8 @@ class AnnotationViewSet(viewsets.ModelViewSet):
                 event_type="updated",
                 payload={"annotation_id": str(annotation.id), "action": "update"},
             )
-        except Exception as e:
-            logger.error(f"Failed to emit annotation event on update: {e}")
+        except Exception as error:
+            logger.error(f"Failed to emit annotation event on update: {error}")
 
     def perform_destroy(self, instance):
         _, role = self._role()
@@ -144,8 +148,8 @@ class AnnotationViewSet(viewsets.ModelViewSet):
                 event_type="updated",
                 payload={"annotation_id": annotation_id, "action": "delete"},
             )
-        except Exception as e:
-            logger.error(f"Failed to emit annotation event on delete: {e}")
+        except Exception as error:
+            logger.error(f"Failed to emit annotation event on delete: {error}")
 
     def _transition(self, annotation, *, status_value, archived, event_type):
         with transaction.atomic():
@@ -174,8 +178,8 @@ class AnnotationViewSet(viewsets.ModelViewSet):
                 event_type="updated",
                 payload={"annotation_id": str(annotation.id), "action": "transition"},
             )
-        except Exception as e:
-            logger.error(f"Failed to emit annotation event on transition: {e}")
+        except Exception as error:
+            logger.error(f"Failed to emit annotation event on transition: {error}")
         return Response(AnnotationSerializer(annotation).data)
 
     def _check_resolution_permission(self, annotation):
@@ -212,8 +216,8 @@ class AnnotationViewSet(viewsets.ModelViewSet):
                         "recipient_id": str(annotation.author_id),
                     },
                 )
-            except Exception as e:
-                logger.error(f"Failed to emit notification event on resolve: {e}")
+            except Exception as error:
+                logger.error(f"Failed to emit notification event on resolve: {error}")
         log_action(
             organisation=annotation.project.organisation,
             actor=request.user,
@@ -320,8 +324,8 @@ class CommentViewSet(
                 event_type="created",
                 payload={"action": "comment_create"},
             )
-        except Exception as e:
-            logger.error(f"Failed to emit events on comment create: {e}")
+        except Exception as error:
+            logger.error(f"Failed to emit events on comment create: {error}")
 
     def _notify_thread(self, annotation, comment, mentioned_ids):
         participants = set(
@@ -370,8 +374,8 @@ class CommentViewSet(
                 event_type="created",
                 payload={"action": "comment_update"},
             )
-        except Exception as e:
-            logger.error(f"Failed to emit events on comment update: {e}")
+        except Exception as error:
+            logger.error(f"Failed to emit events on comment update: {error}")
 
     def perform_destroy(self, instance):
         active_org = get_active_organisation(self.request)
@@ -400,8 +404,8 @@ class CommentViewSet(
                     "action": "comment_delete",
                 },
             )
-        except Exception as e:
-            logger.error(f"Failed to emit event on comment delete: {e}")
+        except Exception as error:
+            logger.error(f"Failed to emit event on comment delete: {error}")
 
     @action(detail=True, methods=["post"])
     def react(self, request, pk=None):
@@ -426,8 +430,8 @@ class CommentViewSet(
                     "action": "comment_react",
                 },
             )
-        except Exception as e:
-            logger.error(f"Failed to emit event on reaction: {e}")
+        except Exception as error:
+            logger.error(f"Failed to emit event on reaction: {error}")
         reactions = comment.reactions.select_related("user")
         return Response(ReactionSerializer(reactions, many=True).data)
 

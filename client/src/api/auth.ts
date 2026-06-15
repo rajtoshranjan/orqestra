@@ -1,4 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 
 import { api } from './client';
 
@@ -189,18 +194,49 @@ export interface AuditLogEntry {
   createdAt: string;
 }
 
-export const fetchAuditLogs = async (): Promise<AuditLogEntry[]> => {
-  const response = await api.get<ServerResponse<any[]>>(
+export interface AuditLogPage {
+  results: AuditLogEntry[];
+  count: number;
+}
+
+export interface AuditLogParams {
+  page: number;
+  pageSize: number;
+  search: string;
+}
+
+type ServerPaginated<T> = {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+};
+
+export const fetchAuditLogs = async (
+  params: AuditLogParams,
+): Promise<AuditLogPage> => {
+  const response = await api.get<ServerResponse<ServerPaginated<any>>>(
     '/organisations/audit-logs/',
+    {
+      params: {
+        page: params.page,
+        page_size: params.pageSize,
+        search: params.search || undefined,
+      },
+    },
   );
-  return response.data.data.map((log) => ({
-    id: log.id,
-    action: log.action,
-    details: log.details,
-    actorEmail: log.actor_email,
-    actorName: log.actor_name,
-    createdAt: log.created_at,
-  }));
+  const page = response.data.data;
+  return {
+    count: page.count,
+    results: page.results.map((log) => ({
+      id: log.id,
+      action: log.action,
+      details: log.details,
+      actorEmail: log.actor_email,
+      actorName: log.actor_name,
+      createdAt: log.created_at,
+    })),
+  };
 };
 
 // React Query Hooks.
@@ -322,9 +358,10 @@ export const useUpdateOrganisationMember = () => {
   });
 };
 
-export const useAuditLogs = (enabled = true) =>
+export const useAuditLogs = (params: AuditLogParams, enabled = true) =>
   useQuery({
-    queryKey: ['auditLogs'],
-    queryFn: fetchAuditLogs,
+    queryKey: ['auditLogs', params],
+    queryFn: () => fetchAuditLogs(params),
     enabled,
+    placeholderData: keepPreviousData,
   });

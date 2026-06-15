@@ -3,13 +3,23 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { PersistedDiagram } from '@/types';
 
 import { api } from './client';
-import { mapServerToClientProject, mapClientToServerProject } from './types';
+import {
+  mapServerToClientProject,
+  mapServerToClientProjectSummary,
+  mapClientToServerProject,
+} from './types';
 
-import type { ServerResponse, ServerProject } from './types';
+import type {
+  ServerResponse,
+  ServerProject,
+  ServerProjectSummary,
+  ProjectSummary,
+} from './types';
 
-export const fetchProjects = async (): Promise<PersistedDiagram[]> => {
-  const response = await api.get<ServerResponse<ServerProject[]>>('/projects/');
-  return response.data.data.map(mapServerToClientProject);
+export const fetchProjects = async (): Promise<ProjectSummary[]> => {
+  const response =
+    await api.get<ServerResponse<ServerProjectSummary[]>>('/projects/');
+  return response.data.data.map(mapServerToClientProjectSummary);
 };
 
 export const fetchProjectById = async (

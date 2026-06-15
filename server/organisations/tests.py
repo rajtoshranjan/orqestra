@@ -236,3 +236,31 @@ class OrganisationSecurityTests(BaseTestCase):
                 action="project.create",
             ).exists()
         )
+
+    def test_audit_logs_paginated_and_searchable(self):
+        from organisations.models import AuditLog
+
+        AuditLog.objects.filter(organisation=self.organisation).delete()
+        for index in range(25):
+            AuditLog.objects.create(
+                organisation=self.organisation,
+                actor=self.user,
+                action="deployment.trigger" if index % 2 else "project.create",
+            )
+        url = reverse("organisation-audit-log-list")
+
+        # The page is capped at the requested page size.
+        response = self.client.get(url, {"page_size": 10})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        body = response.json()["data"]
+        self.assertEqual(body["count"], 25)
+        self.assertEqual(len(body["results"]), 10)
+        self.assertIsNotNone(body["next"])
+
+        # Search filters server-side by action.
+        response = self.client.get(url, {"search": "deployment"})
+        body = response.json()["data"]
+        self.assertEqual(body["count"], 12)
+        self.assertTrue(
+            all("deployment" in entry["action"] for entry in body["results"])
+        )

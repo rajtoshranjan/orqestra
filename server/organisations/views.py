@@ -1,13 +1,15 @@
-from django.db.models import Q
+from django.db.models import Prefetch, Q
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
+from orqestra.pagination import StandardResultsSetPagination
+
 from .constants import OrganisationMemberRole
-from .helpers import get_active_organisation, log_action
-from .models import AWSAccount, Organisation, OrganisationMember
+from .helpers import create_default_organisation, get_active_organisation, log_action
+from .models import AuditLog, AWSAccount, Organisation, OrganisationMember
 from .permissions import CanManageOrganisation, IsNonGuestMember, IsOrganisationMember
 from .serializers import (
     AuditLogSerializer,
@@ -27,22 +29,24 @@ class OrganisationViewSet(ModelViewSet):
         return super().get_permissions()
 
     def get_queryset(self):
-        qs = Organisation.objects.filter(
-            Q(members__user=self.request.user) | Q(owner=self.request.user)
-        ).distinct()
-
-        if not qs.exists():
-            name = (
-                self.request.user.name.split(" ")[0]
-                if self.request.user.name
-                else "Personal"
+        user = self.request.user
+        queryset = (
+            Organisation.objects.filter(Q(members__user=user) | Q(owner=user))
+            .distinct()
+            .select_related("owner")
+            .prefetch_related(
+                Prefetch(
+                    "members",
+                    queryset=OrganisationMember.objects.filter(user=user),
+                    to_attr="current_user_memberships",
+                )
             )
-            default_org = Organisation.objects.create(
-                name=f"{name}'s Organisation", owner=self.request.user
-            )
-            qs = Organisation.objects.filter(id=default_org.id)
+        )
 
-        return qs
+        if not queryset.exists():
+            create_default_organisation(user)
+
+        return queryset
 
     def perform_create(self, serializer):
         org = serializer.save()
@@ -158,10 +162,15 @@ class AuditLogViewSet(ReadOnlyModelViewSet):
     serializer_class = AuditLogSerializer
     # Audit logs are hidden from guests.
     permission_classes = [IsNonGuestMember]
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         org = get_active_organisation(self.request)
-        return org.audit_logs.all().select_related("actor")
+        return (
+            AuditLog.objects.for_organisation(org)
+            .search(self.request.query_params.get("search"))
+            .select_related("actor")
+        )
 
 
 class AWSAccountViewSet(ModelViewSet):

@@ -23,8 +23,8 @@ def emit_event(group_name, event_type, payload):
             )
         else:
             logger.warning("Channel layer not configured. Event not sent.")
-    except Exception as e:
-        logger.error(f"Failed to send event to channel layer: {e}")
+    except Exception as error:
+        logger.error(f"Failed to send event to channel layer: {error}")
 
 
 def send_deployment_event(deployment_id, event_type, payload):

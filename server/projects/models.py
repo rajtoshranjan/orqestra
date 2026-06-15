@@ -2,6 +2,11 @@ from django.db import models
 from orqestra.models import BaseModel
 
 
+class ProjectQuerySet(models.QuerySet):
+    def for_organisation(self, organisation):
+        return self.filter(organisation=organisation)
+
+
 class Project(BaseModel):
     organisation = models.ForeignKey(
         "organisations.Organisation", on_delete=models.CASCADE, related_name="projects"
@@ -18,6 +23,8 @@ class Project(BaseModel):
         blank=True,
         related_name="projects",
     )
+
+    objects = ProjectQuerySet.as_manager()
 
     def __str__(self):
         return self.name

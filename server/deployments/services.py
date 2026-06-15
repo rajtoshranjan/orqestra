@@ -1,6 +1,9 @@
+import hashlib
+import hmac
 import logging
 
 import requests
+from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 from orqestra.env_variables import EnvVariable
@@ -91,18 +94,13 @@ def create_deployment(project: Project) -> Deployment:
                 "project_id": str(deployment.project_id),
             },
         )
-    except Exception as e:
-        logger.error(f"Failed to emit deployment event: {e}")
+    except Exception as error:
+        logger.error(f"Failed to emit deployment event: {error}")
 
     return deployment
 
 
-def _generate_callback_token(deployment_id: str) -> str:
-    import hashlib
-    import hmac
-
-    from django.conf import settings
-
+def generate_callback_token(deployment_id: str) -> str:
     return hmac.new(
         settings.SECRET_KEY.encode(), str(deployment_id).encode(), hashlib.sha256
     ).hexdigest()
@@ -116,7 +114,7 @@ def invoke_deployer(deployment: Deployment, existing_state: dict | None) -> None
     In lambda mode, would invoke an AWS Lambda function.
     """
     mode = EnvVariable.DEPLOYER_MODE.value
-    token = _generate_callback_token(deployment.id)
+    token = generate_callback_token(deployment.id)
     callback_url = f"{EnvVariable.SERVER_BASE_URL.value}/deployments/{deployment.id}/callback/?token={token}"
 
     payload = {
@@ -217,8 +215,8 @@ def process_deployment_callback(deployment_id: str, results: dict) -> Deployment
                 "project_id": str(deployment.project_id),
             },
         )
-    except Exception as e:
-        logger.error(f"Failed to emit deployment event from callback: {e}")
+    except Exception as error:
+        logger.error(f"Failed to emit deployment event from callback: {error}")
 
     return deployment
 

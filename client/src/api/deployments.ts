@@ -25,8 +25,7 @@ export type ServerDeployment = {
     | 'failed';
   logs: ServerDeploymentLog[];
   error_message: string;
-  tofu_plan_output: string;
-  graph_snapshot: any;
+  graph_snapshot?: any;
   started_at: string | null;
   completed_at: string | null;
   created_at: string;
@@ -67,8 +66,7 @@ export type ClientDeployment = {
   status: ServerDeployment['status'];
   logs: DeploymentLog[];
   errorMessage: string;
-  tofuPlanOutput: string;
-  graphSnapshot: any;
+  graphSnapshot?: any;
   startedAt: string | null;
   completedAt: string | null;
   createdAt: string;
@@ -102,7 +100,6 @@ const mapServerDeployment = (server: ServerDeployment): ClientDeployment => ({
   status: server.status,
   logs: server.logs,
   errorMessage: server.error_message,
-  tofuPlanOutput: server.tofu_plan_output,
   graphSnapshot: snakeToCamelRecursive(server.graph_snapshot),
   startedAt: server.started_at,
   completedAt: server.completed_at,
@@ -184,7 +181,7 @@ export const useCreateDeployment = () => {
     mutationFn: createDeployment,
     onSuccess: (_data, projectId) => {
       void queryClient.invalidateQueries({
-        queryKey: ['project-deployments', projectId],
+        queryKey: ['project-deployment-state', projectId],
       });
     },
   });

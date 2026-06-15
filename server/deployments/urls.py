@@ -19,11 +19,6 @@ urlpatterns = [
         name="deployment-callback",
     ),
     path(
-        "project/<uuid:project_id>/",
-        DeploymentViewSet.as_view({"get": "project_deployments"}),
-        name="project-deployments",
-    ),
-    path(
         "project/<uuid:project_id>/state/",
         DeploymentViewSet.as_view({"get": "project_state"}),
         name="project-deployment-state",

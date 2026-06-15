@@ -1,5 +1,7 @@
 from django.db import models
 
+from .constants import DeploymentStatus
+
 
 class DeploymentQuerySet(models.QuerySet):
     """Custom queryset for deployment filtering."""
@@ -11,12 +13,19 @@ class DeploymentQuerySet(models.QuerySet):
     def active(self):
         """Filter deployments that are still running."""
         return self.filter(
-            status__in=["pending", "generating", "invoking", "in_progress"]
+            status__in=[
+                DeploymentStatus.PENDING,
+                DeploymentStatus.GENERATING,
+                DeploymentStatus.INVOKING,
+                DeploymentStatus.IN_PROGRESS,
+            ]
         )
 
     def completed(self):
         """Filter deployments that have finished (success or failure)."""
-        return self.filter(status__in=["succeeded", "failed"])
+        return self.filter(
+            status__in=[DeploymentStatus.SUCCEEDED, DeploymentStatus.FAILED]
+        )
 
 
 class DeploymentManager(models.Manager):

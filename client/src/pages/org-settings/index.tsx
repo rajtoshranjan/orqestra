@@ -43,11 +43,6 @@ export function OrgSettings() {
   const activeOrganisation = useActiveOrganisation();
   const { isOwner, isGuest, canManage } = usePermissions();
 
-  // AWS accounts and audit logs are hidden from guests.
-  const { data: auditLogs = [] } = useAuditLogs(
-    !!activeOrganisation && !isGuest,
-  );
-
   const updateOrganisationMutation = useUpdateOrganisation();
   const deleteOrgMutation = useDeleteOrganisation();
 
@@ -55,16 +50,31 @@ export function OrgSettings() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [confirmName, setConfirmName] = useState('');
   const [logSearch, setLogSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 8;
+
+  // AWS accounts and audit logs are hidden from guests; the log list is
+  // paginated and searched on the server.
+  const auditLogsQuery = useAuditLogs(
+    { page: currentPage, pageSize: ITEMS_PER_PAGE, search: debouncedSearch },
+    !!activeOrganisation && !isGuest,
+  );
+  const auditLogs = auditLogsQuery.data?.results ?? [];
+  const totalLogCount = auditLogsQuery.data?.count ?? 0;
 
   useEffect(() => {
     setOrgName(activeOrganisation?.name ?? '');
   }, [activeOrganisation?.id, activeOrganisation?.name]);
 
   useEffect(() => {
-    setCurrentPage(1);
+    const handle = setTimeout(() => setDebouncedSearch(logSearch), 300);
+    return () => clearTimeout(handle);
   }, [logSearch]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch]);
 
   const handleUpdateOrgName = (event: React.FormEvent): void => {
     event.preventDefault();
@@ -147,24 +157,7 @@ export function OrgSettings() {
     );
   };
 
-  const filteredLogs = auditLogs.filter((log) => {
-    const query = logSearch.toLowerCase().trim();
-    if (!query) return true;
-    return (
-      log.action.toLowerCase().includes(query) ||
-      (log.actorName && log.actorName.toLowerCase().includes(query)) ||
-      (log.actorEmail && log.actorEmail.toLowerCase().includes(query))
-    );
-  });
-
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredLogs.length / ITEMS_PER_PAGE),
-  );
-  const paginatedLogs = filteredLogs.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE,
-  );
+  const totalPages = Math.max(1, Math.ceil(totalLogCount / ITEMS_PER_PAGE));
 
   // Guests have read-only access and cannot view organisation settings.
   if (isGuest) {
@@ -351,7 +344,7 @@ export function OrgSettings() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginatedLogs.length === 0 ? (
+                  {auditLogs.length === 0 ? (
                     <TableRow>
                       <TableCell
                         colSpan={4}
@@ -361,7 +354,7 @@ export function OrgSettings() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    paginatedLogs.map((log) => (
+                    auditLogs.map((log) => (
                       <TableRow key={log.id}>
                         <TableCell className="font-semibold">
                           <Badge
@@ -405,11 +398,8 @@ export function OrgSettings() {
                 <div className="flex items-center justify-between pt-2">
                   <span className="text-[11px] text-muted-foreground">
                     Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to{' '}
-                    {Math.min(
-                      currentPage * ITEMS_PER_PAGE,
-                      filteredLogs.length,
-                    )}{' '}
-                    of {filteredLogs.length} entries
+                    {Math.min(currentPage * ITEMS_PER_PAGE, totalLogCount)} of{' '}
+                    {totalLogCount} entries
                   </span>
                   <div className="flex items-center gap-1">
                     <Button

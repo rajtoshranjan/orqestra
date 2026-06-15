@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.db.models import Q
 from orqestra.models import BaseModel
 
 from .constants import OrganisationMemberRole
@@ -43,6 +44,21 @@ class OrganisationMember(BaseModel):
         return f"{self.user.email} - {self.organisation.name} ({self.role})"
 
 
+class AuditLogQuerySet(models.QuerySet):
+    def for_organisation(self, organisation):
+        return self.filter(organisation=organisation)
+
+    def search(self, query):
+        query = (query or "").strip()
+        if not query:
+            return self
+        return self.filter(
+            Q(action__icontains=query)
+            | Q(actor__email__icontains=query)
+            | Q(actor__name__icontains=query)
+        )
+
+
 class AuditLog(BaseModel):
     organisation = models.ForeignKey(
         Organisation,
@@ -57,6 +73,8 @@ class AuditLog(BaseModel):
     )
     action = models.CharField(max_length=100)
     details = models.JSONField(default=dict, blank=True)
+
+    objects = AuditLogQuerySet.as_manager()
 
     class Meta(BaseModel.Meta):
         db_table = "audit_logs"

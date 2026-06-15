@@ -1,28 +1,19 @@
-import logging
-
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from .serializers import RequestPayloadSerializer
 from .services import plan_diagram
 from .validators import validate_diagram
 
-logger = logging.getLogger(__name__)
-
 
 class CloudServicesViewSet(viewsets.ViewSet):
-    """
-    ViewSet for general cloud orchestration services.
-    Conforms to DRF guidelines in agent.md by using framework primitives.
-    """
+    """Provider-agnostic cloud orchestration endpoints (health, plan)."""
 
     def get_permissions(self):
         if self.action == "health":
             return [AllowAny()]
-        from rest_framework.permissions import IsAuthenticated
-
         return [IsAuthenticated()]
 
     @action(detail=False, methods=["get"], url_path="health")
@@ -34,11 +25,7 @@ class CloudServicesViewSet(viewsets.ViewSet):
     def plan(self, request):
         """Validate a diagram and return a deployment plan (POST /plan)."""
         serializer = RequestPayloadSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(
-                {"error": "Request body must be valid JSON."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        serializer.is_valid(raise_exception=True)
 
         diagram = serializer.validated_data["diagram"]
         nodes = diagram.get("nodes", [])

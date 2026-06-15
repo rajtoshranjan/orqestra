@@ -45,7 +45,7 @@ class BaseServiceHandler(ABC):
         return "general"
 
     @abstractmethod
-    def get_serializer_class(self):  # type: ignore[return]
+    def get_serializer_class(self):
         """Return the DRF Serializer class for this service's config payload."""
 
     @abstractmethod

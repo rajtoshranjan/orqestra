@@ -23,6 +23,25 @@ export type ServerProject = {
   updated_at: string;
 };
 
+export type ServerProjectSummary = {
+  id: string;
+  name: string;
+  description: string;
+  aws_account: string | null;
+  node_count: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ProjectSummary = {
+  projectId: string;
+  projectName: string;
+  projectDescription: string;
+  awsAccountId: string | null;
+  nodeCount: number;
+  lastSavedAt: string;
+};
+
 export function toSnakeCase(str: string): string {
   return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
 }
@@ -72,6 +91,19 @@ export function mapServerToClientProject(
     nodes: snakeToCamelRecursive(server.nodes) || [],
     edges: snakeToCamelRecursive(server.edges) || [],
     deploymentSettings: snakeToCamelRecursive(server.deployment_settings) || {},
+    lastSavedAt: server.updated_at,
+  };
+}
+
+export function mapServerToClientProjectSummary(
+  server: ServerProjectSummary,
+): ProjectSummary {
+  return {
+    projectId: server.id,
+    projectName: server.name,
+    projectDescription: server.description,
+    awsAccountId: server.aws_account || null,
+    nodeCount: server.node_count,
     lastSavedAt: server.updated_at,
   };
 }

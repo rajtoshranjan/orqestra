@@ -1,6 +1,10 @@
 from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+from organisations.helpers import get_active_organisation, log_action
 
 from .models import User
 
@@ -26,8 +30,8 @@ class UserSerializer(serializers.ModelSerializer):
             validation_errors = {}
             try:
                 validate_password(validated_data["password"])
-            except Exception as exc:
-                validation_errors["password"] = exc
+            except DjangoValidationError as exc:
+                validation_errors["password"] = list(exc.messages)
 
             # Check if user with this email already exists.
             if User.objects.filter(email__iexact=validated_data["email"]).exists():
@@ -67,16 +71,13 @@ class ChangePasswordSerializer(serializers.Serializer):
 
         try:
             validate_password(validated_data["new_password"])
-        except Exception as error:
-            validation_errors["new_password"] = error
+        except DjangoValidationError as exc:
+            validation_errors["new_password"] = list(exc.messages)
 
         if validation_errors:
             raise ValidationError(validation_errors)
 
         return validated_data
-
-
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -95,8 +96,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             old_user = request.user
             request.user = user
             try:
-                from organisations.helpers import get_active_organisation, log_action
-
                 org = get_active_organisation(request)
                 if org:
                     log_action(

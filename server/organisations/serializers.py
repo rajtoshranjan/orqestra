@@ -40,7 +40,13 @@ class OrganisationSerializer(serializers.ModelSerializer):
         if request.user == organisation.owner:
             return "owner"
 
-        member = organisation.members.filter(user=request.user).first()
+        # ``current_user_memberships`` is prefetched for the current user on the
+        # list endpoint; fall back to a query for single-object serialization.
+        memberships = getattr(organisation, "current_user_memberships", None)
+        if memberships is not None:
+            member = memberships[0] if memberships else None
+        else:
+            member = organisation.members.filter(user=request.user).first()
         return member.role if member else None
 
     def create(self, validated_data):

@@ -103,7 +103,7 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
         return a.projectName.localeCompare(b.projectName);
       }
       if (sortBy === 'resources') {
-        return (b.nodes?.length ?? 0) - (a.nodes?.length ?? 0);
+        return (b.nodeCount ?? 0) - (a.nodeCount ?? 0);
       }
       // default: 'saved' (last saved first)
       const dateA = a.lastSavedAt ?? '';
@@ -254,8 +254,8 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
                       <div className="flex flex-wrap items-center gap-2 text-[10px]">
                         <span className="inline-flex select-none items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-2.5 py-0.5 text-xs font-medium text-[var(--color-text-secondary)]">
                           <Layers className="size-2.5 text-[var(--color-text-muted)]" />
-                          {project.nodes.length} resource
-                          {project.nodes.length !== 1 ? 's' : ''}
+                          {project.nodeCount} resource
+                          {project.nodeCount !== 1 ? 's' : ''}
                         </span>
                         <span className="inline-flex select-none items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-2.5 py-0.5 text-xs font-medium text-[var(--color-text-secondary)]">
                           <Clock className="size-2.5 text-[var(--color-text-muted)]" />

@@ -99,9 +99,6 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({
         }
         if (project_id) {
           void queryClient.invalidateQueries({
-            queryKey: ['project-deployments', project_id],
-          });
-          void queryClient.invalidateQueries({
             queryKey: ['project-deployment-state', project_id],
           });
         }

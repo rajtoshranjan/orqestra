@@ -24,7 +24,11 @@ class DeployedResourceSerializer(serializers.ModelSerializer):
 
 
 class DeploymentSerializer(serializers.ModelSerializer):
-    """Read-only serializer for deployment status and logs."""
+    """Lightweight read serializer for deployment status and logs.
+
+    Deliberately excludes the heavy ``graph_snapshot`` and the unused
+    ``tofu_plan_output`` so the polled status endpoint stays small.
+    """
 
     logs = DeploymentLogSerializer(many=True, read_only=True)
 
@@ -36,13 +40,19 @@ class DeploymentSerializer(serializers.ModelSerializer):
             "status",
             "logs",
             "error_message",
-            "tofu_plan_output",
-            "graph_snapshot",
             "started_at",
             "completed_at",
             "created_at",
             "updated_at",
         ]
+        read_only_fields = fields
+
+
+class DeploymentWithGraphSerializer(DeploymentSerializer):
+    """Adds the graph snapshot — used where the canvas overlay needs it."""
+
+    class Meta(DeploymentSerializer.Meta):
+        fields = DeploymentSerializer.Meta.fields + ["graph_snapshot"]
         read_only_fields = fields
 
 
@@ -66,7 +76,7 @@ class DeploymentCallbackSerializer(serializers.Serializer):
 class ProjectDeploymentStateSerializer(serializers.ModelSerializer):
     """Read-only serializer for the current deployment state of a project."""
 
-    last_deployment = DeploymentSerializer(read_only=True)
+    last_deployment = DeploymentWithGraphSerializer(read_only=True)
     resources = DeployedResourceSerializer(many=True, read_only=True)
 
     class Meta:

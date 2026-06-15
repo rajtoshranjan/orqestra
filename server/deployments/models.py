@@ -1,16 +1,8 @@
 from django.db import models
 from orqestra.models import BaseModel
 
+from .constants import DeploymentStatus
 from .managers import DeploymentManager
-
-
-class DeploymentStatus(models.TextChoices):
-    PENDING = "pending", "Pending"
-    GENERATING = "generating", "Generating"
-    INVOKING = "invoking", "Invoking"
-    IN_PROGRESS = "in_progress", "In Progress"
-    SUCCEEDED = "succeeded", "Succeeded"
-    FAILED = "failed", "Failed"
 
 
 class Deployment(BaseModel):

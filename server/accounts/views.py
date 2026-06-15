@@ -67,6 +67,6 @@ class UserViewSet(ModelViewSet):
             # In SimpleJWT, blacklisting a token invalidates it.
             token.blacklist()
             return Response(status=status.HTTP_205_RESET_CONTENT)
-        except Exception as e:
-            response = {"message": str(e)}
+        except Exception as error:
+            response = {"message": str(error)}
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
