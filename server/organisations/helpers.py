@@ -34,9 +34,7 @@ def is_non_guest_member(organisation, user):
 def create_default_organisation(user):
     """Create the personal default organisation owned by the user."""
     first_name = user.name.split(" ")[0] if user.name else "Personal"
-    return Organisation.objects.create(
-        name=f"{first_name}'s Organisation", owner=user
-    )
+    return Organisation.objects.create(name=f"{first_name}'s Organisation", owner=user)
 
 
 def get_active_organisation(request, raise_exception=True):

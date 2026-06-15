@@ -69,9 +69,7 @@ class ProjectViewSetTests(BaseTestCase):
         self.project.nodes = [{"id": "a"}]
         self.project.save(update_fields=["nodes"])
 
-        response = self.client.get(
-            reverse("project-detail", args=[self.project.id])
-        )
+        response = self.client.get(reverse("project-detail", args=[self.project.id]))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("nodes", response.data)
         self.assertEqual(len(response.data["nodes"]), 1)
