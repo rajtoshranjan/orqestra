@@ -299,7 +299,7 @@ export function CommentLayer({
             const { width, height } = getNodeDimensions(hoveredNode);
             return (
               <div
-                className="pointer-events-none absolute animate-pulse rounded-lg border-2 border-dashed border-primary bg-primary/5 transition-all duration-150"
+                className="pointer-events-none absolute rounded-lg border-2 border-dashed border-primary bg-primary/5 transition-all duration-150"
                 style={{
                   left: absPos.x - 4,
                   top: absPos.y - 4,
