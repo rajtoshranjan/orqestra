@@ -346,7 +346,7 @@ export function OrgSettings() {
         description="Manage organisation details, role-based access control permissions, and operational logs."
         maxWidthClass="max-w-6xl"
       >
-        <Card className="max-w-2xl rounded-lg border-border bg-[var(--color-bg-surface)] shadow-none">
+        <Card className="max-w-2xl rounded-lg border-border bg-card shadow-none">
           <CardContent className="flex h-40 flex-col items-center justify-center gap-2 text-center">
             <Lock className="size-5 text-muted-foreground" />
             <p className="text-sm font-semibold text-foreground">
@@ -369,7 +369,7 @@ export function OrgSettings() {
       maxWidthClass="max-w-6xl"
     >
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full max-w-2xl grid-cols-3 rounded-lg border border-border bg-[var(--color-bg-surface)] p-1">
+        <TabsList className="grid w-full max-w-2xl grid-cols-3 rounded-lg border border-border bg-card p-1">
           <TabsTrigger
             value="general"
             className="flex items-center gap-1.5 rounded-md py-1.5 text-xs"
@@ -395,7 +395,7 @@ export function OrgSettings() {
 
         {/* General Tab */}
         <TabsContent value="general" className="space-y-6">
-          <Card className="max-w-2xl rounded-lg border-border bg-[var(--color-bg-surface)] shadow-none">
+          <Card className="max-w-2xl rounded-lg border-border bg-card shadow-none">
             <CardHeader className="p-5">
               <CardTitle className="text-base font-bold text-foreground">
                 Organisation Details
@@ -450,21 +450,15 @@ export function OrgSettings() {
                 Danger Zone
               </CardTitle>
               <CardDescription className="text-xs text-destructive/70">
-                Permanently delete this organisation and all its project
-                designs.
+                Permanently delete this organisation and all its data —
+                architectures, layouts, and audit logs. This action cannot be
+                undone.
               </CardDescription>
             </CardHeader>
             <CardContent className="flex items-center justify-between gap-4 p-5 pt-0">
-              <div className="space-y-0.5">
-                <p className="text-xs font-semibold text-foreground">
-                  Delete this organisation
-                </p>
-                <p className="text-[10px] leading-normal text-muted-foreground">
-                  Once deleted, all data including architectures, layouts, and
-                  audit logs will be permanently deleted. This action cannot be
-                  undone.
-                </p>
-              </div>
+              <p className="text-xs font-semibold text-foreground">
+                Delete this organisation
+              </p>
               <Button
                 variant="destructive"
                 type="button"
@@ -490,7 +484,7 @@ export function OrgSettings() {
 
         {/* Audit Logs Tab */}
         <TabsContent value="logs" className="space-y-6">
-          <Card className="rounded-lg border-border bg-[var(--color-bg-surface)] shadow-none">
+          <Card className="rounded-lg border-border bg-card shadow-none">
             <CardHeader className="p-5">
               <CardTitle className="text-base font-bold text-foreground">
                 Operational Audit Logs
@@ -618,7 +612,7 @@ export function OrgSettings() {
 
       {/* Delete Confirmation Modal */}
       <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-        <DialogContent className="border-border bg-[var(--color-bg-surface)] text-foreground sm:max-w-md">
+        <DialogContent className="border-border bg-card text-foreground sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-sm font-bold text-destructive">
               Delete Organisation
@@ -674,7 +668,7 @@ export function OrgSettings() {
         open={!!selectedLog}
         onOpenChange={(open) => !open && setSelectedLog(null)}
       >
-        <SheetContent className="overflow-y-auto border-l border-border bg-[var(--color-bg-surface)] text-foreground sm:max-w-lg">
+        <SheetContent className="overflow-y-auto border-l border-border bg-card text-foreground sm:max-w-lg">
           <SheetHeader className="space-y-1 border-b border-border pb-4">
             <div className="flex items-center gap-2">
               {selectedLog &&

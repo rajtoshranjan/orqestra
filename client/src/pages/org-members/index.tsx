@@ -38,6 +38,8 @@ import { cn } from '@/lib/utils';
 import { localStorageManager } from '@/lib/utils/local-storage-manager';
 import { getInitials } from '@/utils';
 
+import { canSubmitInvite } from './invite';
+
 /**
  * Computes the first letters of the user or organisation name to render custom avatars.
  */
@@ -200,7 +202,7 @@ export function OrgMembers() {
         description="Manage your organisation members, invite new colleagues, and assign roles."
         maxWidthClass="max-w-4xl"
       >
-        <Card className="border-border/80 bg-[var(--color-bg-surface)] shadow-none">
+        <Card className="border-border/80 bg-card shadow-none">
           <CardContent className="flex h-40 flex-col items-center justify-center gap-2 text-center">
             <Shield className="size-5 text-muted-foreground" />
             <p className="text-sm font-semibold text-foreground">
@@ -224,7 +226,7 @@ export function OrgMembers() {
     >
       <div className="space-y-6">
         {canManageMembers && (
-          <Card className="border-border/80 bg-[var(--color-bg-surface)] shadow-none">
+          <Card className="border-border/80 bg-card shadow-none">
             <CardHeader className="p-4 pb-2">
               <CardTitle className="flex items-center gap-2 text-base font-bold text-foreground">
                 <UserPlus className="size-4 text-primary" />
@@ -237,50 +239,35 @@ export function OrgMembers() {
             </CardHeader>
             <CardContent className="p-4 pt-0">
               <form onSubmit={handleInviteMember} className="space-y-4">
-                <div className="grid items-end gap-4 sm:grid-cols-3">
-                  <div className="space-y-1 sm:col-span-2">
-                    <label
-                      htmlFor="invite-email"
-                      className="text-xs font-semibold text-muted-foreground"
-                    >
-                      Email Address
-                    </label>
-                    <Input
-                      id="invite-email"
-                      type="email"
-                      required
-                      value={inviteEmail}
-                      onChange={(event) => setInviteEmail(event.target.value)}
-                      placeholder="colleague@example.com"
-                      className={cn(
-                        'h-10 border-border bg-background/50 text-sm focus-visible:ring-primary',
-                        !isValidEmail &&
-                          'border-destructive focus-visible:ring-destructive',
-                      )}
-                    />
-                    {!isValidEmail && (
-                      <p className="text-[10px] text-destructive">
-                        Please enter a valid email address.
-                      </p>
+                {/* Step 1: Email */}
+                <div className="space-y-1">
+                  <label
+                    htmlFor="invite-email"
+                    className="text-xs font-semibold text-muted-foreground"
+                  >
+                    Email Address
+                  </label>
+                  <Input
+                    id="invite-email"
+                    type="email"
+                    required
+                    value={inviteEmail}
+                    onChange={(event) => setInviteEmail(event.target.value)}
+                    placeholder="colleague@example.com"
+                    className={cn(
+                      'h-10 border-border bg-background/50 text-sm focus-visible:ring-primary',
+                      !isValidEmail &&
+                        'border-destructive focus-visible:ring-destructive',
                     )}
-                  </div>
-                  <div>
-                    <Button
-                      type="submit"
-                      className="h-10 w-full text-xs font-semibold"
-                      disabled={
-                        inviteMutation.isPending ||
-                        isEmailEmpty ||
-                        !emailRegex.test(inviteEmail.trim())
-                      }
-                    >
-                      {inviteMutation.isPending
-                        ? 'Sending...'
-                        : 'Invite Member'}
-                    </Button>
-                  </div>
+                  />
+                  {!isValidEmail && (
+                    <p className="text-xs text-destructive">
+                      Please enter a valid email address.
+                    </p>
+                  )}
                 </div>
 
+                {/* Step 2: Role */}
                 <div className="space-y-2">
                   <label className="text-xs font-semibold text-muted-foreground">
                     Select Member Role
@@ -311,7 +298,7 @@ export function OrgMembers() {
                               <Check className="animate-scale-in size-3.5 text-primary" />
                             )}
                           </span>
-                          <span className="mt-1 text-[10px] leading-normal text-muted-foreground">
+                          <span className="mt-1 text-xs leading-normal text-muted-foreground">
                             {roleOption.desc}
                           </span>
                         </button>
@@ -319,12 +306,26 @@ export function OrgMembers() {
                     })}
                   </div>
                 </div>
+
+                {/* Step 3: Submit */}
+                <div className="flex justify-end pt-1">
+                  <Button
+                    type="submit"
+                    className="h-10 text-xs font-semibold sm:min-w-40"
+                    disabled={
+                      inviteMutation.isPending ||
+                      !canSubmitInvite({ email: inviteEmail, role: inviteRole })
+                    }
+                  >
+                    {inviteMutation.isPending ? 'Sending...' : 'Invite Member'}
+                  </Button>
+                </div>
               </form>
             </CardContent>
           </Card>
         )}
 
-        <Card className="border-border/80 bg-[var(--color-bg-surface)] shadow-none">
+        <Card className="border-border/80 bg-card shadow-none">
           <CardHeader className="p-4 pb-2">
             <CardTitle className="flex items-center gap-2 text-base font-bold text-foreground">
               <Users className="size-4 text-primary" />
@@ -418,7 +419,7 @@ export function OrgMembers() {
                                   </button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent
-                                  className="w-40 border-border bg-[var(--color-bg-surface)] text-foreground"
+                                  className="w-40 border-border bg-card text-foreground"
                                   align="start"
                                 >
                                   {ROLE_OPTIONS.map((roleOpt) => (
