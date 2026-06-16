@@ -102,7 +102,7 @@ export function LoginPage() {
               htmlFor="email"
               className="text-xs font-semibold text-foreground"
             >
-              Email Address
+              Email address
             </label>
             <Input
               {...register('email')}

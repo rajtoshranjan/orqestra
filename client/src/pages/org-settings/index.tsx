@@ -148,8 +148,8 @@ export function OrgSettings() {
       {
         onSuccess: () => {
           toast({
-            title: 'Success',
-            description: 'Organisation details updated',
+            title: 'Organisation updated',
+            description: 'Your changes have been saved.',
           });
         },
       },
@@ -344,8 +344,8 @@ export function OrgSettings() {
   if (isGuest) {
     return (
       <PageLayout
-        title="Organisation Settings"
-        description="Manage organisation details, role-based access control permissions, and operational logs."
+        title="Organisation settings"
+        description="Manage your organisation’s details, members, and activity log."
         maxWidthClass="max-w-6xl"
       >
         <Card className="max-w-2xl rounded-lg border-border bg-card shadow-none">
@@ -366,8 +366,8 @@ export function OrgSettings() {
 
   return (
     <PageLayout
-      title="Organisation Settings"
-      description="Manage organisation details, role-based access control permissions, and operational logs."
+      title="Organisation settings"
+      description="Manage your organisation’s details, members, and activity log."
       maxWidthClass="max-w-6xl"
     >
       <Tabs defaultValue="general" className="space-y-6">
@@ -384,14 +384,14 @@ export function OrgSettings() {
             className="flex items-center gap-1.5 rounded-md py-1.5 text-xs"
           >
             <Cloud className="size-3.5" />
-            AWS Accounts
+            AWS accounts
           </TabsTrigger>
           <TabsTrigger
             value="logs"
             className="flex items-center gap-1.5 rounded-md py-1.5 text-xs"
           >
             <History className="size-3.5" />
-            Audit Logs
+            Audit logs
           </TabsTrigger>
         </TabsList>
 
@@ -400,7 +400,7 @@ export function OrgSettings() {
           <Card className="max-w-2xl rounded-lg border-border bg-card shadow-none">
             <CardHeader className="p-5">
               <CardTitle className="text-base font-bold text-foreground">
-                Organisation Details
+                Organisation details
               </CardTitle>
               <CardDescription className="text-xs text-muted-foreground">
                 Change the display name of your organisation.
@@ -413,13 +413,13 @@ export function OrgSettings() {
                     htmlFor="org-name"
                     className="text-xs font-semibold text-muted-foreground"
                   >
-                    Organisation Name
+                    Organisation name
                   </label>
                   <Input
                     id="org-name"
                     value={orgName}
                     onChange={(event) => setOrgName(event.target.value)}
-                    placeholder="My Organisation"
+                    placeholder="Acme Inc"
                     disabled={!canManage}
                     className="h-10 text-sm"
                   />
@@ -436,8 +436,8 @@ export function OrgSettings() {
                       }
                     >
                       {updateOrganisationMutation.isPending
-                        ? 'Saving...'
-                        : 'Save Name'}
+                        ? 'Saving…'
+                        : 'Save name'}
                     </Button>
                   </div>
                 )}
@@ -489,11 +489,11 @@ export function OrgSettings() {
           <Card className="rounded-lg border-border bg-card shadow-none">
             <CardHeader className="p-5">
               <CardTitle className="text-base font-bold text-foreground">
-                Operational Audit Logs
+                Audit log
               </CardTitle>
               <CardDescription className="text-xs text-muted-foreground">
-                Track logins, deployment workflows, resource updates, and
-                configuration actions executed in this organisation.
+                Track logins, deployments, and configuration changes in this
+                organisation.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 p-5 pt-0">
@@ -626,7 +626,7 @@ export function OrgSettings() {
         <DialogContent className="border-border bg-card text-foreground sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-sm font-bold text-destructive">
-              Delete Organisation
+              Delete organisation
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
               This action is permanent. Please type{' '}
@@ -700,10 +700,10 @@ export function OrgSettings() {
                 )}
             </div>
             <SheetTitle className="text-base font-bold tracking-tight text-foreground">
-              Audit Log Details
+              Audit log details
             </SheetTitle>
             <SheetDescription className="text-xs text-muted-foreground">
-              Detailed logs and parameters for this action.
+              Full details and parameters for this action.
             </SheetDescription>
           </SheetHeader>
 
@@ -759,7 +759,7 @@ export function OrgSettings() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5 text-xs font-semibold text-destructive">
                       <AlertTriangle className="size-4" />
-                      <span>Execution Error</span>
+                      <span>Execution error</span>
                     </div>
                     <CopyButton
                       value={String(
@@ -777,7 +777,7 @@ export function OrgSettings() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-foreground">
-                    Log Parameters
+                    Log parameters
                   </span>
                   <CopyButton
                     value={JSON.stringify(selectedLog.details, null, 2)}

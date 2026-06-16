@@ -40,8 +40,8 @@ export function NodeInspector({
     return (
       <aside className="animate-slide-in-right flex h-full w-[320px] shrink-0 flex-col justify-center border-l border-border bg-card">
         <EmptyState
-          title="No node selected"
-          description="Select any cloud resource on the canvas to inspect and configure its settings."
+          title="Nothing selected"
+          description="Select a resource on the canvas to configure it."
           icon={MousePointer2}
           className="px-6"
         />
@@ -58,7 +58,7 @@ export function NodeInspector({
       <aside className="flex h-full w-[320px] shrink-0 flex-col justify-center border-l border-border bg-card">
         <EmptyState
           title="Unknown service"
-          description={`The service type "${serviceId}" is not registered in this system.`}
+          description={`The service type “${serviceId}” isn’t registered.`}
           icon={MousePointer2}
           className="px-6"
         />
@@ -600,7 +600,7 @@ export function NodeInspector({
                           size="sm"
                           variant="outline"
                           onClick={() => triggerAutoFix('role')}
-                          className="mt-0.5 h-auto w-full justify-start py-0.5 text-[9px] text-warning hover:bg-warning/10 hover:text-warning"
+                          className="hover:bg-warning/10 mt-0.5 h-auto w-full justify-start py-0.5 text-[9px] text-warning hover:text-warning"
                         >
                           Auto-Fix: Create & Connect Role
                         </Button>
@@ -611,7 +611,7 @@ export function NodeInspector({
                           size="sm"
                           variant="outline"
                           onClick={() => triggerAutoFix('network')}
-                          className="mt-0.5 h-auto w-full justify-start py-0.5 text-[9px] text-success hover:bg-success/10 hover:text-success"
+                          className="hover:bg-success/10 mt-0.5 h-auto w-full justify-start py-0.5 text-[9px] text-success hover:text-success"
                         >
                           Auto-Fix: Create & Connect VPC Network
                         </Button>
@@ -622,7 +622,7 @@ export function NodeInspector({
                           size="sm"
                           variant="outline"
                           onClick={() => triggerAutoFix('vpc')}
-                          className="mt-0.5 h-auto w-full justify-start py-0.5 text-[9px] text-success hover:bg-success/10 hover:text-success"
+                          className="hover:bg-success/10 mt-0.5 h-auto w-full justify-start py-0.5 text-[9px] text-success hover:text-success"
                         >
                           Auto-Fix: Create & Connect VPC
                         </Button>
@@ -633,7 +633,7 @@ export function NodeInspector({
                           size="sm"
                           variant="outline"
                           onClick={() => triggerMoveToVPC()}
-                          className="mt-0.5 h-auto w-full justify-start py-0.5 text-[9px] text-success hover:bg-success/10 hover:text-success"
+                          className="hover:bg-success/10 mt-0.5 h-auto w-full justify-start py-0.5 text-[9px] text-success hover:text-success"
                         >
                           Auto-Fix: Move into VPC Container
                         </Button>

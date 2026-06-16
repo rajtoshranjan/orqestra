@@ -382,7 +382,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
         <DialogContent className="border-border bg-card text-foreground sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-sm font-bold text-foreground">
-              Create Organisation
+              Create organisation
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleCreateOrganisationSubmit} className="space-y-4">
@@ -397,7 +397,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                 id="organisation-name"
                 value={newOrganisationName}
                 onChange={(event) => setNewOrganisationName(event.target.value)}
-                placeholder="My Awesome Org"
+                placeholder="Acme Inc"
                 className="h-8 border-input text-xs text-foreground focus-visible:ring-primary"
               />
             </div>

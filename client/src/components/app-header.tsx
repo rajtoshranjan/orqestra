@@ -30,11 +30,11 @@ const getCurrentSectionLabel = (): string => {
   }
 
   if (path === '/org-settings') {
-    return 'Organisation Settings';
+    return 'Organisation settings';
   }
 
   if (path === '/org-members') {
-    return 'Organisation Members';
+    return 'Organisation members';
   }
 
   return path.replace('/', '');
@@ -89,7 +89,7 @@ export function AppHeader() {
             <span className="text-xs text-muted-foreground/40">/</span>
           </>
         ) : null}
-        <span className="truncate text-xs font-semibold capitalize text-foreground">
+        <span className="truncate text-xs font-semibold text-foreground">
           {getCurrentSectionLabel()}
         </span>
       </div>

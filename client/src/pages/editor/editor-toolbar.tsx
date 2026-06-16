@@ -162,7 +162,7 @@ function EditorToolbarComponent({
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="text-xs">
-                Edit Project Info
+                Edit project info
               </TooltipContent>
             </Tooltip>
 
@@ -237,7 +237,7 @@ function EditorToolbarComponent({
               <div className="space-y-2">
                 <div className="flex items-center justify-between border-b border-border/60 pb-1.5">
                   <span className="text-xs font-bold text-foreground">
-                    Validation Findings
+                    Validation findings
                   </span>
                   <Badge
                     variant={invalidNodeCount > 0 ? 'warning' : 'success'}
@@ -325,8 +325,8 @@ function EditorToolbarComponent({
                   )}
                   title={
                     isLocked
-                      ? 'Unlock Editor (⌥Shift+L)'
-                      : 'Lock Editor (⌥Shift+L)'
+                      ? 'Unlock editor (⌥Shift+L)'
+                      : 'Lock editor (⌥Shift+L)'
                   }
                 >
                   {isLocked ? <Lock size={15} /> : <Unlock size={15} />}
@@ -334,8 +334,8 @@ function EditorToolbarComponent({
               </TooltipTrigger>
               <TooltipContent side="bottom" className="text-xs">
                 {isLocked
-                  ? 'Unlock Editor (⌥Shift+L)'
-                  : 'Lock Editor (⌥Shift+L)'}
+                  ? 'Unlock editor (⌥Shift+L)'
+                  : 'Lock editor (⌥Shift+L)'}
               </TooltipContent>
             </Tooltip>
           )}
@@ -353,13 +353,13 @@ function EditorToolbarComponent({
                   snapToGrid &&
                     'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
                 )}
-                title="Toggle Snap to Grid (⌥G)"
+                title="Toggle snap to grid (⌥G)"
               >
                 <Grid3x3 size={15} />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-xs">
-              Toggle Snap to Grid (⌥G)
+              Toggle snap to grid (⌥G)
             </TooltipContent>
           </Tooltip>
 
@@ -377,13 +377,13 @@ function EditorToolbarComponent({
                   commentMode &&
                     'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
                 )}
-                title="Toggle Comments Panel"
+                title="Toggle comments panel"
               >
                 <CommentMarker size={15} />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-xs">
-              {commentMode ? 'Hide Comments Panel' : 'Show Comments Panel'}
+              {commentMode ? 'Hide comments panel' : 'Show comments panel'}
             </TooltipContent>
           </Tooltip>
 
@@ -394,7 +394,7 @@ function EditorToolbarComponent({
                 variant="ghost"
                 size="icon"
                 className="size-8 text-muted-foreground transition-all duration-200 hover:bg-accent/20 hover:text-primary"
-                title="Canvas Actions"
+                title="Canvas actions"
                 aria-label="Canvas actions"
               >
                 <MoreHorizontal size={15} />
@@ -409,7 +409,7 @@ function EditorToolbarComponent({
                 disabled={readOnly}
                 className="flex cursor-pointer items-center justify-between text-xs disabled:opacity-50"
               >
-                <span>Auto Layout</span>
+                <span>Auto layout</span>
                 <kbd className="rounded border border-border/60 bg-muted px-1.5 text-[9px] opacity-65">
                   ⌥L
                 </kbd>
@@ -419,14 +419,14 @@ function EditorToolbarComponent({
                 disabled={isLocked || readOnly}
                 className="cursor-pointer text-xs text-destructive hover:text-destructive/80 focus:text-destructive/80 disabled:opacity-50"
               >
-                Clear Canvas
+                Clear canvas
               </DropdownMenuItem>
 
               <DropdownMenuItem
                 onClick={onHelp}
                 className="flex cursor-pointer items-center justify-between text-xs"
               >
-                <span>Keyboard Shortcuts</span>
+                <span>Keyboard shortcuts</span>
                 <kbd className="rounded border border-border/60 bg-muted px-1.5 text-[9px] opacity-65">
                   ?
                 </kbd>

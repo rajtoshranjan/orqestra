@@ -185,8 +185,8 @@ export function ServiceCatalog({
         {!collapsed && filteredServicesByCategory.size === 0 && (
           <EmptyState
             icon={Search}
-            title=" No services found"
-            description={`We couldn't find any services matching "${searchTerm}"`}
+            title="No services found"
+            description={`No services match “${searchTerm}”.`}
             size="sm"
           />
         )}

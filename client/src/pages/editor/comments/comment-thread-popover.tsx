@@ -314,8 +314,8 @@ export function CommentThreadPopover({
       <ConfirmDialog
         open={showDeleteConfirm}
         onOpenChange={setShowDeleteConfirm}
-        title="Delete Thread"
-        description="Are you sure you want to delete this comment thread? This action cannot be undone."
+        title="Delete thread"
+        description="Delete this comment thread? This can’t be undone."
         confirmText="Delete"
         cancelText="Cancel"
         variant="destructive"

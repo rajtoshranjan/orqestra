@@ -87,7 +87,7 @@ export function useCanvasShortcuts({
         handler: () => {
           dispatch(setIsLocked(!isLocked));
           toast({
-            title: !isLocked ? 'Editor Locked' : 'Editor Unlocked',
+            title: !isLocked ? 'Editor locked' : 'Editor unlocked',
             description: !isLocked
               ? 'Resource configurations and positions are frozen.'
               : 'You can now configure and move resources.',
@@ -107,7 +107,7 @@ export function useCanvasShortcuts({
         handler: () => {
           dispatch(setSnapToGrid(!snapToGrid));
           toast({
-            title: 'Grid Snapping',
+            title: 'Grid snapping',
             description: !snapToGrid
               ? 'Elements will now align to the grid.'
               : 'Free dragging enabled.',

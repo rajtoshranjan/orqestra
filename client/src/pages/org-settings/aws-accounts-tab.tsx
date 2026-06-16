@@ -82,8 +82,8 @@ export function AWSAccountsTab({ canManage }: AWSAccountsTabProps) {
       !formData.secretAccessKey
     ) {
       toast({
-        title: 'Validation Error',
-        description: 'Name and credentials are required.',
+        title: 'Missing details',
+        description: 'Enter a name and credentials to continue.',
         variant: 'destructive',
       });
       return;
@@ -96,24 +96,24 @@ export function AWSAccountsTab({ canManage }: AWSAccountsTabProps) {
           data: formData,
         });
         toast({
-          title: 'Success',
-          description: 'AWS account updated successfully.',
+          title: 'AWS account updated',
+          description: 'Your changes have been saved.',
         });
       } else {
         await createMutation.mutateAsync(formData);
         toast({
-          title: 'Success',
-          description: 'AWS account created successfully.',
+          title: 'AWS account added',
+          description: 'The account is ready to use.',
         });
       }
       handleDialogOpenChange(false);
     } catch (error: unknown) {
       toast({
-        title: 'Error',
+        title: 'Couldn’t save account',
         description:
           error instanceof Error
             ? error.message
-            : 'Failed to save AWS account.',
+            : 'We couldn’t save this AWS account. Please try again.',
         variant: 'destructive',
       });
     }
@@ -124,18 +124,18 @@ export function AWSAccountsTab({ canManage }: AWSAccountsTabProps) {
     try {
       await deleteMutation.mutateAsync(accountToDelete);
       toast({
-        title: 'Success',
-        description: 'AWS account deleted successfully.',
+        title: 'AWS account deleted',
+        description: 'The account has been removed.',
       });
       setDeleteConfirmOpen(false);
       setAccountToDelete(null);
     } catch (error: unknown) {
       toast({
-        title: 'Error',
+        title: 'Couldn’t delete account',
         description:
           error instanceof Error
             ? error.message
-            : 'Failed to delete AWS account.',
+            : 'We couldn’t delete this AWS account. Please try again.',
         variant: 'destructive',
       });
     }
@@ -248,7 +248,7 @@ export function AWSAccountsTab({ canManage }: AWSAccountsTabProps) {
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>
-              {editingAccountId ? 'Edit AWS Account' : 'Add AWS Account'}
+              {editingAccountId ? 'Edit AWS account' : 'Add AWS account'}
             </DialogTitle>
             <DialogDescription>
               {editingAccountId
@@ -346,8 +346,8 @@ export function AWSAccountsTab({ canManage }: AWSAccountsTabProps) {
       <ConfirmDialog
         open={deleteConfirmOpen}
         onOpenChange={setDeleteConfirmOpen}
-        title="Delete AWS Account"
-        description="Are you sure you want to delete this AWS account? This action cannot be undone."
+        title="Delete AWS account"
+        description="Delete this AWS account? This can’t be undone."
         confirmText="Delete"
         cancelText="Cancel"
         variant="destructive"

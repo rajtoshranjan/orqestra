@@ -264,7 +264,7 @@ export function Preferences() {
                     htmlFor="email"
                     className="text-xs font-bold text-muted-foreground"
                   >
-                    Email Address
+                    Email address
                   </label>
                   <Input
                     id="email"

@@ -117,8 +117,8 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
   /* Render */
   return (
     <PageLayout
-      title="Your Projects"
-      description="Design, validate, and deploy secure cloud architectures directly on a visual, interactive canvas."
+      title="Your projects"
+      description="Design, validate, and deploy cloud architecture on a visual canvas."
     >
       {/* Main Grid View */}
       <div className="relative z-10 mt-6 flex w-full flex-1 flex-col">
@@ -324,16 +324,16 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
       <Dialog open={newProjectOpen} onOpenChange={setNewProjectOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Create New Project</DialogTitle>
+            <DialogTitle>Create a new project</DialogTitle>
             <DialogDescription>
-              Set up a new architecture project. You can configure additional
-              settings later in the editor.
+              Name your project and pick an AWS account. You can change the rest
+              later in the editor.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <label htmlFor="projectName" className="text-sm font-medium">
-                Project Name
+                Project name
               </label>
               <Input
                 id="projectName"
@@ -352,7 +352,7 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
                 htmlFor="projectDescription"
                 className="text-sm font-medium"
               >
-                Description (Optional)
+                Description (optional)
               </label>
               <Textarea
                 id="projectDescription"
@@ -368,7 +368,7 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
             </div>
             <div className="grid gap-2">
               <label htmlFor="awsAccount" className="text-sm font-medium">
-                AWS Account
+                AWS account
               </label>
               {awsAccountsLoading ? (
                 <div className="rounded-md border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
@@ -418,7 +418,7 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
                 awsAccounts.length === 0
               }
             >
-              Create Project
+              Create project
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -428,8 +428,8 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
       <ConfirmDialog
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
-        title="Delete Project"
-        description="Are you sure you want to delete this project? This will permanently delete the project workspace and all configuration settings from the server. This action cannot be undone."
+        title="Delete project"
+        description="Delete this project? This permanently removes the project and all its settings. This can’t be undone."
         confirmText="Delete"
         cancelText="Cancel"
         variant="destructive"

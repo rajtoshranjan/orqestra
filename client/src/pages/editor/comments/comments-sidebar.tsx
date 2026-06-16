@@ -85,7 +85,7 @@ function AnnotationCard({
           </Badge>
         )}
         {isDetached && (
-          <Badge className="gap-0.5 bg-warning/15 px-1.5 py-0 text-[9px] text-warning">
+          <Badge className="bg-warning/15 gap-0.5 px-1.5 py-0 text-[9px] text-warning">
             <Unlink size={8} /> Detached
           </Badge>
         )}
@@ -212,7 +212,7 @@ export function CommentsSidebar({ comments }: CommentsSidebarProps) {
                 ? 'border-primary/40 bg-primary/15 text-primary'
                 : 'border-border text-muted-foreground hover:bg-accent',
             )}
-            title="Toggle Review Mode"
+            title="Toggle review mode"
           >
             <ScanEye size={11} />
             Review

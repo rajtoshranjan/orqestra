@@ -52,12 +52,12 @@ const ROLE_OPTIONS = [
   },
   {
     value: 'regular' as const,
-    label: 'Regular Member',
+    label: 'Regular member',
     desc: 'Can view, create and manage projects. Cannot edit settings or invite members.',
   },
   {
     value: 'guest' as const,
-    label: 'Guest / Viewer',
+    label: 'Guest / viewer',
     desc: 'Read-only access to browse projects. Cannot make edits or trigger deployments.',
   },
 ];
@@ -101,8 +101,8 @@ export function OrgMembers() {
       {
         onSuccess: () => {
           toast({
-            title: 'Success',
-            description: `Invited ${inviteEmail.trim()} successfully.`,
+            title: 'Member invited',
+            description: `Invited ${inviteEmail.trim()}.`,
           });
           setInviteEmail('');
         },
@@ -111,9 +111,9 @@ export function OrgMembers() {
             error.response?.data?.email?.[0] ||
             error.response?.data?.email ||
             error.response?.data?.detail ||
-            'Failed to invite member. Please verify if they have an active account.';
+            'We couldn’t send the invite. Check that they already have an account.';
           toast({
-            title: 'Error',
+            title: 'Invitation failed',
             description: errorMsg,
             variant: 'destructive',
           });
@@ -128,7 +128,7 @@ export function OrgMembers() {
       onSuccess: () => {
         toast({
           title: 'Member removed',
-          description: `${memberToRemove.email} removed from organisation.`,
+          description: `Removed ${memberToRemove.email} from the organisation.`,
         });
         setMemberToRemove(null);
       },
@@ -136,9 +136,9 @@ export function OrgMembers() {
         const errorMsg =
           error.response?.data?.detail ||
           error.message ||
-          'Failed to remove member.';
+          'We couldn’t remove this member. Please try again.';
         toast({
-          title: 'Error',
+          title: 'Couldn’t remove member',
           description: errorMsg,
           variant: 'destructive',
         });
@@ -156,17 +156,17 @@ export function OrgMembers() {
       {
         onSuccess: () => {
           toast({
-            title: 'Success',
-            description: 'Member role updated successfully.',
+            title: 'Role updated',
+            description: 'The member’s role has been updated.',
           });
         },
         onError: (error: any) => {
           const errorMsg =
             error.response?.data?.detail ||
             error.message ||
-            'Failed to update member role.';
+            'We couldn’t update the role. Please try again.';
           toast({
-            title: 'Error',
+            title: 'Couldn’t update role',
             description: errorMsg,
             variant: 'destructive',
           });
@@ -200,7 +200,7 @@ export function OrgMembers() {
     return (
       <PageLayout
         title="Organisation members"
-        description="Manage your organisation members, invite new colleagues, and assign roles."
+        description="Invite people to your organisation and manage their roles."
         maxWidthClass="max-w-4xl"
       >
         <Card className="border-border/80 bg-card shadow-none">
@@ -222,7 +222,7 @@ export function OrgMembers() {
   return (
     <PageLayout
       title="Organisation members"
-      description="Manage your organisation members, invite new colleagues, and assign roles."
+      description="Invite people to your organisation and manage their roles."
       maxWidthClass="max-w-4xl"
     >
       <div className="space-y-6">
@@ -231,7 +231,7 @@ export function OrgMembers() {
             <CardHeader className="p-4 pb-2">
               <CardTitle className="flex items-center gap-2 text-base font-bold text-foreground">
                 <UserPlus className="size-4 text-primary" />
-                Invite Team Member
+                Invite team member
               </CardTitle>
               <CardDescription className="text-xs">
                 Invite users to collaborate on this organisation. They must
@@ -246,7 +246,7 @@ export function OrgMembers() {
                     htmlFor="invite-email"
                     className="text-xs font-semibold text-muted-foreground"
                   >
-                    Email Address
+                    Email address
                   </label>
                   <Input
                     id="invite-email"
@@ -271,7 +271,7 @@ export function OrgMembers() {
                 {/* Step 2: Role */}
                 <div className="space-y-2">
                   <label className="text-xs font-semibold text-muted-foreground">
-                    Select Member Role
+                    Select member role
                   </label>
                   <div className="grid gap-3 sm:grid-cols-3">
                     {ROLE_OPTIONS.map((roleOption) => {
@@ -318,7 +318,7 @@ export function OrgMembers() {
                       !canSubmitInvite({ email: inviteEmail, role: inviteRole })
                     }
                   >
-                    {inviteMutation.isPending ? 'Sending...' : 'Invite Member'}
+                    {inviteMutation.isPending ? 'Sending…' : 'Invite member'}
                   </Button>
                 </div>
               </form>
@@ -330,7 +330,7 @@ export function OrgMembers() {
           <CardHeader className="p-4 pb-2">
             <CardTitle className="flex items-center gap-2 text-base font-bold text-foreground">
               <Users className="size-4 text-primary" />
-              Organisation Directory
+              Organisation directory
             </CardTitle>
             <CardDescription className="text-xs">
               An overview of all users currently in this organisation.
@@ -493,8 +493,8 @@ export function OrgMembers() {
       <ConfirmDialog
         open={!!memberToRemove}
         onOpenChange={(isOpen) => !isOpen && setMemberToRemove(null)}
-        title="Remove Team Member"
-        description={`Are you sure you want to remove "${memberToRemove?.email}" from the organisation? They will immediately lose access to all projects and infrastructure layouts.`}
+        title="Remove team member"
+        description={`Remove ${memberToRemove?.email} from the organisation? They’ll immediately lose access to all projects.`}
         confirmText="Remove Member"
         cancelText="Cancel"
         variant="destructive"
