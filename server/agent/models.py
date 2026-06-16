@@ -21,6 +21,9 @@ class AgentConversation(BaseModel):
         choices=ConversationStatus.choices(),
         default=ConversationStatus.ACTIVE.value,
     )
+    # Client-supplied service catalog snapshot (frontend registry projection),
+    # used by the engine for prompt + grounding. Stored once at creation.
+    catalog = models.JSONField(default=list, blank=True)
 
     class Meta(BaseModel.Meta):
         db_table = "agent_conversations"
@@ -64,3 +67,7 @@ class AgentRun(BaseModel):
 
     def __str__(self):
         return f"Run {self.id} ({self.status})"
+
+    @property
+    def organisation(self):
+        return self.conversation.project.organisation
