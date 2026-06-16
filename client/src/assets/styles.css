@@ -57,12 +57,12 @@
     --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.6);
     --shadow-glow: 0 0 40px rgba(113, 86, 251, 0.15);
 
-    /* Radii */
-    --radius-sm: 6px;
-    --radius-md: 8px;
-    --radius-lg: 12px;
-    --radius-xl: 16px;
-    --radius-2xl: 20px;
+    /* Radii — derived from the shadcn --radius base (single scale) */
+    --radius-sm: calc(var(--radius) - 2px); /* 6px */
+    --radius-md: var(--radius); /* 8px */
+    --radius-lg: calc(var(--radius) + 4px); /* 12px */
+    --radius-xl: calc(var(--radius) + 8px); /* 16px */
+    --radius-2xl: calc(var(--radius) + 12px); /* 20px */
     --radius-full: 9999px;
 
     /* Transitions */
