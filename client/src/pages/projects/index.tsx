@@ -52,7 +52,8 @@ type ProjectsProps = {
 export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
   const { data: projects = [], isLoading } = useProjects();
   const { canWrite } = usePermissions();
-  const { data: awsAccounts = [] } = useAWSAccounts(canWrite);
+  const { data: awsAccounts = [], isLoading: awsAccountsLoading } =
+    useAWSAccounts(canWrite);
   const deleteProjectMutation = useDeleteProject();
 
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -369,7 +370,11 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
               <label htmlFor="awsAccount" className="text-sm font-medium">
                 AWS Account
               </label>
-              {awsAccounts.length === 0 ? (
+              {awsAccountsLoading ? (
+                <div className="rounded-md border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
+                  Loading AWS accounts…
+                </div>
+              ) : awsAccounts.length === 0 ? (
                 <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
                   No AWS accounts found. Please configure one in{' '}
                   <a

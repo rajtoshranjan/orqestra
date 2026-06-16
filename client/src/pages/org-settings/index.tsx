@@ -8,6 +8,7 @@ import {
   Cloud,
   Copy,
   History,
+  Loader2,
   Lock,
   Search,
 } from 'lucide-react';
@@ -27,6 +28,7 @@ import {
   CardDescription,
   Button,
   Input,
+  LoadingState,
   Tabs,
   TabsContent,
   TabsList,
@@ -503,8 +505,11 @@ export function OrgSettings() {
                   placeholder="Search logs by action or actor..."
                   value={logSearch}
                   onChange={(event) => setLogSearch(event.target.value)}
-                  className="h-8 border-border bg-background/50 pl-8 text-xs"
+                  className="h-8 border-border bg-background/50 px-8 text-xs"
                 />
+                {auditLogsQuery.isFetching && !auditLogsQuery.isLoading && (
+                  <Loader2 className="absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 animate-spin text-muted-foreground" />
+                )}
               </div>
 
               <Table>
@@ -517,7 +522,13 @@ export function OrgSettings() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {auditLogs.length === 0 ? (
+                  {auditLogsQuery.isLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="p-4">
+                        <LoadingState variant="skeleton-card" count={5} />
+                      </TableCell>
+                    </TableRow>
+                  ) : auditLogs.length === 0 ? (
                     <TableRow>
                       <TableCell
                         colSpan={4}

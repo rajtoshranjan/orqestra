@@ -1,6 +1,13 @@
 import { useState } from 'react';
 
-import { AtSign, Bell, Check, MessageSquare, Reply } from 'lucide-react';
+import {
+  AtSign,
+  Bell,
+  Check,
+  Loader2,
+  MessageSquare,
+  Reply,
+} from 'lucide-react';
 
 import {
   useMarkNotificationsRead,
@@ -37,7 +44,8 @@ export function NotificationsBell({
   onOpenAnnotation,
 }: NotificationsBellProps = {}) {
   const [open, setOpen] = useState(false);
-  const { data: notifications = [] } = useNotifications(open);
+  const { data: notifications = [], isLoading: notificationsLoading } =
+    useNotifications(open);
   const { data: unreadCount = 0 } = useUnreadNotificationCount();
   const markReadMutation = useMarkNotificationsRead();
 
@@ -95,7 +103,12 @@ export function NotificationsBell({
         </div>
 
         <div className="max-h-80 overflow-y-auto">
-          {notifications.length === 0 ? (
+          {notificationsLoading ? (
+            <div className="flex items-center justify-center gap-2 px-4 py-8 text-muted-foreground">
+              <Loader2 size={14} className="animate-spin" />
+              <span className="text-xs">Loading notifications…</span>
+            </div>
+          ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center gap-2 px-4 py-8 text-center">
               <MessageSquare size={18} className="text-muted-foreground" />
               <p className="text-xs text-muted-foreground">

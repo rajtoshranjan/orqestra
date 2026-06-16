@@ -31,6 +31,7 @@ import {
   TableRow,
   TableHead,
   TableCell,
+  LoadingState,
 } from '@/components/ui';
 import { toast } from '@/hooks/use-toast';
 
@@ -39,7 +40,7 @@ type AWSAccountsTabProps = {
 };
 
 export function AWSAccountsTab({ canManage }: AWSAccountsTabProps) {
-  const { data: awsAccounts = [] } = useAWSAccounts();
+  const { data: awsAccounts = [], isLoading } = useAWSAccounts();
   const createMutation = useCreateAWSAccount();
   const updateMutation = useUpdateAWSAccount();
   const deleteMutation = useDeleteAWSAccount();
@@ -158,7 +159,7 @@ export function AWSAccountsTab({ canManage }: AWSAccountsTabProps) {
 
   return (
     <>
-      <Card className="rounded-lg border-border bg-[var(--color-bg-surface)] shadow-none">
+      <Card className="rounded-lg border-border bg-card shadow-none">
         <CardHeader className="flex flex-row items-center justify-between p-5">
           <div>
             <CardTitle className="text-base font-bold text-foreground">
@@ -176,7 +177,9 @@ export function AWSAccountsTab({ canManage }: AWSAccountsTabProps) {
           )}
         </CardHeader>
         <CardContent className="space-y-4 p-5 pt-0">
-          {awsAccounts.length === 0 ? (
+          {isLoading ? (
+            <LoadingState variant="skeleton-card" count={3} />
+          ) : awsAccounts.length === 0 ? (
             <div className="rounded-md bg-muted/50 p-4 text-center text-sm text-muted-foreground">
               No AWS accounts configured yet. Add one to get started.
             </div>

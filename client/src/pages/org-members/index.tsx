@@ -31,6 +31,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  LoadingState,
 } from '@/components/ui';
 import { usePermissions, useActiveOrganisation } from '@/hooks';
 import { toast } from '@/hooks/use-toast';
@@ -337,11 +338,7 @@ export function OrgMembers() {
           </CardHeader>
           <CardContent className="p-4 pt-2">
             {isMembersLoading ? (
-              <div className="flex h-32 items-center justify-center">
-                <span className="animate-pulse text-xs text-muted-foreground">
-                  Loading members directory...
-                </span>
-              </div>
+              <LoadingState variant="skeleton-card" count={4} />
             ) : displayedMembers.length === 0 ? (
               <div className="flex h-24 items-center justify-center rounded-lg border border-dashed border-border p-4 text-center">
                 <span className="text-xs text-muted-foreground">
