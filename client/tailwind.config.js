@@ -41,12 +41,12 @@ export default {
           foreground: 'hsl(var(--destructive-foreground))',
         },
         success: {
-          DEFAULT: '#10b981',
-          foreground: '#f8fafc',
+          DEFAULT: 'var(--color-success)',
+          foreground: '#ffffff',
         },
         warning: {
-          DEFAULT: '#f59e0b',
-          foreground: '#f8fafc',
+          DEFAULT: 'var(--color-warning)',
+          foreground: '#ffffff',
         },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',

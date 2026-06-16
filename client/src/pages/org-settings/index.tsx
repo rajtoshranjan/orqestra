@@ -8,6 +8,7 @@ import {
   Cloud,
   Copy,
   History,
+  Loader2,
   Lock,
   Search,
 } from 'lucide-react';
@@ -27,6 +28,7 @@ import {
   CardDescription,
   Button,
   Input,
+  LoadingState,
   Tabs,
   TabsContent,
   TabsList,
@@ -146,8 +148,8 @@ export function OrgSettings() {
       {
         onSuccess: () => {
           toast({
-            title: 'Success',
-            description: 'Organisation details updated',
+            title: 'Organisation updated',
+            description: 'Your changes have been saved.',
           });
         },
       },
@@ -342,11 +344,11 @@ export function OrgSettings() {
   if (isGuest) {
     return (
       <PageLayout
-        title="Organisation Settings"
-        description="Manage organisation details, role-based access control permissions, and operational logs."
+        title="Organisation settings"
+        description="Manage your organisation’s details, members, and activity log."
         maxWidthClass="max-w-6xl"
       >
-        <Card className="max-w-2xl rounded-lg border-border bg-[var(--color-bg-surface)] shadow-none">
+        <Card className="max-w-2xl rounded-lg border-border bg-card shadow-none">
           <CardContent className="flex h-40 flex-col items-center justify-center gap-2 text-center">
             <Lock className="size-5 text-muted-foreground" />
             <p className="text-sm font-semibold text-foreground">
@@ -364,12 +366,12 @@ export function OrgSettings() {
 
   return (
     <PageLayout
-      title="Organisation Settings"
-      description="Manage organisation details, role-based access control permissions, and operational logs."
+      title="Organisation settings"
+      description="Manage your organisation’s details, members, and activity log."
       maxWidthClass="max-w-6xl"
     >
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full max-w-2xl grid-cols-3 rounded-lg border border-border bg-[var(--color-bg-surface)] p-1">
+        <TabsList className="grid w-full max-w-2xl grid-cols-3 rounded-lg border border-border bg-card p-1">
           <TabsTrigger
             value="general"
             className="flex items-center gap-1.5 rounded-md py-1.5 text-xs"
@@ -382,23 +384,23 @@ export function OrgSettings() {
             className="flex items-center gap-1.5 rounded-md py-1.5 text-xs"
           >
             <Cloud className="size-3.5" />
-            AWS Accounts
+            AWS accounts
           </TabsTrigger>
           <TabsTrigger
             value="logs"
             className="flex items-center gap-1.5 rounded-md py-1.5 text-xs"
           >
             <History className="size-3.5" />
-            Audit Logs
+            Audit logs
           </TabsTrigger>
         </TabsList>
 
         {/* General Tab */}
         <TabsContent value="general" className="space-y-6">
-          <Card className="max-w-2xl rounded-lg border-border bg-[var(--color-bg-surface)] shadow-none">
+          <Card className="max-w-2xl rounded-lg border-border bg-card shadow-none">
             <CardHeader className="p-5">
               <CardTitle className="text-base font-bold text-foreground">
-                Organisation Details
+                Organisation details
               </CardTitle>
               <CardDescription className="text-xs text-muted-foreground">
                 Change the display name of your organisation.
@@ -411,13 +413,13 @@ export function OrgSettings() {
                     htmlFor="org-name"
                     className="text-xs font-semibold text-muted-foreground"
                   >
-                    Organisation Name
+                    Organisation name
                   </label>
                   <Input
                     id="org-name"
                     value={orgName}
                     onChange={(event) => setOrgName(event.target.value)}
-                    placeholder="My Organisation"
+                    placeholder="Enter organisation name"
                     disabled={!canManage}
                     className="h-10 text-sm"
                   />
@@ -434,8 +436,8 @@ export function OrgSettings() {
                       }
                     >
                       {updateOrganisationMutation.isPending
-                        ? 'Saving...'
-                        : 'Save Name'}
+                        ? 'Saving…'
+                        : 'Save name'}
                     </Button>
                   </div>
                 )}
@@ -450,21 +452,15 @@ export function OrgSettings() {
                 Danger Zone
               </CardTitle>
               <CardDescription className="text-xs text-destructive/70">
-                Permanently delete this organisation and all its project
-                designs.
+                Permanently delete this organisation and all its data —
+                architectures, layouts, and audit logs. This action cannot be
+                undone.
               </CardDescription>
             </CardHeader>
             <CardContent className="flex items-center justify-between gap-4 p-5 pt-0">
-              <div className="space-y-0.5">
-                <p className="text-xs font-semibold text-foreground">
-                  Delete this organisation
-                </p>
-                <p className="text-[10px] leading-normal text-muted-foreground">
-                  Once deleted, all data including architectures, layouts, and
-                  audit logs will be permanently deleted. This action cannot be
-                  undone.
-                </p>
-              </div>
+              <p className="text-xs font-semibold text-foreground">
+                Delete this organisation
+              </p>
               <Button
                 variant="destructive"
                 type="button"
@@ -490,14 +486,14 @@ export function OrgSettings() {
 
         {/* Audit Logs Tab */}
         <TabsContent value="logs" className="space-y-6">
-          <Card className="rounded-lg border-border bg-[var(--color-bg-surface)] shadow-none">
+          <Card className="rounded-lg border-border bg-card shadow-none">
             <CardHeader className="p-5">
               <CardTitle className="text-base font-bold text-foreground">
-                Operational Audit Logs
+                Audit log
               </CardTitle>
               <CardDescription className="text-xs text-muted-foreground">
-                Track logins, deployment workflows, resource updates, and
-                configuration actions executed in this organisation.
+                Track logins, deployments, and configuration changes in this
+                organisation.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 p-5 pt-0">
@@ -509,8 +505,11 @@ export function OrgSettings() {
                   placeholder="Search logs by action or actor..."
                   value={logSearch}
                   onChange={(event) => setLogSearch(event.target.value)}
-                  className="h-8 border-border bg-background/50 pl-8 text-xs"
+                  className="h-8 border-border bg-background/50 px-8 text-xs"
                 />
+                {auditLogsQuery.isFetching && !auditLogsQuery.isLoading && (
+                  <Loader2 className="absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 animate-spin text-muted-foreground" />
+                )}
               </div>
 
               <Table>
@@ -523,7 +522,13 @@ export function OrgSettings() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {auditLogs.length === 0 ? (
+                  {auditLogsQuery.isLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="p-4">
+                        <LoadingState variant="skeleton-card" count={5} />
+                      </TableCell>
+                    </TableRow>
+                  ) : auditLogs.length === 0 ? (
                     <TableRow>
                       <TableCell
                         colSpan={4}
@@ -618,10 +623,10 @@ export function OrgSettings() {
 
       {/* Delete Confirmation Modal */}
       <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-        <DialogContent className="border-border bg-[var(--color-bg-surface)] text-foreground sm:max-w-md">
+        <DialogContent className="border-border bg-card text-foreground sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-sm font-bold text-destructive">
-              Delete Organisation
+              Delete organisation
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
               This action is permanent. Please type{' '}
@@ -674,7 +679,7 @@ export function OrgSettings() {
         open={!!selectedLog}
         onOpenChange={(open) => !open && setSelectedLog(null)}
       >
-        <SheetContent className="overflow-y-auto border-l border-border bg-[var(--color-bg-surface)] text-foreground sm:max-w-lg">
+        <SheetContent className="overflow-y-auto border-l border-border bg-card text-foreground sm:max-w-lg">
           <SheetHeader className="space-y-1 border-b border-border pb-4">
             <div className="flex items-center gap-2">
               {selectedLog &&
@@ -695,10 +700,10 @@ export function OrgSettings() {
                 )}
             </div>
             <SheetTitle className="text-base font-bold tracking-tight text-foreground">
-              Audit Log Details
+              Audit log details
             </SheetTitle>
             <SheetDescription className="text-xs text-muted-foreground">
-              Detailed logs and parameters for this action.
+              Full details and parameters for this action.
             </SheetDescription>
           </SheetHeader>
 
@@ -754,7 +759,7 @@ export function OrgSettings() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5 text-xs font-semibold text-destructive">
                       <AlertTriangle className="size-4" />
-                      <span>Execution Error</span>
+                      <span>Execution error</span>
                     </div>
                     <CopyButton
                       value={String(
@@ -772,7 +777,7 @@ export function OrgSettings() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-foreground">
-                    Log Parameters
+                    Log parameters
                   </span>
                   <CopyButton
                     value={JSON.stringify(selectedLog.details, null, 2)}

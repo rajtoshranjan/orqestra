@@ -90,16 +90,17 @@ export function useEnrichedEdges({ edges, nodes }: UseEnrichedEdgesOptions) {
         },
         style: { stroke, strokeWidth: 2, strokeDasharray },
         labelStyle: {
-          fill: '#94a3b8',
-          fontSize: '7.5px',
-          fontWeight: 'bold',
+          fill: '#cbd5e1',
+          fontSize: '11px',
+          fontWeight: 600,
         },
         labelBgStyle: {
           fill: 'var(--color-bg-base)',
-          fillOpacity: 0.85,
+          fillOpacity: 0.92,
           rx: 4,
           ry: 4,
         },
+        labelBgPadding: [6, 3] as [number, number],
       };
     });
   }, [edges, nodes]);

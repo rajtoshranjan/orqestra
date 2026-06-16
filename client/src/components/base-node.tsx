@@ -39,7 +39,7 @@ export function BaseServiceNode({
     <div
       className={cn(
         'base-service-node group relative flex h-full w-full items-center justify-between gap-2.5 rounded-lg border p-2.5 transition-[border-color,box-shadow,background-color] duration-200',
-        'border-[var(--color-border)] bg-[var(--color-bg-surface)] text-[var(--color-text-primary)] shadow-md backdrop-blur-md',
+        'border-border bg-card text-foreground shadow-md backdrop-blur-md',
         selected && !hasErrors
           ? 'border-[var(--color-accent)] shadow-[var(--shadow-glow)]'
           : '',
@@ -47,7 +47,7 @@ export function BaseServiceNode({
           ? 'border-[var(--color-warning)] shadow-[0_0_12px_var(--color-warning-subtle)]'
           : '',
         !selected && !hasErrors
-          ? 'border-[var(--color-border)] hover:border-[var(--color-accent)]'
+          ? 'border-border hover:border-[var(--color-accent)]'
           : '',
         isConnectingActive && !isValidTarget
           ? 'pointer-events-none opacity-30'
@@ -94,19 +94,19 @@ export function BaseServiceNode({
       <Handle
         type="target"
         position={Position.Left}
-        className="!h-2 !w-2 !rounded-full !border-2 !border-[var(--color-accent)] !bg-[var(--color-bg-surface)]"
+        className="!h-2 !w-2 !rounded-full !border-2 !border-[var(--color-accent)] !bg-card"
       />
 
       {/* Source Handle (right). */}
       <Handle
         type="source"
         position={Position.Right}
-        className="!h-2 !w-2 !rounded-full !border-2 !border-[var(--color-accent)] !bg-[var(--color-bg-surface)]"
+        className="!h-2 !w-2 !rounded-full !border-2 !border-[var(--color-accent)] !bg-card"
       />
 
       {/* Left Column: Service Icon Container. */}
       <div
-        className="node-icon-container flex size-9 shrink-0 items-center justify-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg-base)] transition-colors group-hover:bg-[var(--color-bg-hover)]"
+        className="node-icon-container flex size-9 shrink-0 items-center justify-center rounded-md border border-border bg-background transition-colors group-hover:bg-[var(--color-bg-hover)]"
         style={{ color: accentColor }}
       >
         <ServiceIcon size={18} />
@@ -117,12 +117,12 @@ export function BaseServiceNode({
         <p className="mb-0.5 text-[7px] font-bold uppercase leading-none tracking-wider text-[var(--color-text-muted)]">
           {serviceLabel}
         </p>
-        <p className="truncate text-[10px] font-semibold leading-tight tracking-tight text-[var(--color-text-primary)]">
+        <p className="truncate text-[10px] font-semibold leading-tight tracking-tight text-foreground">
           {title}
         </p>
 
         {/* Compact metadata row combining tag and stats. */}
-        <div className="mt-1 flex flex-wrap items-center gap-1 text-[7.5px] leading-none text-[var(--color-text-secondary)]">
+        <div className="mt-1 flex flex-wrap items-center gap-1 text-[7.5px] leading-none text-muted-foreground">
           {tag && (
             <span className="runtime-tag max-w-[80px] truncate">{tag}</span>
           )}

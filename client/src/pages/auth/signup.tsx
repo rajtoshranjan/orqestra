@@ -70,10 +70,10 @@ export function SignUpPage() {
   };
 
   return (
-    <Card className="border-border bg-[var(--color-bg-surface)] shadow-lg">
+    <Card className="border-border bg-card shadow-lg">
       <CardHeader className="text-center">
         <CardTitle className="text-xl font-bold tracking-tight text-foreground">
-          Sign Up
+          Sign up
         </CardTitle>
         <CardDescription className="text-xs text-muted-foreground">
           Create a new account to get started
@@ -106,7 +106,7 @@ export function SignUpPage() {
               htmlFor="email"
               className="text-xs font-semibold text-foreground"
             >
-              Email Address
+              Email address
             </label>
             <Input
               {...register('email')}
@@ -146,7 +146,7 @@ export function SignUpPage() {
               htmlFor="confirmPassword"
               className="text-xs font-semibold text-foreground"
             >
-              Confirm Password
+              Confirm password
             </label>
             <Input
               {...register('confirmPassword')}
@@ -171,7 +171,7 @@ export function SignUpPage() {
             className="mt-2 w-full text-xs font-semibold"
             disabled={isPending}
           >
-            {isPending ? 'Signing up...' : 'Sign Up'}
+            {isPending ? 'Signing up…' : 'Sign up'}
           </Button>
         </form>
       </CardContent>

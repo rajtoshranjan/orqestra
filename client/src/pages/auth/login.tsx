@@ -86,7 +86,7 @@ export function LoginPage() {
   };
 
   return (
-    <Card className="border-border bg-[var(--color-bg-surface)] shadow-lg">
+    <Card className="border-border bg-card shadow-lg">
       <CardHeader className="text-center">
         <CardTitle className="text-xl font-bold tracking-tight text-foreground">
           Welcome back
@@ -102,7 +102,7 @@ export function LoginPage() {
               htmlFor="email"
               className="text-xs font-semibold text-foreground"
             >
-              Email Address
+              Email address
             </label>
             <Input
               {...register('email')}

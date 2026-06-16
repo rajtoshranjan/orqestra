@@ -18,3 +18,5 @@ export * from './confirm-dialog';
 export * from './textarea';
 export * from './table';
 export * from './search-bar';
+export * from './meta-chip';
+export * from './section-header';

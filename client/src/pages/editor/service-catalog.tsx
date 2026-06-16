@@ -59,19 +59,19 @@ export function ServiceCatalog({
 
   return (
     <aside
-      className="flex h-full shrink-0 flex-col overflow-hidden border-r border-[var(--color-border)] bg-[var(--color-bg-surface)] transition-all [transition-duration:var(--transition-base)]"
+      className="flex h-full shrink-0 flex-col overflow-hidden border-r border-border bg-card transition-all [transition-duration:var(--transition-base)]"
       style={{ width: collapsed ? 52 : 240 }}
     >
       {/* Header. */}
-      <div className="flex h-11 shrink-0 items-center justify-between border-b border-[var(--color-border)] px-3">
+      <div className="flex h-11 shrink-0 items-center justify-between border-b border-border px-3">
         {!collapsed && (
-          <span className="animate-fade-in whitespace-nowrap text-sm font-semibold text-[var(--color-text-primary)]">
+          <span className="animate-fade-in whitespace-nowrap text-sm font-semibold text-foreground">
             Services
           </span>
         )}
         <button
           onClick={onToggleCollapse}
-          className="ml-auto rounded-[var(--radius-sm)] p-1.5 text-[var(--color-text-secondary)] transition-colors [transition-duration:var(--transition-fast)] hover:bg-[var(--color-bg-hover)] hover:text-[var(--color-text-primary)]"
+          className="ml-auto rounded-[var(--radius-sm)] p-1.5 text-muted-foreground transition-colors [transition-duration:var(--transition-fast)] hover:bg-[var(--color-bg-hover)] hover:text-foreground"
           aria-label={collapsed ? 'Expand catalog' : 'Collapse catalog'}
         >
           {collapsed ? (
@@ -84,7 +84,7 @@ export function ServiceCatalog({
 
       {/* Search Bar. */}
       {!collapsed && (
-        <div className="shrink-0 border-b border-[var(--color-border)] px-3 py-2">
+        <div className="shrink-0 border-b border-border px-3 py-2">
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-[var(--color-text-muted)]" />
             <input
@@ -93,7 +93,7 @@ export function ServiceCatalog({
               placeholder="Search services..."
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
-              className="w-full rounded-md border border-[var(--color-border)] bg-transparent py-1.5 pl-8 pr-2 text-xs text-[var(--color-text-primary)] transition-colors placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
+              className="w-full rounded-md border border-border bg-transparent py-1.5 pl-8 pr-2 text-xs text-foreground transition-colors placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)] focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
             />
           </div>
         </div>
@@ -150,24 +150,21 @@ export function ServiceCatalog({
                         event.dataTransfer.effectAllowed = 'copy';
                       }}
                       onDoubleClick={() => onAddNode(service.id)}
-                      className="animate-fade-in group relative flex min-h-[56px] cursor-grab select-none items-center gap-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-2.5 shadow-sm backdrop-blur-md transition-all [transition-duration:var(--transition-base)] hover:-translate-y-px hover:border-[var(--hover-border)] hover:shadow-md active:cursor-grabbing"
+                      className="animate-fade-in group relative flex min-h-[56px] cursor-grab select-none items-center gap-2.5 rounded-lg border border-border bg-card p-2.5 shadow-sm backdrop-blur-md transition-all [transition-duration:var(--transition-base)] hover:-translate-y-px hover:border-[var(--hover-border)] hover:shadow-md active:cursor-grabbing"
                       style={itemStyle}
                       title={service.description}
                     >
                       {/* Left Column: Service Icon Container */}
                       <div
-                        className="flex size-9 shrink-0 items-center justify-center rounded-md border border-[var(--color-border)] bg-[var(--color-bg-base)] transition-colors group-hover:bg-[var(--color-bg-hover)]"
+                        className="flex size-9 shrink-0 items-center justify-center rounded-md border border-border bg-background transition-colors group-hover:bg-[var(--color-bg-hover)]"
                         style={{ color: service.accentColor }}
                       >
                         <ServiceIcon size={18} />
                       </div>
 
-                      {/* Middle Column: Resource Labels */}
-                      <div className="flex min-w-0 flex-1 flex-col justify-center text-left">
-                        <p className="mb-0.5 text-[9px] font-bold uppercase leading-none tracking-wider text-[var(--color-text-muted)]">
-                          {SERVICE_CATEGORY_LABELS[service.category]}
-                        </p>
-                        <p className="truncate text-xs font-semibold leading-tight tracking-tight text-[var(--color-text-primary)]">
+                      {/* Middle Column: Service name */}
+                      <div className="flex min-w-0 flex-1 items-center text-left">
+                        <p className="truncate text-xs font-semibold leading-tight tracking-tight text-foreground">
                           {service.name}
                         </p>
                       </div>
@@ -188,8 +185,8 @@ export function ServiceCatalog({
         {!collapsed && filteredServicesByCategory.size === 0 && (
           <EmptyState
             icon={Search}
-            title=" No services found"
-            description={`We couldn't find any services matching "${searchTerm}"`}
+            title="No services found"
+            description={`No services match “${searchTerm}”.`}
             size="sm"
           />
         )}

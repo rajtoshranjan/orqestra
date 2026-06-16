@@ -2,12 +2,12 @@ import React from 'react';
 
 import {
   ArrowLeft,
-  ChevronDown,
   Cloud,
   CloudOff,
   Grid3x3,
   Loader2,
   Lock,
+  MoreHorizontal,
   PencilLine,
   Rocket,
   Unlock,
@@ -162,7 +162,7 @@ function EditorToolbarComponent({
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="text-xs">
-                Edit Project Info
+                Edit project info
               </TooltipContent>
             </Tooltip>
 
@@ -214,8 +214,8 @@ function EditorToolbarComponent({
                 className={cn(
                   'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-semibold outline-none transition-all',
                   invalidNodeCount > 0
-                    ? 'cursor-pointer border-warning/20 bg-warning/10 text-warning shadow-sm shadow-warning/5 hover:bg-warning/20'
-                    : 'cursor-default border-success/20 bg-success/10 text-success',
+                    ? 'border-warning/20 bg-warning/10 shadow-warning/5 hover:bg-warning/20 cursor-pointer text-warning shadow-sm'
+                    : 'border-success/20 bg-success/10 cursor-default text-success',
                 )}
               >
                 <span
@@ -232,12 +232,12 @@ function EditorToolbarComponent({
             <PopoverContent
               align="center"
               side="bottom"
-              className="z-[9999] w-80 border-border bg-[var(--color-bg-surface)] p-3 text-foreground shadow-xl"
+              className="z-[9999] w-80 border-border bg-card p-3 text-foreground shadow-xl"
             >
               <div className="space-y-2">
                 <div className="flex items-center justify-between border-b border-border/60 pb-1.5">
                   <span className="text-xs font-bold text-foreground">
-                    Validation Findings
+                    Validation findings
                   </span>
                   <Badge
                     variant={invalidNodeCount > 0 ? 'warning' : 'success'}
@@ -289,14 +289,14 @@ function EditorToolbarComponent({
         </div>
 
         {/* RIGHT: Icon actions + Plan + Deploy */}
-        <div className="flex items-center gap-0.5">
+        <div className="flex items-center gap-1">
           {/* Read-only indicator for guests */}
           {readOnly && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Badge
                   variant="outline"
-                  className="mr-1 cursor-default gap-1 border-warning/30 bg-warning/10 px-1.5 py-0.5 text-[10px] font-semibold text-warning"
+                  className="border-warning/30 bg-warning/10 mr-1 cursor-default gap-1 px-1.5 py-0.5 text-[10px] font-semibold text-warning"
                 >
                   <Lock size={11} />
                   Read-only
@@ -321,12 +321,12 @@ function EditorToolbarComponent({
                   className={cn(
                     'h-8 w-8 text-muted-foreground transition-all duration-200',
                     isLocked &&
-                      'bg-warning/20 text-warning hover:bg-warning/30 hover:text-warning',
+                      'bg-warning/20 hover:bg-warning/30 text-warning hover:text-warning',
                   )}
                   title={
                     isLocked
-                      ? 'Unlock Editor (⌥Shift+L)'
-                      : 'Lock Editor (⌥Shift+L)'
+                      ? 'Unlock editor (⌥Shift+L)'
+                      : 'Lock editor (⌥Shift+L)'
                   }
                 >
                   {isLocked ? <Lock size={15} /> : <Unlock size={15} />}
@@ -334,8 +334,8 @@ function EditorToolbarComponent({
               </TooltipTrigger>
               <TooltipContent side="bottom" className="text-xs">
                 {isLocked
-                  ? 'Unlock Editor (⌥Shift+L)'
-                  : 'Lock Editor (⌥Shift+L)'}
+                  ? 'Unlock editor (⌥Shift+L)'
+                  : 'Lock editor (⌥Shift+L)'}
               </TooltipContent>
             </Tooltip>
           )}
@@ -353,13 +353,13 @@ function EditorToolbarComponent({
                   snapToGrid &&
                     'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
                 )}
-                title="Toggle Snap to Grid (⌥G)"
+                title="Toggle snap to grid (⌥G)"
               >
                 <Grid3x3 size={15} />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-xs">
-              Toggle Snap to Grid (⌥G)
+              Toggle snap to grid (⌥G)
             </TooltipContent>
           </Tooltip>
 
@@ -377,13 +377,13 @@ function EditorToolbarComponent({
                   commentMode &&
                     'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
                 )}
-                title="Toggle Comments Panel"
+                title="Toggle comments panel"
               >
                 <CommentMarker size={15} />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-xs">
-              {commentMode ? 'Hide Comments Panel' : 'Show Comments Panel'}
+              {commentMode ? 'Hide comments panel' : 'Show comments panel'}
             </TooltipContent>
           </Tooltip>
 
@@ -394,21 +394,22 @@ function EditorToolbarComponent({
                 variant="ghost"
                 size="icon"
                 className="size-8 text-muted-foreground transition-all duration-200 hover:bg-accent/20 hover:text-primary"
-                title="Canvas Actions"
+                title="Canvas actions"
+                aria-label="Canvas actions"
               >
-                <ChevronDown size={15} />
+                <MoreHorizontal size={15} />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="z-[9999] w-48 border-border bg-[var(--color-bg-surface)] text-foreground"
+              className="z-[9999] w-48 border-border bg-card text-foreground"
             >
               <DropdownMenuItem
                 onClick={onAutoLayout}
                 disabled={readOnly}
                 className="flex cursor-pointer items-center justify-between text-xs disabled:opacity-50"
               >
-                <span>Auto Layout</span>
+                <span>Auto layout</span>
                 <kbd className="rounded border border-border/60 bg-muted px-1.5 text-[9px] opacity-65">
                   ⌥L
                 </kbd>
@@ -418,14 +419,14 @@ function EditorToolbarComponent({
                 disabled={isLocked || readOnly}
                 className="cursor-pointer text-xs text-destructive hover:text-destructive/80 focus:text-destructive/80 disabled:opacity-50"
               >
-                Clear Canvas
+                Clear canvas
               </DropdownMenuItem>
 
               <DropdownMenuItem
                 onClick={onHelp}
                 className="flex cursor-pointer items-center justify-between text-xs"
               >
-                <span>Keyboard Shortcuts</span>
+                <span>Keyboard shortcuts</span>
                 <kbd className="rounded border border-border/60 bg-muted px-1.5 text-[9px] opacity-65">
                   ?
                 </kbd>

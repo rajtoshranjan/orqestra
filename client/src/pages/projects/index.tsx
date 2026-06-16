@@ -10,6 +10,7 @@ import {
   ChevronDown,
   SearchX,
   Lock,
+  ArrowRight,
 } from 'lucide-react';
 
 import { useProjects, useDeleteProject, useAWSAccounts } from '@/api';
@@ -34,6 +35,7 @@ import {
   Input,
   Select,
   Textarea,
+  MetaChip,
 } from '@/components/ui';
 import { usePermissions } from '@/hooks';
 import { formatRelativeTime } from '@/utils';
@@ -50,7 +52,8 @@ type ProjectsProps = {
 export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
   const { data: projects = [], isLoading } = useProjects();
   const { canWrite } = usePermissions();
-  const { data: awsAccounts = [] } = useAWSAccounts(canWrite);
+  const { data: awsAccounts = [], isLoading: awsAccountsLoading } =
+    useAWSAccounts(canWrite);
   const deleteProjectMutation = useDeleteProject();
 
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -114,8 +117,8 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
   /* Render */
   return (
     <PageLayout
-      title="Your Projects"
-      description="Design, validate, and deploy secure cloud architectures directly on a visual, interactive canvas."
+      title="Your projects"
+      description="Design, validate, and deploy cloud architecture on a visual canvas."
     >
       {/* Main Grid View */}
       <div className="relative z-10 mt-6 flex w-full flex-1 flex-col">
@@ -138,7 +141,7 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
                     placeholder="Search projects..."
                     value={searchQuery}
                     onChange={(event) => setSearchQuery(event.target.value)}
-                    className="h-8 w-44 border-[var(--color-border)] bg-[var(--color-bg-surface)] pl-8 pr-2.5 text-xs sm:w-56"
+                    className="h-8 w-44 border-border bg-card pl-8 pr-2.5 text-xs sm:w-56"
                   />
                 </div>
 
@@ -148,7 +151,7 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-8 gap-1.5 border-[var(--color-border)] bg-[var(--color-bg-surface)] px-3 text-xs font-normal hover:bg-[var(--color-bg-elevated)]"
+                      className="h-8 gap-1.5 border-border bg-card px-3 text-xs font-normal hover:bg-muted"
                     >
                       <span>Sort: </span>
                       <span className="font-medium text-foreground">
@@ -163,7 +166,7 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
                     align="end"
-                    className="w-[160px] border-[var(--color-border)] bg-[var(--color-bg-surface)]"
+                    className="w-[160px] border-border bg-card"
                   >
                     <DropdownMenuRadioGroup
                       value={sortBy}
@@ -213,7 +216,7 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
                   </Button>
                 ) : (
                   /* Read-only roles (guests) cannot create projects. */
-                  <span className="inline-flex h-8 select-none items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 text-xs font-medium text-[var(--color-text-secondary)]">
+                  <span className="inline-flex h-8 select-none items-center gap-1.5 rounded-md border border-border bg-muted px-3 text-xs font-medium text-muted-foreground">
                     <Lock className="size-3.5" />
                     Read-only access
                   </span>
@@ -234,43 +237,46 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
                   <Card
                     key={project.projectId}
                     onClick={() => onOpenProject(project.projectId)}
-                    className="group relative flex cursor-pointer flex-col justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-5 text-left transition-all duration-300 ease-out hover:-translate-y-1 hover:border-primary/40 hover:shadow-md hover:shadow-primary/5"
+                    className="group relative flex cursor-pointer flex-col justify-between rounded-xl border border-border bg-card p-5 text-left transition-all duration-300 ease-out hover:-translate-y-1 hover:border-primary/40 hover:shadow-md hover:shadow-primary/5"
                   >
                     <div className="space-y-4">
                       {/* Card Header: Title & Project Status. */}
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1 space-y-1">
-                          <h3 className="truncate text-sm font-semibold tracking-tight text-foreground transition-colors duration-300 group-hover:text-primary">
+                          <h3 className="truncate text-base font-semibold tracking-tight text-foreground transition-colors duration-300 group-hover:text-primary">
                             {project.projectName}
                           </h3>
-                          <p className="mt-2 line-clamp-2 min-h-[32px] text-xs leading-relaxed text-[var(--color-text-secondary)]">
-                            {project.projectDescription ||
-                              'No description provided.'}
-                          </p>
+                          {project.projectDescription ? (
+                            <p className="mt-2 line-clamp-2 min-h-[32px] text-xs leading-relaxed text-muted-foreground">
+                              {project.projectDescription}
+                            </p>
+                          ) : (
+                            <p className="mt-2 line-clamp-2 min-h-[32px] text-xs italic leading-relaxed text-muted-foreground/50">
+                              No description
+                            </p>
+                          )}
                         </div>
                       </div>
 
                       {/* Stats row. */}
-                      <div className="flex flex-wrap items-center gap-2 text-[10px]">
-                        <span className="inline-flex select-none items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-2.5 py-0.5 text-xs font-medium text-[var(--color-text-secondary)]">
-                          <Layers className="size-2.5 text-[var(--color-text-muted)]" />
+                      <div className="flex flex-wrap items-center gap-2">
+                        <MetaChip icon={Layers}>
                           {project.nodeCount} resource
                           {project.nodeCount !== 1 ? 's' : ''}
-                        </span>
-                        <span className="inline-flex select-none items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-2.5 py-0.5 text-xs font-medium text-[var(--color-text-secondary)]">
-                          <Clock className="size-2.5 text-[var(--color-text-muted)]" />
+                        </MetaChip>
+                        <MetaChip icon={Clock}>
                           {formatRelativeTime(
                             project.lastSavedAt || new Date().toISOString(),
                           )}
-                        </span>
+                        </MetaChip>
                       </div>
                     </div>
 
                     {/* Bottom Actions Row. */}
-                    <div className="mt-5 flex select-none items-center justify-between border-t border-border/10 pt-3">
-                      <span className="inline-flex h-7 items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 text-[11px] font-medium text-[var(--color-text-secondary)] transition-colors group-hover:border-primary/30 group-hover:bg-primary/5 group-hover:text-primary">
-                        <LayoutDashboard className="size-3.5 text-[var(--color-text-muted)] transition-colors group-hover:text-primary" />
-                        Open Canvas
+                    <div className="mt-5 flex select-none items-center justify-between border-t border-border/40 pt-3">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors group-hover:text-primary">
+                        Open canvas
+                        <ArrowRight className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
                       </span>
 
                       {canWrite && (
@@ -318,16 +324,16 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
       <Dialog open={newProjectOpen} onOpenChange={setNewProjectOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Create New Project</DialogTitle>
+            <DialogTitle>Create a new project</DialogTitle>
             <DialogDescription>
-              Set up a new architecture project. You can configure additional
-              settings later in the editor.
+              Name your project and pick an AWS account. You can change the rest
+              later in the editor.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <label htmlFor="projectName" className="text-sm font-medium">
-                Project Name
+                Project name
               </label>
               <Input
                 id="projectName"
@@ -346,7 +352,7 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
                 htmlFor="projectDescription"
                 className="text-sm font-medium"
               >
-                Description (Optional)
+                Description (optional)
               </label>
               <Textarea
                 id="projectDescription"
@@ -362,9 +368,13 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
             </div>
             <div className="grid gap-2">
               <label htmlFor="awsAccount" className="text-sm font-medium">
-                AWS Account
+                AWS account
               </label>
-              {awsAccounts.length === 0 ? (
+              {awsAccountsLoading ? (
+                <div className="rounded-md border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
+                  Loading AWS accounts…
+                </div>
+              ) : awsAccounts.length === 0 ? (
                 <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
                   No AWS accounts found. Please configure one in{' '}
                   <a
@@ -408,7 +418,7 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
                 awsAccounts.length === 0
               }
             >
-              Create Project
+              Create project
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -418,8 +428,8 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
       <ConfirmDialog
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
-        title="Delete Project"
-        description="Are you sure you want to delete this project? This will permanently delete the project workspace and all configuration settings from the server. This action cannot be undone."
+        title="Delete project"
+        description="Delete this project? This permanently removes the project and all its settings. This can’t be undone."
         confirmText="Delete"
         cancelText="Cancel"
         variant="destructive"

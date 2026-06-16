@@ -31,12 +31,15 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  LoadingState,
 } from '@/components/ui';
 import { usePermissions, useActiveOrganisation } from '@/hooks';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { localStorageManager } from '@/lib/utils/local-storage-manager';
 import { getInitials } from '@/utils';
+
+import { canSubmitInvite } from './invite';
 
 /**
  * Computes the first letters of the user or organisation name to render custom avatars.
@@ -49,12 +52,12 @@ const ROLE_OPTIONS = [
   },
   {
     value: 'regular' as const,
-    label: 'Regular Member',
+    label: 'Regular member',
     desc: 'Can view, create and manage projects. Cannot edit settings or invite members.',
   },
   {
     value: 'guest' as const,
-    label: 'Guest / Viewer',
+    label: 'Guest / viewer',
     desc: 'Read-only access to browse projects. Cannot make edits or trigger deployments.',
   },
 ];
@@ -98,8 +101,8 @@ export function OrgMembers() {
       {
         onSuccess: () => {
           toast({
-            title: 'Success',
-            description: `Invited ${inviteEmail.trim()} successfully.`,
+            title: 'Member invited',
+            description: `Invited ${inviteEmail.trim()}.`,
           });
           setInviteEmail('');
         },
@@ -108,9 +111,9 @@ export function OrgMembers() {
             error.response?.data?.email?.[0] ||
             error.response?.data?.email ||
             error.response?.data?.detail ||
-            'Failed to invite member. Please verify if they have an active account.';
+            'We couldn’t send the invite. Check that they already have an account.';
           toast({
-            title: 'Error',
+            title: 'Invitation failed',
             description: errorMsg,
             variant: 'destructive',
           });
@@ -125,7 +128,7 @@ export function OrgMembers() {
       onSuccess: () => {
         toast({
           title: 'Member removed',
-          description: `${memberToRemove.email} removed from organisation.`,
+          description: `Removed ${memberToRemove.email} from the organisation.`,
         });
         setMemberToRemove(null);
       },
@@ -133,9 +136,9 @@ export function OrgMembers() {
         const errorMsg =
           error.response?.data?.detail ||
           error.message ||
-          'Failed to remove member.';
+          'We couldn’t remove this member. Please try again.';
         toast({
-          title: 'Error',
+          title: 'Couldn’t remove member',
           description: errorMsg,
           variant: 'destructive',
         });
@@ -153,17 +156,17 @@ export function OrgMembers() {
       {
         onSuccess: () => {
           toast({
-            title: 'Success',
-            description: 'Member role updated successfully.',
+            title: 'Role updated',
+            description: 'The member’s role has been updated.',
           });
         },
         onError: (error: any) => {
           const errorMsg =
             error.response?.data?.detail ||
             error.message ||
-            'Failed to update member role.';
+            'We couldn’t update the role. Please try again.';
           toast({
-            title: 'Error',
+            title: 'Couldn’t update role',
             description: errorMsg,
             variant: 'destructive',
           });
@@ -197,10 +200,10 @@ export function OrgMembers() {
     return (
       <PageLayout
         title="Organisation members"
-        description="Manage your organisation members, invite new colleagues, and assign roles."
+        description="Invite people to your organisation and manage their roles."
         maxWidthClass="max-w-4xl"
       >
-        <Card className="border-border/80 bg-[var(--color-bg-surface)] shadow-none">
+        <Card className="border-border/80 bg-card shadow-none">
           <CardContent className="flex h-40 flex-col items-center justify-center gap-2 text-center">
             <Shield className="size-5 text-muted-foreground" />
             <p className="text-sm font-semibold text-foreground">
@@ -219,16 +222,16 @@ export function OrgMembers() {
   return (
     <PageLayout
       title="Organisation members"
-      description="Manage your organisation members, invite new colleagues, and assign roles."
+      description="Invite people to your organisation and manage their roles."
       maxWidthClass="max-w-4xl"
     >
       <div className="space-y-6">
         {canManageMembers && (
-          <Card className="border-border/80 bg-[var(--color-bg-surface)] shadow-none">
+          <Card className="border-border/80 bg-card shadow-none">
             <CardHeader className="p-4 pb-2">
               <CardTitle className="flex items-center gap-2 text-base font-bold text-foreground">
                 <UserPlus className="size-4 text-primary" />
-                Invite Team Member
+                Invite team member
               </CardTitle>
               <CardDescription className="text-xs">
                 Invite users to collaborate on this organisation. They must
@@ -237,53 +240,38 @@ export function OrgMembers() {
             </CardHeader>
             <CardContent className="p-4 pt-0">
               <form onSubmit={handleInviteMember} className="space-y-4">
-                <div className="grid items-end gap-4 sm:grid-cols-3">
-                  <div className="space-y-1 sm:col-span-2">
-                    <label
-                      htmlFor="invite-email"
-                      className="text-xs font-semibold text-muted-foreground"
-                    >
-                      Email Address
-                    </label>
-                    <Input
-                      id="invite-email"
-                      type="email"
-                      required
-                      value={inviteEmail}
-                      onChange={(event) => setInviteEmail(event.target.value)}
-                      placeholder="colleague@example.com"
-                      className={cn(
-                        'h-10 border-border bg-background/50 text-sm focus-visible:ring-primary',
-                        !isValidEmail &&
-                          'border-destructive focus-visible:ring-destructive',
-                      )}
-                    />
-                    {!isValidEmail && (
-                      <p className="text-[10px] text-destructive">
-                        Please enter a valid email address.
-                      </p>
+                {/* Step 1: Email */}
+                <div className="space-y-1">
+                  <label
+                    htmlFor="invite-email"
+                    className="text-xs font-semibold text-muted-foreground"
+                  >
+                    Email address
+                  </label>
+                  <Input
+                    id="invite-email"
+                    type="email"
+                    required
+                    value={inviteEmail}
+                    onChange={(event) => setInviteEmail(event.target.value)}
+                    placeholder="colleague@example.com"
+                    className={cn(
+                      'h-10 border-border bg-background/50 text-sm focus-visible:ring-primary',
+                      !isValidEmail &&
+                        'border-destructive focus-visible:ring-destructive',
                     )}
-                  </div>
-                  <div>
-                    <Button
-                      type="submit"
-                      className="h-10 w-full text-xs font-semibold"
-                      disabled={
-                        inviteMutation.isPending ||
-                        isEmailEmpty ||
-                        !emailRegex.test(inviteEmail.trim())
-                      }
-                    >
-                      {inviteMutation.isPending
-                        ? 'Sending...'
-                        : 'Invite Member'}
-                    </Button>
-                  </div>
+                  />
+                  {!isValidEmail && (
+                    <p className="text-xs text-destructive">
+                      Please enter a valid email address.
+                    </p>
+                  )}
                 </div>
 
+                {/* Step 2: Role */}
                 <div className="space-y-2">
                   <label className="text-xs font-semibold text-muted-foreground">
-                    Select Member Role
+                    Select member role
                   </label>
                   <div className="grid gap-3 sm:grid-cols-3">
                     {ROLE_OPTIONS.map((roleOption) => {
@@ -311,7 +299,7 @@ export function OrgMembers() {
                               <Check className="animate-scale-in size-3.5 text-primary" />
                             )}
                           </span>
-                          <span className="mt-1 text-[10px] leading-normal text-muted-foreground">
+                          <span className="mt-1 text-xs leading-normal text-muted-foreground">
                             {roleOption.desc}
                           </span>
                         </button>
@@ -319,16 +307,30 @@ export function OrgMembers() {
                     })}
                   </div>
                 </div>
+
+                {/* Step 3: Submit */}
+                <div className="flex justify-end pt-1">
+                  <Button
+                    type="submit"
+                    className="h-10 text-xs font-semibold sm:min-w-40"
+                    disabled={
+                      inviteMutation.isPending ||
+                      !canSubmitInvite({ email: inviteEmail, role: inviteRole })
+                    }
+                  >
+                    {inviteMutation.isPending ? 'Sending…' : 'Invite member'}
+                  </Button>
+                </div>
               </form>
             </CardContent>
           </Card>
         )}
 
-        <Card className="border-border/80 bg-[var(--color-bg-surface)] shadow-none">
+        <Card className="border-border/80 bg-card shadow-none">
           <CardHeader className="p-4 pb-2">
             <CardTitle className="flex items-center gap-2 text-base font-bold text-foreground">
               <Users className="size-4 text-primary" />
-              Organisation Directory
+              Organisation directory
             </CardTitle>
             <CardDescription className="text-xs">
               An overview of all users currently in this organisation.
@@ -336,11 +338,7 @@ export function OrgMembers() {
           </CardHeader>
           <CardContent className="p-4 pt-2">
             {isMembersLoading ? (
-              <div className="flex h-32 items-center justify-center">
-                <span className="animate-pulse text-xs text-muted-foreground">
-                  Loading members directory...
-                </span>
-              </div>
+              <LoadingState variant="skeleton-card" count={4} />
             ) : displayedMembers.length === 0 ? (
               <div className="flex h-24 items-center justify-center rounded-lg border border-dashed border-border p-4 text-center">
                 <span className="text-xs text-muted-foreground">
@@ -418,7 +416,7 @@ export function OrgMembers() {
                                   </button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent
-                                  className="w-40 border-border bg-[var(--color-bg-surface)] text-foreground"
+                                  className="w-40 border-border bg-card text-foreground"
                                   align="start"
                                 >
                                   {ROLE_OPTIONS.map((roleOpt) => (
@@ -495,8 +493,8 @@ export function OrgMembers() {
       <ConfirmDialog
         open={!!memberToRemove}
         onOpenChange={(isOpen) => !isOpen && setMemberToRemove(null)}
-        title="Remove Team Member"
-        description={`Are you sure you want to remove "${memberToRemove?.email}" from the organisation? They will immediately lose access to all projects and infrastructure layouts.`}
+        title="Remove team member"
+        description={`Remove ${memberToRemove?.email} from the organisation? They’ll immediately lose access to all projects.`}
         confirmText="Remove Member"
         cancelText="Cancel"
         variant="destructive"

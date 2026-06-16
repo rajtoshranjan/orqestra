@@ -507,9 +507,9 @@ export function CanvasEditor({
         isAncestor(connection.target, connection.source)
       ) {
         toast({
-          title: 'Redundant Connection',
+          title: 'Redundant connection',
           description:
-            'Nesting already defines containment. A direct arrow connection between container and nested resource is unnecessary.',
+            'Nesting already defines containment, so a direct connection isn’t needed.',
           variant: 'default',
           icon: <AlertTriangle className="size-4 text-warning" />,
         });
@@ -521,9 +521,9 @@ export function CanvasEditor({
         targetNode?.data.serviceId === 'lambda'
       ) {
         toast({
-          title: 'Invalid Relationship',
+          title: 'Invalid connection',
           description:
-            'AWS Lambda functions cannot be directly connected at the infrastructure level. Consider: EventBridge, Step Functions, SNS, SQS instead.',
+            'Two Lambda functions can’t connect directly. Use EventBridge, Step Functions, SNS, or SQS instead.',
           variant: 'destructive',
         });
         return;
@@ -540,8 +540,8 @@ export function CanvasEditor({
             sourceService.allowedRelationships.includes(targetServiceId);
           if (isForbidden || !isAllowed) {
             toast({
-              title: 'Invalid Relationship',
-              description: `Connections from ${sourceService.shortName} to ${targetNode?.data.label || 'target'} are not allowed at the infrastructure level.`,
+              title: 'Invalid connection',
+              description: `${sourceService.shortName} can’t connect to ${targetNode?.data.label || 'this resource'}.`,
               variant: 'destructive',
             });
             return;
@@ -756,7 +756,7 @@ export function CanvasEditor({
       toast({
         title: 'AWS account required',
         description:
-          'Select an AWS account in Project Settings before deploying.',
+          'Select an AWS account in project settings before deploying.',
         variant: 'destructive',
       });
       dispatch(setProjectSettingsOpen(true));
@@ -791,8 +791,7 @@ export function CanvasEditor({
       dispatch(setActiveDeploymentId(deployment.id));
       toast({
         title: 'Deployment started',
-        description:
-          'The deployment process has been initiated asynchronously.',
+        description: 'Your deployment is now running.',
       });
     } catch (error) {
       const message =
@@ -829,8 +828,8 @@ export function CanvasEditor({
       autoLayoutDiagram(current, edgesRef.current),
     );
     toast({
-      title: 'Auto Layout Applied',
-      description: 'Arranged nodes into clean grids and containers.',
+      title: 'Layout applied',
+      description: 'Nodes arranged into a clean grid.',
     });
   }, [updateNodesWithValidation]);
 
@@ -850,9 +849,8 @@ export function CanvasEditor({
       );
       setEdges(starter.edges);
       toast({
-        title: 'Starter Template Applied',
-        description:
-          'Arranged template resources into clean grids and boundaries.',
+        title: 'Template applied',
+        description: 'Template resources arranged on the canvas.',
       });
     },
     [updateNodesWithValidation, setEdges, readOnly],
@@ -884,8 +882,8 @@ export function CanvasEditor({
     setNodes([]);
     setEdges([]);
     toast({
-      title: 'Canvas Cleared',
-      description: 'All nodes and connections have been removed.',
+      title: 'Canvas cleared',
+      description: 'All nodes and connections removed.',
     });
     setClearConfirmOpen(false);
   }, [setNodes, setEdges]);
@@ -1205,8 +1203,8 @@ export function CanvasEditor({
       <ConfirmDialog
         open={clearConfirmOpen}
         onOpenChange={setClearConfirmOpen}
-        title="Clear Canvas"
-        description="Are you sure you want to clear the canvas? This will permanently delete all nodes and connections from the current layout. This action cannot be undone."
+        title="Clear canvas"
+        description="Clear the canvas? This permanently removes all nodes and connections. This can’t be undone."
         confirmText="Clear Canvas"
         cancelText="Cancel"
         variant="destructive"
