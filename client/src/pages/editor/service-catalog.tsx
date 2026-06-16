@@ -162,11 +162,8 @@ export function ServiceCatalog({
                         <ServiceIcon size={18} />
                       </div>
 
-                      {/* Middle Column: Resource Labels */}
-                      <div className="flex min-w-0 flex-1 flex-col justify-center text-left">
-                        <p className="mb-0.5 text-[9px] font-bold uppercase leading-none tracking-wider text-[var(--color-text-muted)]">
-                          {SERVICE_CATEGORY_LABELS[service.category]}
-                        </p>
+                      {/* Middle Column: Service name */}
+                      <div className="flex min-w-0 flex-1 items-center text-left">
                         <p className="truncate text-xs font-semibold leading-tight tracking-tight text-[var(--color-text-primary)]">
                           {service.name}
                         </p>

@@ -2,12 +2,12 @@ import React from 'react';
 
 import {
   ArrowLeft,
-  ChevronDown,
   Cloud,
   CloudOff,
   Grid3x3,
   Loader2,
   Lock,
+  MoreHorizontal,
   PencilLine,
   Rocket,
   Unlock,
@@ -214,8 +214,8 @@ function EditorToolbarComponent({
                 className={cn(
                   'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-semibold outline-none transition-all',
                   invalidNodeCount > 0
-                    ? 'cursor-pointer border-warning/20 bg-warning/10 text-warning shadow-sm shadow-warning/5 hover:bg-warning/20'
-                    : 'cursor-default border-success/20 bg-success/10 text-success',
+                    ? 'border-warning/20 bg-warning/10 shadow-warning/5 hover:bg-warning/20 cursor-pointer text-warning shadow-sm'
+                    : 'border-success/20 bg-success/10 cursor-default text-success',
                 )}
               >
                 <span
@@ -289,14 +289,14 @@ function EditorToolbarComponent({
         </div>
 
         {/* RIGHT: Icon actions + Plan + Deploy */}
-        <div className="flex items-center gap-0.5">
+        <div className="flex items-center gap-1">
           {/* Read-only indicator for guests */}
           {readOnly && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Badge
                   variant="outline"
-                  className="mr-1 cursor-default gap-1 border-warning/30 bg-warning/10 px-1.5 py-0.5 text-[10px] font-semibold text-warning"
+                  className="border-warning/30 bg-warning/10 mr-1 cursor-default gap-1 px-1.5 py-0.5 text-[10px] font-semibold text-warning"
                 >
                   <Lock size={11} />
                   Read-only
@@ -321,7 +321,7 @@ function EditorToolbarComponent({
                   className={cn(
                     'h-8 w-8 text-muted-foreground transition-all duration-200',
                     isLocked &&
-                      'bg-warning/20 text-warning hover:bg-warning/30 hover:text-warning',
+                      'bg-warning/20 hover:bg-warning/30 text-warning hover:text-warning',
                   )}
                   title={
                     isLocked
@@ -395,8 +395,9 @@ function EditorToolbarComponent({
                 size="icon"
                 className="size-8 text-muted-foreground transition-all duration-200 hover:bg-accent/20 hover:text-primary"
                 title="Canvas Actions"
+                aria-label="Canvas actions"
               >
-                <ChevronDown size={15} />
+                <MoreHorizontal size={15} />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
