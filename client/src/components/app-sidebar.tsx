@@ -397,7 +397,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                 id="organisation-name"
                 value={newOrganisationName}
                 onChange={(event) => setNewOrganisationName(event.target.value)}
-                placeholder="Acme Inc"
+                placeholder="Enter organisation name"
                 className="h-8 border-input text-xs text-foreground focus-visible:ring-primary"
               />
             </div>

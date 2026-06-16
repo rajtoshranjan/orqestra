@@ -419,7 +419,7 @@ export function OrgSettings() {
                     id="org-name"
                     value={orgName}
                     onChange={(event) => setOrgName(event.target.value)}
-                    placeholder="Acme Inc"
+                    placeholder="Enter organisation name"
                     disabled={!canManage}
                     className="h-10 text-sm"
                   />
