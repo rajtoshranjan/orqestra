@@ -105,3 +105,53 @@ describe('executeOp — mutating ops', () => {
     expect(outcome.mutated).toBe(false);
   });
 });
+
+describe('executeOp — read-only ops', () => {
+  it('query_graph returns a JSON summary without mutating', () => {
+    const added = executeOp('add_resource', { service_id: 'lambda' }, empty());
+
+    const outcome = executeOp('query_graph', {}, added.state);
+
+    expect(outcome.mutated).toBe(false);
+    expect(outcome.state).toBe(added.state);
+    const parsed = JSON.parse(outcome.content);
+    expect(parsed.nodes[0].serviceId).toBe('lambda');
+  });
+
+  it('validate reports per-node errors', () => {
+    // A lambda with no IAM role violates its declared validation rules.
+    const added = executeOp('add_resource', { service_id: 'lambda' }, empty());
+
+    const outcome = executeOp('validate', {}, added.state);
+
+    expect(outcome.isError).toBe(false);
+    expect(outcome.content.toLowerCase()).toContain('validation');
+  });
+
+  it('estimate_cost returns a dollar figure', () => {
+    const added = executeOp('add_resource', { service_id: 'lambda' }, empty());
+
+    const outcome = executeOp('estimate_cost', {}, added.state);
+
+    expect(outcome.content).toContain('$');
+  });
+
+  it('list_services lists catalog ids', () => {
+    const outcome = executeOp('list_services', {}, empty());
+
+    expect(outcome.content).toContain('lambda');
+  });
+
+  it('get_service returns details for a known service', () => {
+    const outcome = executeOp('get_service', { service_id: 'lambda' }, empty());
+
+    const parsed = JSON.parse(outcome.content);
+    expect(parsed.id).toBe('lambda');
+  });
+
+  it('get_service errors on an unknown id', () => {
+    const outcome = executeOp('get_service', { service_id: 'nope' }, empty());
+
+    expect(outcome.isError).toBe(true);
+  });
+});

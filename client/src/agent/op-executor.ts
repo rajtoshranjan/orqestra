@@ -207,6 +207,88 @@ function remove(input: Record<string, any>, state: GraphState): OpOutcome {
   };
 }
 
+function queryGraph(state: GraphState): OpOutcome {
+  const summary = {
+    nodes: state.nodes.map((node) => ({
+      id: node.id,
+      serviceId: node.data.serviceId,
+      label: node.data.label,
+      parent: node.parentNode ?? null,
+    })),
+    edges: state.edges.map((edge) => ({
+      id: edge.id,
+      source: edge.source,
+      target: edge.target,
+      relationshipKind: edge.data?.relationshipKind ?? null,
+    })),
+  };
+  return readOutcome(state, JSON.stringify(summary));
+}
+
+function validateGraph(state: GraphState): OpOutcome {
+  const problems: string[] = [];
+  for (const node of state.nodes) {
+    const validated = withValidatedData(node, state.nodes, state.edges);
+    for (const message of Object.values(validated.data.validationErrors)) {
+      if (message) problems.push(`${node.data.label} (${node.id}): ${message}`);
+    }
+  }
+  const content = problems.length
+    ? `Validation errors:\n- ${problems.join('\n- ')}`
+    : 'Validation passed: no errors.';
+  return readOutcome(state, content);
+}
+
+function estimateCost(state: GraphState): OpOutcome {
+  let total = 0;
+  for (const node of state.nodes) {
+    const profile = registry.find(node.data.serviceId)?.costProfile;
+    if (!profile) continue;
+    if (profile.estimate) {
+      try {
+        total += profile.estimate(node.data.config) || 0;
+      } catch {
+        /* ignore estimator failures in the summary */
+      }
+    } else if (profile.baseMonthlyCost) {
+      total += profile.baseMonthlyCost;
+    }
+  }
+  return readOutcome(state, `Estimated monthly cost: $${Math.round(total * 100) / 100}.`);
+}
+
+function listServices(input: Record<string, any>, state: GraphState): OpOutcome {
+  const category = input.category ? String(input.category) : null;
+  const lines = registry
+    .getAll()
+    .filter((service) => !category || service.category === category)
+    .map(
+      (service) =>
+        `${service.id} (${service.category}): ${service.aiHints?.summary ?? service.description}`,
+    );
+  return readOutcome(state, lines.join('\n'));
+}
+
+function getService(input: Record<string, any>, state: GraphState): OpOutcome {
+  const serviceId = String(input.service_id ?? '');
+  const service = registry.find(serviceId);
+  if (!service) return errorOutcome(state, `Unknown service_id "${serviceId}".`);
+
+  return readOutcome(
+    state,
+    JSON.stringify({
+      id: service.id,
+      name: service.name,
+      category: service.category,
+      capabilities: service.capabilities,
+      allowedParents: service.allowedParents,
+      allowedRelationships: service.allowedRelationships,
+      isContainer: service.isContainer ?? false,
+      aiHints: service.aiHints,
+    }),
+  );
+}
+
 export function executeOp(
   opName: string,
   input: Record<string, any>,
@@ -223,6 +305,16 @@ export function executeOp(
       return setParent(input, state);
     case 'remove':
       return remove(input, state);
+    case 'query_graph':
+      return queryGraph(state);
+    case 'validate':
+      return validateGraph(state);
+    case 'estimate_cost':
+      return estimateCost(state);
+    case 'list_services':
+      return listServices(input, state);
+    case 'get_service':
+      return getService(input, state);
     default:
       return errorOutcome(state, `Unknown operation: ${opName}`);
   }
