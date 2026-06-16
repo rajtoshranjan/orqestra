@@ -79,17 +79,17 @@ export function AppHeader() {
   }
 
   return (
-    <header className="bg-[var(--color-bg-surface)]/70 z-20 flex h-11 shrink-0 items-center justify-between border-b border-border px-6 backdrop-blur-md">
+    <header className="z-20 flex h-11 shrink-0 items-center justify-between border-b border-border bg-card/70 px-6 backdrop-blur-md">
       <div className="flex min-w-0 items-center gap-2">
         {showOrganisationContext && activeOrganisation?.name ? (
           <>
-            <span className="truncate text-xs font-semibold text-muted-foreground">
+            <span className="truncate text-xs font-medium text-muted-foreground">
               {activeOrganisation.name}
             </span>
-            <span className="text-xs text-muted-foreground/30">/</span>
+            <span className="text-xs text-muted-foreground/40">/</span>
           </>
         ) : null}
-        <span className="truncate text-xs font-bold capitalize text-foreground">
+        <span className="truncate text-xs font-semibold capitalize text-foreground">
           {getCurrentSectionLabel()}
         </span>
       </div>
@@ -100,7 +100,7 @@ export function AppHeader() {
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              className="group flex h-8 items-center gap-2 rounded-full border border-border bg-[var(--color-bg-surface)] pl-1.5 pr-3 text-xs font-semibold text-muted-foreground shadow-sm transition-all hover:bg-accent/50 hover:text-foreground"
+              className="group flex h-8 items-center gap-2 rounded-full border border-border bg-card pl-1.5 pr-3 text-xs font-semibold text-muted-foreground shadow-sm transition-all hover:bg-accent/50 hover:text-foreground"
             >
               <span className="flex size-6 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-[10px] font-bold text-primary">
                 {getInitials(user?.name || 'U')}
@@ -112,7 +112,7 @@ export function AppHeader() {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-48 border-border bg-[var(--color-bg-surface)] text-foreground"
+            className="w-48 border-border bg-card text-foreground"
             align="end"
           >
             {user && (
@@ -121,7 +121,7 @@ export function AppHeader() {
                   <p className="truncate text-xs font-bold text-foreground">
                     {user.name}
                   </p>
-                  <p className="mt-0.5 truncate text-[10px] text-muted-foreground">
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
                     {user.email}
                   </p>
                 </div>

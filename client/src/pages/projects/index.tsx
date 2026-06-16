@@ -10,6 +10,7 @@ import {
   ChevronDown,
   SearchX,
   Lock,
+  ArrowRight,
 } from 'lucide-react';
 
 import { useProjects, useDeleteProject, useAWSAccounts } from '@/api';
@@ -34,6 +35,7 @@ import {
   Input,
   Select,
   Textarea,
+  MetaChip,
 } from '@/components/ui';
 import { usePermissions } from '@/hooks';
 import { formatRelativeTime } from '@/utils';
@@ -234,43 +236,46 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
                   <Card
                     key={project.projectId}
                     onClick={() => onOpenProject(project.projectId)}
-                    className="group relative flex cursor-pointer flex-col justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-5 text-left transition-all duration-300 ease-out hover:-translate-y-1 hover:border-primary/40 hover:shadow-md hover:shadow-primary/5"
+                    className="group relative flex cursor-pointer flex-col justify-between rounded-xl border border-border bg-card p-5 text-left transition-all duration-300 ease-out hover:-translate-y-1 hover:border-primary/40 hover:shadow-md hover:shadow-primary/5"
                   >
                     <div className="space-y-4">
                       {/* Card Header: Title & Project Status. */}
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1 space-y-1">
-                          <h3 className="truncate text-sm font-semibold tracking-tight text-foreground transition-colors duration-300 group-hover:text-primary">
+                          <h3 className="truncate text-base font-semibold tracking-tight text-foreground transition-colors duration-300 group-hover:text-primary">
                             {project.projectName}
                           </h3>
-                          <p className="mt-2 line-clamp-2 min-h-[32px] text-xs leading-relaxed text-[var(--color-text-secondary)]">
-                            {project.projectDescription ||
-                              'No description provided.'}
-                          </p>
+                          {project.projectDescription ? (
+                            <p className="mt-2 line-clamp-2 min-h-[32px] text-xs leading-relaxed text-muted-foreground">
+                              {project.projectDescription}
+                            </p>
+                          ) : (
+                            <p className="mt-2 line-clamp-2 min-h-[32px] text-xs italic leading-relaxed text-muted-foreground/50">
+                              No description
+                            </p>
+                          )}
                         </div>
                       </div>
 
                       {/* Stats row. */}
-                      <div className="flex flex-wrap items-center gap-2 text-[10px]">
-                        <span className="inline-flex select-none items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-2.5 py-0.5 text-xs font-medium text-[var(--color-text-secondary)]">
-                          <Layers className="size-2.5 text-[var(--color-text-muted)]" />
+                      <div className="flex flex-wrap items-center gap-2">
+                        <MetaChip icon={Layers}>
                           {project.nodeCount} resource
                           {project.nodeCount !== 1 ? 's' : ''}
-                        </span>
-                        <span className="inline-flex select-none items-center gap-1.5 rounded-full border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-2.5 py-0.5 text-xs font-medium text-[var(--color-text-secondary)]">
-                          <Clock className="size-2.5 text-[var(--color-text-muted)]" />
+                        </MetaChip>
+                        <MetaChip icon={Clock}>
                           {formatRelativeTime(
                             project.lastSavedAt || new Date().toISOString(),
                           )}
-                        </span>
+                        </MetaChip>
                       </div>
                     </div>
 
                     {/* Bottom Actions Row. */}
-                    <div className="mt-5 flex select-none items-center justify-between border-t border-border/10 pt-3">
-                      <span className="inline-flex h-7 items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 text-[11px] font-medium text-[var(--color-text-secondary)] transition-colors group-hover:border-primary/30 group-hover:bg-primary/5 group-hover:text-primary">
-                        <LayoutDashboard className="size-3.5 text-[var(--color-text-muted)] transition-colors group-hover:text-primary" />
-                        Open Canvas
+                    <div className="mt-5 flex select-none items-center justify-between border-t border-border/40 pt-3">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors group-hover:text-primary">
+                        Open canvas
+                        <ArrowRight className="size-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
                       </span>
 
                       {canWrite && (
