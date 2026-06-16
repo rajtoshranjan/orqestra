@@ -168,7 +168,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
     <>
       <aside
         className={cn(
-          'flex h-full w-14 shrink-0 flex-col border-r border-border bg-[var(--color-bg-surface)] text-card-foreground transition-all duration-300',
+          'flex h-full w-14 shrink-0 flex-col border-r border-border bg-card text-card-foreground transition-all duration-300',
           isCollapsed ? 'md:w-14' : 'md:w-52',
         )}
       >
@@ -208,7 +208,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                     className={cn(
                       'group flex w-full min-w-0 items-center justify-center gap-2 rounded-lg border-none bg-transparent p-1 text-left shadow-none transition-all duration-200',
                       !isCollapsed &&
-                        'md:justify-start md:border-none md:bg-[var(--color-bg-elevated)] md:p-2 md:shadow-none md:hover:bg-[var(--color-bg-hover)]',
+                        'md:justify-start md:border-none md:bg-muted md:p-2 md:shadow-none md:hover:bg-[var(--color-bg-hover)]',
                     )}
                     aria-label={
                       activeOrganisation
@@ -248,7 +248,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
                 </DropdownMenuTrigger>
 
                 <DropdownMenuContent
-                  className="w-60 rounded-lg border-border bg-[var(--color-bg-surface)] p-1.5 text-foreground shadow-xl"
+                  className="w-60 rounded-lg border-border bg-card p-1.5 text-foreground shadow-xl"
                   align="start"
                   side="right"
                   sideOffset={12}
@@ -379,7 +379,7 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
         open={createOrganisationDialogOpen}
         onOpenChange={setCreateOrganisationDialogOpen}
       >
-        <DialogContent className="border-border bg-[var(--color-bg-surface)] text-foreground sm:max-w-md">
+        <DialogContent className="border-border bg-card text-foreground sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-sm font-bold text-foreground">
               Create Organisation

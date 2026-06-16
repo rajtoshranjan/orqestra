@@ -232,7 +232,7 @@ function EditorToolbarComponent({
             <PopoverContent
               align="center"
               side="bottom"
-              className="z-[9999] w-80 border-border bg-[var(--color-bg-surface)] p-3 text-foreground shadow-xl"
+              className="z-[9999] w-80 border-border bg-card p-3 text-foreground shadow-xl"
             >
               <div className="space-y-2">
                 <div className="flex items-center justify-between border-b border-border/60 pb-1.5">
@@ -402,7 +402,7 @@ function EditorToolbarComponent({
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="z-[9999] w-48 border-border bg-[var(--color-bg-surface)] text-foreground"
+              className="z-[9999] w-48 border-border bg-card text-foreground"
             >
               <DropdownMenuItem
                 onClick={onAutoLayout}

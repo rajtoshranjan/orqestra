@@ -206,7 +206,7 @@ export function Preferences() {
     >
       <Tabs defaultValue="profile" className="space-y-6">
         {/* Horizontal Tabs Header */}
-        <TabsList className="grid h-auto w-full max-w-md grid-cols-2 rounded-lg border border-border bg-[var(--color-bg-surface)] p-1">
+        <TabsList className="grid h-auto w-full max-w-md grid-cols-2 rounded-lg border border-border bg-card p-1">
           <TabsTrigger
             value="profile"
             className="flex items-center gap-1.5 rounded-md py-1.5 text-xs"
@@ -229,7 +229,7 @@ export function Preferences() {
           className="space-y-6 pt-4 outline-none duration-200 animate-in fade-in focus-visible:ring-0"
         >
           {/* Personal Details Card */}
-          <Card className="max-w-2xl rounded-xl border border-border bg-[var(--color-bg-surface)] shadow-none">
+          <Card className="max-w-2xl rounded-xl border border-border bg-card shadow-none">
             <CardHeader className="p-5">
               <CardTitle className="text-base font-bold text-foreground">
                 Personal Details
@@ -323,7 +323,7 @@ export function Preferences() {
           </Card>
 
           {/* Change Password Card */}
-          <Card className="max-w-2xl rounded-xl border border-border bg-[var(--color-bg-surface)] shadow-none">
+          <Card className="max-w-2xl rounded-xl border border-border bg-card shadow-none">
             <CardHeader className="p-5">
               <CardTitle className="text-base font-bold text-foreground">
                 Password & Security
@@ -366,7 +366,7 @@ export function Preferences() {
           value="appearance"
           className="space-y-6 pt-4 outline-none duration-200 animate-in fade-in focus-visible:ring-0"
         >
-          <Card className="max-w-2xl rounded-xl border border-border bg-[var(--color-bg-surface)] shadow-none">
+          <Card className="max-w-2xl rounded-xl border border-border bg-card shadow-none">
             <CardHeader className="p-5">
               <CardTitle className="text-base font-bold text-foreground">
                 Theme Settings
@@ -392,7 +392,7 @@ export function Preferences() {
                         'flex min-h-[96px] items-start gap-3 rounded-lg border p-3 text-left transition-all duration-200',
                         active
                           ? 'border-primary bg-primary/5 text-foreground ring-1 ring-primary'
-                          : 'border-[var(--color-border)] bg-[var(--color-bg-surface)] text-muted-foreground hover:border-[var(--color-border-hover)] hover:bg-[var(--color-bg-elevated)] hover:text-foreground',
+                          : 'border-border bg-card text-muted-foreground hover:border-[var(--color-border-hover)] hover:bg-muted hover:text-foreground',
                       )}
                     >
                       <span
@@ -427,7 +427,7 @@ export function Preferences() {
         open={isChangePasswordOpen}
         onOpenChange={setIsChangePasswordOpen}
       >
-        <DialogContent className="border-border bg-[var(--color-bg-surface)] text-foreground sm:max-w-md">
+        <DialogContent className="border-border bg-card text-foreground sm:max-w-md">
           <DialogHeader className="space-y-1.5 pb-2">
             <DialogTitle className="flex items-center gap-2 text-sm font-bold text-foreground">
               <KeyRound className="size-4 text-primary" />

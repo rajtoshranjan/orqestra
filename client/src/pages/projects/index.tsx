@@ -141,7 +141,7 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
                     placeholder="Search projects..."
                     value={searchQuery}
                     onChange={(event) => setSearchQuery(event.target.value)}
-                    className="h-8 w-44 border-[var(--color-border)] bg-[var(--color-bg-surface)] pl-8 pr-2.5 text-xs sm:w-56"
+                    className="h-8 w-44 border-border bg-card pl-8 pr-2.5 text-xs sm:w-56"
                   />
                 </div>
 
@@ -151,7 +151,7 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-8 gap-1.5 border-[var(--color-border)] bg-[var(--color-bg-surface)] px-3 text-xs font-normal hover:bg-[var(--color-bg-elevated)]"
+                      className="h-8 gap-1.5 border-border bg-card px-3 text-xs font-normal hover:bg-muted"
                     >
                       <span>Sort: </span>
                       <span className="font-medium text-foreground">
@@ -166,7 +166,7 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
                     align="end"
-                    className="w-[160px] border-[var(--color-border)] bg-[var(--color-bg-surface)]"
+                    className="w-[160px] border-border bg-card"
                   >
                     <DropdownMenuRadioGroup
                       value={sortBy}
@@ -216,7 +216,7 @@ export function Projects({ onOpenProject, onNewProject }: ProjectsProps) {
                   </Button>
                 ) : (
                   /* Read-only roles (guests) cannot create projects. */
-                  <span className="inline-flex h-8 select-none items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-elevated)] px-3 text-xs font-medium text-[var(--color-text-secondary)]">
+                  <span className="inline-flex h-8 select-none items-center gap-1.5 rounded-md border border-border bg-muted px-3 text-xs font-medium text-muted-foreground">
                     <Lock className="size-3.5" />
                     Read-only access
                   </span>

@@ -27,7 +27,7 @@ export function CanvasShortcutsDialog({
 }: CanvasShortcutsDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-border bg-[var(--color-bg-surface)] text-foreground sm:max-w-[480px]">
+      <DialogContent className="border-border bg-card text-foreground sm:max-w-[480px]">
         <DialogHeader>
           <DialogTitle className="text-sm font-bold text-foreground">
             Keyboard Shortcuts

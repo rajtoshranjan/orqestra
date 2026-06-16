@@ -100,7 +100,7 @@ export function BaseContainerNode({
       <Handle
         type="target"
         position={Position.Left}
-        className="!h-2 !w-2 !rounded-full !border-2 !bg-[var(--color-bg-surface)]"
+        className="!h-2 !w-2 !rounded-full !border-2 !bg-card"
         style={{ borderColor: accentColor }}
       />
 
@@ -108,7 +108,7 @@ export function BaseContainerNode({
       <Handle
         type="source"
         position={Position.Right}
-        className="!h-2 !w-2 !rounded-full !border-2 !bg-[var(--color-bg-surface)]"
+        className="!h-2 !w-2 !rounded-full !border-2 !bg-card"
         style={{ borderColor: accentColor }}
       />
 
