@@ -10,6 +10,7 @@ import {
   MoreHorizontal,
   PencilLine,
   Rocket,
+  Sparkles,
   Unlock,
 } from 'lucide-react';
 
@@ -64,6 +65,8 @@ export type EditorToolbarProps = {
   onClearCanvas?: () => void;
   commentMode?: boolean;
   onToggleCommentMode?: () => void;
+  agentPanelOpen?: boolean;
+  onToggleAgentPanel?: () => void;
   onOpenAnnotation?: (annotationId: string, projectId: string) => void;
   readOnly?: boolean;
 };
@@ -79,6 +82,8 @@ function EditorToolbarComponent({
   onClearCanvas,
   commentMode = false,
   onToggleCommentMode,
+  agentPanelOpen = false,
+  onToggleAgentPanel,
   onOpenAnnotation,
   readOnly = false,
 }: EditorToolbarProps) {
@@ -384,6 +389,30 @@ function EditorToolbarComponent({
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-xs">
               {commentMode ? 'Hide comments panel' : 'Show comments panel'}
+            </TooltipContent>
+          </Tooltip>
+
+          {/* AI Agent */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onToggleAgentPanel}
+                aria-label={agentPanelOpen ? 'Hide AI agent' : 'Show AI agent'}
+                aria-pressed={agentPanelOpen}
+                className={cn(
+                  'h-8 w-8 text-muted-foreground transition-all duration-200',
+                  agentPanelOpen &&
+                    'bg-accent/20 text-primary hover:bg-accent/30 hover:text-primary',
+                )}
+                title="Toggle AI agent (⌘J)"
+              >
+                <Sparkles size={15} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">
+              {agentPanelOpen ? 'Hide AI agent' : 'Show AI agent'}
             </TooltipContent>
           </Tooltip>
 
