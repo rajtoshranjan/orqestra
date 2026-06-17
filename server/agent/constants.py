@@ -46,3 +46,7 @@ AGENT_TOOL_CALL = "agent.tool_call"
 AGENT_OP_APPLIED = "agent.op_applied"
 AGENT_RUN_COMPLETED = "agent.run.completed"
 AGENT_RUN_FAILED = "agent.run.failed"
+
+# Stable identity for agent-authored content (Comment.origin, mention tokens).
+AGENT_ID = "orqestra"
+AGENT_DISPLAY_NAME = "Orqestra"

@@ -1,15 +1,19 @@
 import logging
 
+from django.db import transaction
 from organisations.helpers import get_active_organisation, log_action
 from organisations.permissions import CanWriteOrganisation, IsOrganisationMember
-from rest_framework import mixins, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
+from annotations.constants import AnnotationEventType, AuthorType, NotificationVerb
+from annotations.models import Annotation, AnnotationEvent, Comment, Notification
+from annotations.serializers import CommentSerializer
 from realtime.events import send_agent_event
 
-from .constants import MessageRole
+from .constants import AGENT_ID, MessageRole
 from .engine import AgentEngine
 from .llm.registry import get_active_provider
 from .llm.types import TextBlock, content_blocks_to_json
@@ -125,3 +129,68 @@ class AgentRunViewSet(viewsets.GenericViewSet):
             run, op_results=op_results, catalog=conversation.catalog or []
         )
         return Response(advance_result_to_dict(run, result))
+
+
+class AgentAnnotationViewSet(viewsets.GenericViewSet):
+    permission_classes = [CanWriteOrganisation]
+    lookup_value_regex = "[0-9a-f-]{36}"
+
+    def get_queryset(self):
+        active_org = get_active_organisation(self.request)
+        return Annotation.objects.filter(
+            project__organisation=active_org
+        ).select_related("project", "author")
+
+    @action(detail=True, methods=["post"])
+    def reply(self, request, pk=None):
+        annotation = self.get_object()
+        body = (request.data.get("body") or "").strip()
+        if not body:
+            raise ValidationError({"body": "This field is required."})
+
+        with transaction.atomic():
+            comment = Comment.objects.create(
+                annotation=annotation,
+                author=None,
+                author_type=AuthorType.AGENT.value,
+                origin=AGENT_ID,
+                body=body,
+            )
+            AnnotationEvent.objects.create(
+                annotation=annotation,
+                actor=None,
+                event_type=AnnotationEventType.COMMENT_ADDED.value,
+            )
+            self._notify_author(request, annotation, comment)
+            annotation.save(update_fields=["updated_at"])
+
+        self._emit_events(annotation)
+        return Response(CommentSerializer(comment).data, status=status.HTTP_201_CREATED)
+
+    def _notify_author(self, request, annotation, comment):
+        if annotation.author_id and annotation.author_id != request.user.id:
+            Notification.objects.create(
+                recipient=annotation.author,
+                actor=None,
+                organisation=annotation.project.organisation,
+                verb=NotificationVerb.REPLIED.value,
+                annotation=annotation,
+                comment=comment,
+            )
+
+    def _emit_events(self, annotation):
+        try:
+            from realtime.events import send_annotation_event, send_notification_event
+
+            send_annotation_event(
+                project_id=str(annotation.project_id),
+                event_type="updated",
+                payload={"annotation_id": str(annotation.id), "action": "agent_reply"},
+            )
+            send_notification_event(
+                org_id=str(annotation.project.organisation_id),
+                event_type="created",
+                payload={"action": "agent_reply"},
+            )
+        except Exception as error:  # noqa: BLE001
+            logger.error(f"Failed to emit events on agent reply: {error}")
