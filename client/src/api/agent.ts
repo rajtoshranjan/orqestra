@@ -39,6 +39,7 @@ export type AgentAdvanceResponse = {
   status: string;
   assistantText: string;
   ops: AgentOp[];
+  error?: string;
 };
 
 type RawOp = {
@@ -53,6 +54,7 @@ type RawAdvance = {
   status: string;
   assistant_text: string;
   ops: RawOp[];
+  error?: string;
 };
 
 type RawConversation = { id: string; project: string; status: string };
@@ -68,6 +70,7 @@ function mapAdvance(data: RawAdvance): AgentAdvanceResponse {
       input: op.input,
       risk: op.risk,
     })),
+    error: data.error,
   };
 }
 

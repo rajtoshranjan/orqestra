@@ -42,8 +42,10 @@ export function useAgentRun({ projectId, getGraph, applyGraph }: UseAgentRunOpti
   const [items, setItems] = useState<AgentTimelineItem[]>([]);
   const [status, setStatus] = useState<AgentRunStatus>('idle');
   const [pendingOp, setPendingOp] = useState<AgentOp | null>(null);
+  const [errorText, setErrorText] = useState<string | null>(null);
 
   const conversationIdRef = useRef<string | null>(null);
+  const lastMessageRef = useRef<string | null>(null);
   const runIdRef = useRef<string | null>(null);
   const pendingResultsRef = useRef<AgentOpResult[]>([]);
   const remainingRef = useRef<AgentOp[]>([]);
@@ -107,6 +109,22 @@ export function useAgentRun({ projectId, getGraph, applyGraph }: UseAgentRunOpti
         runIdRef.current = response.runId;
         appendAssistant(response.assistantText);
 
+        if (response.status === 'failed') {
+          setItems((prev) => [
+            ...prev,
+            {
+              id: makeId(),
+              kind: 'activity',
+              icon: 'info',
+              label: `Agent run failed: ${response.error || 'Unknown error'}`,
+              isError: true,
+            },
+          ]);
+          setStatus('error');
+          setErrorText(response.error || 'Unknown error');
+          return;
+        }
+
         if (response.status !== 'awaiting_client' || response.ops.length === 0) {
           setStatus('idle');
           return;
@@ -132,6 +150,9 @@ export function useAgentRun({ projectId, getGraph, applyGraph }: UseAgentRunOpti
       const trimmed = text.trim();
       if (!trimmed || status === 'thinking') return;
 
+      setErrorText(null);
+      lastMessageRef.current = trimmed;
+
       setItems((prev) => [
         ...prev,
         { id: makeId(), kind: 'message', role: 'user', text: trimmed },
@@ -150,6 +171,7 @@ export function useAgentRun({ projectId, getGraph, applyGraph }: UseAgentRunOpti
       } catch (error) {
         appendAssistant(`Something went wrong: ${String(error)}`);
         setStatus('error');
+        setErrorText(String(error));
       }
     },
     [projectId, status, drive, appendAssistant],
@@ -191,6 +213,7 @@ export function useAgentRun({ projectId, getGraph, applyGraph }: UseAgentRunOpti
       } catch (error) {
         appendAssistant(`Something went wrong: ${String(error)}`);
         setStatus('error');
+        setErrorText(String(error));
       }
     },
     [pendingOp, getGraph, applyGraph, pushActivity, pushSkipped, applyOpsStepwise, drive, appendAssistant],
@@ -204,7 +227,38 @@ export function useAgentRun({ projectId, getGraph, applyGraph }: UseAgentRunOpti
     setItems([]);
     setPendingOp(null);
     setStatus('idle');
+    setErrorText(null);
+    lastMessageRef.current = null;
   }, []);
 
-  return { items, status, pendingOp, sendMessage, confirm, reset };
+  const retry = useCallback(async () => {
+    if (!lastMessageRef.current || status === 'thinking') return;
+    const trimmed = lastMessageRef.current;
+
+    setErrorText(null);
+    setStatus('thinking');
+
+    setItems((prev) => [
+      ...prev,
+      { id: makeId(), kind: 'message', role: 'user', text: `Retry: ${trimmed}` },
+    ]);
+
+    try {
+      if (!conversationIdRef.current) {
+        const conversation = await createAgentConversation({
+          projectId,
+          catalog: buildAgentCatalog(),
+        });
+        conversationIdRef.current = conversation.id;
+      }
+      const response = await sendAgentMessage(conversationIdRef.current, trimmed);
+      await drive(response);
+    } catch (error) {
+      appendAssistant(`Something went wrong: ${String(error)}`);
+      setStatus('error');
+      setErrorText(String(error));
+    }
+  }, [projectId, status, drive, appendAssistant]);
+
+  return { items, status, pendingOp, errorText, sendMessage, confirm, retry, reset };
 }

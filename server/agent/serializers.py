@@ -57,6 +57,7 @@ def advance_result_to_dict(run: AgentRun, result: AdvanceResult) -> dict:
         "run_id": str(run.id),
         "status": result.run_status,
         "assistant_text": result.assistant_text,
+        "error": run.error,
         "ops": [
             {
                 "tool_call_id": op.tool_call_id,
