@@ -5,6 +5,7 @@ vi.mock('./client', () => ({ api: { post: vi.fn() } }));
 import {
   advanceAgentRun,
   createAgentConversation,
+  replyToAnnotation,
   sendAgentMessage,
 } from './agent';
 import { api } from './client';
@@ -88,5 +89,15 @@ describe('agent api', () => {
     });
     expect(result.status).toBe('completed');
     expect(result.ops).toEqual([]);
+  });
+
+  it('posts an agent reply to an annotation', async () => {
+    post.mockResolvedValue({ data: { data: {} } });
+
+    await replyToAnnotation('a1', 'Added a cache.');
+
+    expect(post).toHaveBeenCalledWith('/agent/annotations/a1/reply/', {
+      body: 'Added a cache.',
+    });
   });
 });

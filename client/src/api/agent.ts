@@ -94,6 +94,13 @@ export async function sendAgentMessage(
   return mapAdvance(response.data.data);
 }
 
+export async function replyToAnnotation(
+  annotationId: string,
+  body: string,
+): Promise<void> {
+  await api.post(`/agent/annotations/${annotationId}/reply/`, { body });
+}
+
 export async function advanceAgentRun(
   runId: string,
   opResults: AgentOpResult[],
