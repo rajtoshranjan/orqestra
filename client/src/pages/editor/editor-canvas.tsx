@@ -22,7 +22,9 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import { useLocalStorage } from 'usehooks-ts';
 
+import { buildAnnotationAgentMessage } from '@/agent/annotation-trigger';
 import { type GraphState } from '@/agent/op-executor';
+import { runAnnotationAgent } from '@/agent/run-annotation';
 import { useProjectDeploymentState, useCreateDeployment } from '@/api';
 import { ConfirmDialog } from '@/components/ui';
 import { usePermissions } from '@/hooks';
@@ -249,6 +251,25 @@ export function CanvasEditor({
     nodes,
     edges,
     reactFlowInstance,
+    onAgentRequest: (req) => {
+      toast({
+        title: 'Orqestra is working…',
+        description: 'Updating your architecture from your comment.',
+      });
+      void runAnnotationAgent({
+        projectId: currentProjectId,
+        annotationId: req.annotationId,
+        message: buildAnnotationAgentMessage(req),
+        getGraph: () => graphRef.current,
+        applyGraph: applyAgentGraph,
+      }).catch(() => {
+        toast({
+          title: 'Agent error',
+          description: 'Could not complete the request from your comment.',
+          variant: 'destructive',
+        });
+      });
+    },
   });
 
   const toggleCommentMode = React.useCallback(() => {
