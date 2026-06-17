@@ -5,6 +5,7 @@ import {
   MoreHorizontal,
   Pencil,
   RotateCcw,
+  Sparkles,
   Trash2,
   X,
 } from 'lucide-react';
@@ -20,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui';
 import { usePermissions } from '@/hooks';
+import { cn } from '@/lib/utils';
 import { formatRelativeTime } from '@/utils';
 
 import { CommentBody } from './comment-body';
@@ -72,14 +74,22 @@ function ThreadComment({
   // (delete) anyone's. Non-authors without moderation get no menu.
   const canDelete = isOwn || canModerate;
 
+  const isAgent = comment.authorType === 'agent';
+  const displayName = isAgent ? 'Orqestra' : comment.authorName || 'Unknown';
+
   return (
     <div className="group space-y-1.5 px-3 py-2">
       <div className="flex items-center gap-2">
-        <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[10px] font-semibold text-primary">
-          {getInitials(comment.authorName || '?')}
+        <span
+          className={cn(
+            'flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-primary',
+            isAgent ? 'bg-primary/20' : 'bg-primary/15',
+          )}
+        >
+          {isAgent ? <Sparkles size={12} /> : getInitials(comment.authorName || '?')}
         </span>
         <span className="truncate text-xs font-medium text-foreground">
-          {comment.authorName || 'Unknown'}
+          {displayName}
         </span>
         <span className="shrink-0 text-[10px] text-muted-foreground">
           {formatRelativeTime(comment.createdAt)}
