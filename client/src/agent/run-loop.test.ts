@@ -5,7 +5,7 @@ import '@/services'; // real registry for executeOp
 import type { AgentOp } from '@/api/agent';
 
 import { type GraphState } from './op-executor';
-import { applyConfirmedOp, processOps } from './run-loop';
+import { applyConfirmedOp, processOps, processOpsAutoDecline } from './run-loop';
 
 const empty = (): GraphState => ({ nodes: [], edges: [] });
 
@@ -79,5 +79,22 @@ describe('applyConfirmedOp', () => {
 
     expect(state.nodes).toHaveLength(1);
     expect(result.content.toLowerCase()).toContain('declined');
+  });
+});
+
+describe('processOpsAutoDecline', () => {
+  it('applies safe ops and declines risky ones without stopping', () => {
+    const ops = [
+      op('add_resource', { service_id: 'lambda' }),
+      op('remove', { target_id: 'x' }, 'confirm'),
+      op('add_resource', { service_id: 'dynamodb' }),
+    ];
+
+    const result = processOpsAutoDecline(ops, empty());
+
+    expect(result.state.nodes).toHaveLength(2); // both add_resource applied
+    expect(result.declined).toHaveLength(1);
+    expect(result.declined[0].name).toBe('remove');
+    expect(result.results).toHaveLength(3); // a result per op (incl. the decline)
   });
 });

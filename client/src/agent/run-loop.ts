@@ -65,3 +65,42 @@ export function applyConfirmedOp(
     },
   };
 }
+
+export type AutoProcessResult = {
+  state: GraphState;
+  results: AgentOpResult[];
+  declined: AgentOp[];
+};
+
+/**
+ * Like processOps but never stops: safe ops apply, confirm-risk ops are
+ * auto-declined (graph unchanged for them) and recorded. Used by the
+ * annotation-tagging flow, which has no in-thread confirm UI.
+ */
+export function processOpsAutoDecline(
+  ops: AgentOp[],
+  state: GraphState,
+  resolveRisk: typeof resolveOpRisk = resolveOpRisk,
+): AutoProcessResult {
+  let current = state;
+  const results: AgentOpResult[] = [];
+  const declined: AgentOp[] = [];
+
+  for (const op of ops) {
+    if (resolveRisk(op.risk, op.name, op.input) === 'confirm') {
+      const { result } = applyConfirmedOp(op, current, false);
+      results.push(result);
+      declined.push(op);
+      continue;
+    }
+    const outcome = executeOp(op.name, op.input, current);
+    current = outcome.state;
+    results.push({
+      toolCallId: op.toolCallId,
+      content: outcome.content,
+      isError: outcome.isError,
+    });
+  }
+
+  return { state: current, results, declined };
+}
