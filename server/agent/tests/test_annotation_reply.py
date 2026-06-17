@@ -1,7 +1,8 @@
-from annotations.models import Annotation, Comment
+from annotations.models import Annotation, Comment, Notification
 from django.test import override_settings
 from django.urls import reverse
-from organisations.models import Organisation
+from organisations.constants import OrganisationMemberRole
+from organisations.models import Organisation, OrganisationMember
 from orqestra.tests import BaseTestCase
 from projects.models import Project
 from rest_framework import status
@@ -65,3 +66,48 @@ class AgentAnnotationReplyTests(BaseTestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+@override_settings(CHANNEL_LAYERS={"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}})
+class AgentReplyNotificationTests(BaseTestCase):
+    def setUp(self):
+        super().setUp()
+        self.project = Project.objects.create(
+            organisation=self.organisation, name="P", nodes=[], edges=[]
+        )
+
+    def test_notifies_a_different_annotation_author(self):
+        author = User.objects.create_user(
+            email="author@example.com", password="TestPassword123!", name="Author"
+        )
+        OrganisationMember.objects.create(
+            organisation=self.organisation,
+            user=author,
+            role=OrganisationMemberRole.REGULAR.value,
+        )
+        annotation = Annotation.objects.create(
+            project=self.project, author=author, target_type="node", target_id="n"
+        )
+
+        self.client.post(
+            reverse("agent-annotation-reply", args=[annotation.id]),
+            {"body": "done"},
+            format="json",
+        )
+
+        notification = Notification.objects.get(recipient=author)
+        self.assertEqual(notification.verb, "replied")
+        self.assertIsNone(notification.actor)
+
+    def test_does_not_notify_when_requester_is_the_author(self):
+        annotation = Annotation.objects.create(
+            project=self.project, author=self.user, target_type="node", target_id="n"
+        )
+
+        self.client.post(
+            reverse("agent-annotation-reply", args=[annotation.id]),
+            {"body": "done"},
+            format="json",
+        )
+
+        self.assertEqual(Notification.objects.count(), 0)
