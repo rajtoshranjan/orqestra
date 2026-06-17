@@ -22,9 +22,11 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import { useLocalStorage } from 'usehooks-ts';
 
+import { type GraphState } from '@/agent/op-executor';
 import { useProjectDeploymentState, useCreateDeployment } from '@/api';
 import { ConfirmDialog } from '@/components/ui';
 import { usePermissions } from '@/hooks';
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { useActiveDeploymentResult } from '@/hooks/use-active-deployment-result';
 import { toast } from '@/hooks/use-toast';
 import { registry } from '@/services';
@@ -43,6 +45,7 @@ import {
   setProjectSettingsOpen,
   setContextMenu,
   setCommentMode,
+  setAgentPanelOpen,
 } from '@/store/ui-slice';
 import type {
   DiagramNode,
@@ -71,6 +74,7 @@ import {
 } from '@/utils';
 import { autoLayoutDiagram } from '@/utils/auto-layout';
 
+import { AgentPanel } from './agent-panel';
 import { CanvasEmptyState } from './canvas-empty-state';
 import { CanvasShortcutsDialog } from './canvas-shortcuts-dialog';
 import {
@@ -129,9 +133,8 @@ export function CanvasEditor({
   const { settings: deploymentSettings, activeDeploymentId } = useAppSelector(
     (state) => state.deployment,
   );
-  const { deployDrawerOpen, contextMenu, theme, commentMode } = useAppSelector(
-    (state) => state.ui,
-  );
+  const { deployDrawerOpen, contextMenu, theme, commentMode, agentPanelOpen } =
+    useAppSelector((state) => state.ui);
 
   const createDeploymentMutation = useCreateDeployment();
   const { data: projectDeploymentState } =
@@ -171,6 +174,31 @@ export function CanvasEditor({
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialProject.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialProject.edges);
+
+  // The agent reads/writes the live canvas graph through these. graphRef always
+  // points at the latest nodes/edges so sequential ops seed from current state.
+  const graphRef = React.useRef<GraphState>({ nodes, edges });
+  graphRef.current = { nodes, edges };
+  const applyAgentGraph = React.useCallback(
+    (next: GraphState) => {
+      setNodes(next.nodes);
+      setEdges(next.edges);
+    },
+    [setNodes, setEdges],
+  );
+
+  useKeyboardShortcuts(
+    [
+      {
+        key: 'j',
+        meta: true,
+        description: 'Toggle AI agent',
+        category: 'general',
+        handler: () => dispatch(setAgentPanelOpen(!agentPanelOpen)),
+      },
+    ],
+    [agentPanelOpen, dispatch],
+  );
 
   const nodesRef = React.useRef(nodes);
   const edgesRef = React.useRef(edges);
@@ -1030,6 +1058,8 @@ export function CanvasEditor({
         onClearCanvas={handleClearCanvas}
         commentMode={commentMode}
         onToggleCommentMode={toggleCommentMode}
+        agentPanelOpen={agentPanelOpen}
+        onToggleAgentPanel={() => dispatch(setAgentPanelOpen(!agentPanelOpen))}
         onOpenAnnotation={handleOpenAnnotation}
         readOnly={readOnly}
       />
@@ -1161,6 +1191,13 @@ export function CanvasEditor({
         </div>
 
         {commentMode && <CommentsSidebar comments={comments} />}
+        {agentPanelOpen && (
+          <AgentPanel
+            projectId={currentProjectId}
+            getGraph={() => graphRef.current}
+            applyGraph={applyAgentGraph}
+          />
+        )}
 
         {selectedNode && (
           <NodeInspector
