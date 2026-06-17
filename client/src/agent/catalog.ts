@@ -1,6 +1,5 @@
-import { registry } from '@/services';
-
 import type { AgentCatalogEntry } from '@/api/agent';
+import { registry } from '@/services';
 
 /**
  * Project the frontend service registry into the catalog the agent reasons

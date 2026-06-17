@@ -8,7 +8,11 @@ export type AgentCatalogEntry = {
   id: string;
   name: string;
   category: string;
-  capabilities?: { provides?: string[]; requires?: string[]; optional?: string[] };
+  capabilities?: {
+    provides?: string[];
+    requires?: string[];
+    optional?: string[];
+  };
   allowedParents?: string[];
   allowedRelationships?: string[];
   isContainer?: boolean;

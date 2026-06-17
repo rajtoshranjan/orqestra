@@ -1,6 +1,5 @@
-import { registry } from '@/services';
-
 import type { AgentRiskLevel } from '@/api/agent';
+import { registry } from '@/services';
 
 /**
  * Merge the server's coarse op-type risk with fine-grained, client-only signal.

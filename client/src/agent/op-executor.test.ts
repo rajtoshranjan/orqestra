@@ -8,7 +8,11 @@ const empty = (): GraphState => ({ nodes: [], edges: [] });
 
 describe('executeOp — mutating ops', () => {
   it('add_resource creates a node from the registry', () => {
-    const outcome = executeOp('add_resource', { service_id: 'lambda' }, empty());
+    const outcome = executeOp(
+      'add_resource',
+      { service_id: 'lambda' },
+      empty(),
+    );
 
     expect(outcome.isError).toBe(false);
     expect(outcome.mutated).toBe(true);
@@ -22,7 +26,11 @@ describe('executeOp — mutating ops', () => {
   it('add_resource merges supplied config', () => {
     const outcome = executeOp(
       'add_resource',
-      { service_id: 'lambda', config: { functionName: 'my-api' }, label: 'My API' },
+      {
+        service_id: 'lambda',
+        config: { functionName: 'my-api' },
+        label: 'My API',
+      },
       empty(),
     );
 
@@ -41,7 +49,11 @@ describe('executeOp — mutating ops', () => {
 
   it('connect adds a typed edge between existing nodes', () => {
     const added = executeOp('add_resource', { service_id: 'lambda' }, empty());
-    const second = executeOp('add_resource', { service_id: 'dynamodb' }, added.state);
+    const second = executeOp(
+      'add_resource',
+      { service_id: 'dynamodb' },
+      added.state,
+    );
     const [a, b] = second.state.nodes;
 
     const outcome = executeOp(
@@ -83,7 +95,11 @@ describe('executeOp — mutating ops', () => {
 
   it('remove deletes a node and its connected edges', () => {
     const added = executeOp('add_resource', { service_id: 'lambda' }, empty());
-    const second = executeOp('add_resource', { service_id: 'dynamodb' }, added.state);
+    const second = executeOp(
+      'add_resource',
+      { service_id: 'dynamodb' },
+      added.state,
+    );
     const [a, b] = second.state.nodes;
     const connected = executeOp(
       'connect',

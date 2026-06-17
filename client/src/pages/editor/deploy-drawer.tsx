@@ -230,7 +230,7 @@ export function DeployDrawer({
             {/* PLAN TAB */}
             <TabsContent value="plan" className="m-0 space-y-5 p-4">
               {!awsAccountId && (
-                <div className="flex items-start gap-2.5 rounded-md border border-warning/30 bg-warning/10 p-3">
+                <div className="border-warning/30 bg-warning/10 flex items-start gap-2.5 rounded-md border p-3">
                   <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-warning" />
                   <div className="space-y-1.5">
                     <p className="text-xs font-semibold text-warning">
@@ -241,7 +241,7 @@ export function DeployDrawer({
                     </p>
                     <button
                       onClick={onOpenProjectSettings}
-                      className="text-[10.5px] font-medium text-warning/80 underline underline-offset-2 hover:no-underline"
+                      className="text-warning/80 text-[10.5px] font-medium underline underline-offset-2 hover:no-underline"
                     >
                       Open Project Settings →
                     </button>
@@ -400,13 +400,13 @@ export function DeployDrawer({
                   {isRunning ? 'Deploying…' : 'Deploy to AWS'}
                 </Button>
                 {readOnly && (
-                  <p className="mt-1.5 text-center text-[10px] text-warning/80">
+                  <p className="text-warning/80 mt-1.5 text-center text-[10px]">
                     You have read-only access. Deploying requires write
                     permission.
                   </p>
                 )}
                 {!readOnly && !awsAccountId && (
-                  <p className="mt-1.5 text-center text-[10px] text-warning/80">
+                  <p className="text-warning/80 mt-1.5 text-center text-[10px]">
                     Link an AWS account in project settings to deploy.
                   </p>
                 )}
@@ -506,7 +506,7 @@ export function DeployDrawer({
               </Card>
 
               {cost.worstCaseTotal > cost.total && (
-                <Card className="rounded-md border-warning/20 bg-warning/5 p-3 text-warning">
+                <Card className="border-warning/20 bg-warning/5 rounded-md p-3 text-warning">
                   <span className="mb-0.5 block text-xs font-bold">
                     Worst Case Scenario Estimate
                   </span>
