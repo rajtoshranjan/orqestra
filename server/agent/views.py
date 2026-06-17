@@ -1,17 +1,16 @@
 import logging
 
+from annotations.constants import AnnotationEventType, AuthorType, NotificationVerb
+from annotations.models import Annotation, AnnotationEvent, Comment, Notification
+from annotations.serializers import CommentSerializer
 from django.db import transaction
 from organisations.helpers import get_active_organisation, log_action
 from organisations.permissions import CanWriteOrganisation, IsOrganisationMember
+from realtime.events import send_agent_event
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
-
-from annotations.constants import AnnotationEventType, AuthorType, NotificationVerb
-from annotations.models import Annotation, AnnotationEvent, Comment, Notification
-from annotations.serializers import CommentSerializer
-from realtime.events import send_agent_event
 
 from .constants import AGENT_ID, MessageRole
 from .engine import AgentEngine

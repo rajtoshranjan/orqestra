@@ -33,9 +33,8 @@ def _format_graph(project: Project) -> str:
         node_lines.append(
             f"- {node.get('id')}: {data.get('service_id')} ({data.get('label', '')})"
         )
-    return (
-        f"Current graph: {len(nodes)} node(s), {len(edges)} edge(s).\n"
-        + "\n".join(node_lines)
+    return f"Current graph: {len(nodes)} node(s), {len(edges)} edge(s).\n" + "\n".join(
+        node_lines
     )
 
 

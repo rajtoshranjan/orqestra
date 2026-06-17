@@ -1,9 +1,8 @@
+from accounts.models import User
+from agent.models import AgentConversation, AgentRun
 from django.test import TestCase
 from organisations.models import Organisation
 from projects.models import Project
-
-from accounts.models import User
-from agent.models import AgentConversation, AgentRun
 
 
 class CatalogAndPropertyTests(TestCase):

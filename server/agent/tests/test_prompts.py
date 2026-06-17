@@ -1,9 +1,8 @@
+from accounts.models import User
+from agent.prompts import build_system_prompt
 from django.test import TestCase
 from organisations.models import Organisation
 from projects.models import Project
-
-from accounts.models import User
-from agent.prompts import build_system_prompt
 
 
 class PromptTests(TestCase):

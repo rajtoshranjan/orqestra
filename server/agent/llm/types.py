@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Literal, Union
 
@@ -99,7 +99,12 @@ def content_blocks_to_json(blocks: list[ContentBlock]) -> list[dict[str, Any]]:
             result.append({"type": "text", "text": block.text})
         elif isinstance(block, ToolCallBlock):
             result.append(
-                {"type": "tool_call", "id": block.id, "name": block.name, "input": block.input}
+                {
+                    "type": "tool_call",
+                    "id": block.id,
+                    "name": block.name,
+                    "input": block.input,
+                }
             )
         elif isinstance(block, ToolResultBlock):
             result.append(
@@ -122,7 +127,9 @@ def json_to_content_blocks(data: list[dict[str, Any]]) -> list[ContentBlock]:
         if block_type == "text":
             blocks.append(TextBlock(text=item["text"]))
         elif block_type == "tool_call":
-            blocks.append(ToolCallBlock(id=item["id"], name=item["name"], input=item["input"]))
+            blocks.append(
+                ToolCallBlock(id=item["id"], name=item["name"], input=item["input"])
+            )
         elif block_type == "tool_result":
             blocks.append(
                 ToolResultBlock(

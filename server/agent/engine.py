@@ -68,9 +68,13 @@ class AgentEngine:
     ):
         self.provider = provider
         self.emit = event_sink or _noop_sink
-        self.max_turns = max_turns if max_turns is not None else settings.AGENT_MAX_TURNS
+        self.max_turns = (
+            max_turns if max_turns is not None else settings.AGENT_MAX_TURNS
+        )
 
-    def advance(self, run: AgentRun, op_results: list[dict], catalog: list[dict]) -> AdvanceResult:
+    def advance(
+        self, run: AgentRun, op_results: list[dict], catalog: list[dict]
+    ) -> AdvanceResult:
         if run.turn_count >= self.max_turns:
             return self._fail(run, f"Exceeded max turns ({self.max_turns}).")
 
@@ -92,7 +96,10 @@ class AgentEngine:
                 content=content_blocks_to_json(tool_blocks),
             )
             for item in op_results:
-                self.emit(AGENT_OP_APPLIED, {"run_id": str(run.id), "tool_call_id": item["tool_call_id"]})
+                self.emit(
+                    AGENT_OP_APPLIED,
+                    {"run_id": str(run.id), "tool_call_id": item["tool_call_id"]},
+                )
 
         # 2. Rebuild the canonical message history.
         history = self._load_history(conversation)
@@ -109,7 +116,9 @@ class AgentEngine:
             ):
                 if isinstance(event, TextDelta):
                     text_parts.append(event.text)
-                    self.emit(AGENT_MESSAGE_DELTA, {"run_id": str(run.id), "text": event.text})
+                    self.emit(
+                        AGENT_MESSAGE_DELTA, {"run_id": str(run.id), "text": event.text}
+                    )
                 elif isinstance(event, ToolCallRequested):
                     tool_calls.append(event)
                 elif isinstance(event, Usage):
@@ -162,13 +171,40 @@ class AgentEngine:
                     },
                 )
             run.status = RunStatus.AWAITING_CLIENT.value
-            run.save(update_fields=["status", "turn_count", "input_tokens", "output_tokens", "updated_at"])
-            return AdvanceResult(ops=ops, assistant_text=assistant_text, run_status=run.status)
+            run.save(
+                update_fields=[
+                    "status",
+                    "turn_count",
+                    "input_tokens",
+                    "output_tokens",
+                    "updated_at",
+                ]
+            )
+            return AdvanceResult(
+                ops=ops, assistant_text=assistant_text, run_status=run.status
+            )
 
         run.status = RunStatus.COMPLETED.value
-        run.save(update_fields=["status", "turn_count", "input_tokens", "output_tokens", "updated_at"])
-        self.emit(AGENT_RUN_COMPLETED, {"run_id": str(run.id), "input_tokens": run.input_tokens, "output_tokens": run.output_tokens})
-        return AdvanceResult(ops=[], assistant_text=assistant_text, run_status=run.status)
+        run.save(
+            update_fields=[
+                "status",
+                "turn_count",
+                "input_tokens",
+                "output_tokens",
+                "updated_at",
+            ]
+        )
+        self.emit(
+            AGENT_RUN_COMPLETED,
+            {
+                "run_id": str(run.id),
+                "input_tokens": run.input_tokens,
+                "output_tokens": run.output_tokens,
+            },
+        )
+        return AdvanceResult(
+            ops=[], assistant_text=assistant_text, run_status=run.status
+        )
 
     def _load_history(self, conversation) -> list[LLMMessage]:
         history: list[LLMMessage] = []

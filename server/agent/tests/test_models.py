@@ -1,10 +1,9 @@
-from django.test import TestCase
-from organisations.models import Organisation
-from projects.models import Project
-
 from accounts.models import User
 from agent.constants import MessageRole, RunStatus
 from agent.models import AgentConversation, AgentMessage, AgentRun
+from django.test import TestCase
+from organisations.models import Organisation
+from projects.models import Project
 
 
 class AgentModelTests(TestCase):

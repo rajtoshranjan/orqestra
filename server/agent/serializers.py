@@ -7,7 +7,14 @@ from .models import AgentConversation, AgentMessage, AgentRun
 class AgentMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = AgentMessage
-        fields = ["id", "role", "content", "input_tokens", "output_tokens", "created_at"]
+        fields = [
+            "id",
+            "role",
+            "content",
+            "input_tokens",
+            "output_tokens",
+            "created_at",
+        ]
         read_only_fields = fields
 
 
@@ -16,7 +23,15 @@ class AgentConversationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AgentConversation
-        fields = ["id", "project", "title", "status", "catalog", "created_at", "updated_at"]
+        fields = [
+            "id",
+            "project",
+            "title",
+            "status",
+            "catalog",
+            "created_at",
+            "updated_at",
+        ]
         read_only_fields = ["id", "status", "created_at", "updated_at"]
 
 
@@ -25,7 +40,15 @@ class AgentConversationDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AgentConversation
-        fields = ["id", "project", "title", "status", "messages", "created_at", "updated_at"]
+        fields = [
+            "id",
+            "project",
+            "title",
+            "status",
+            "messages",
+            "created_at",
+            "updated_at",
+        ]
         read_only_fields = fields
 
 

@@ -1,17 +1,18 @@
 from collections.abc import Iterator
 
-from django.test import SimpleTestCase, override_settings
-
 from agent.llm.base import BaseLLMProvider
 from agent.llm.registry import LLMProviderRegistry, get_active_provider, llm_registry
-from agent.llm.types import LLMCapabilities, LLMEvent, LLMMessage, Stop, ToolSpec
+from agent.llm.types import LLMCapabilities, LLMEvent, Stop
+from django.test import SimpleTestCase, override_settings
 
 
 class _StubProvider(BaseLLMProvider):
     name = "stub"
     capabilities = LLMCapabilities()
 
-    def stream(self, *, system_prompt, messages, tools, temperature=0.0, max_tokens=4096) -> Iterator[LLMEvent]:
+    def stream(
+        self, *, system_prompt, messages, tools, temperature=0.0, max_tokens=4096
+    ) -> Iterator[LLMEvent]:
         yield Stop(reason="end_turn")
 
 

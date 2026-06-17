@@ -18,7 +18,9 @@ from .types import (
 
 class AnthropicProvider(BaseLLMProvider):
     name = "anthropic"
-    capabilities = LLMCapabilities(supports_streaming=True, supports_tools=True, max_context_tokens=200000)
+    capabilities = LLMCapabilities(
+        supports_streaming=True, supports_tools=True, max_context_tokens=200000
+    )
 
     def __init__(self, client=None, model: str | None = None):
         # Client/model resolved lazily so registration never requires an API key.
@@ -59,7 +61,9 @@ class AnthropicProvider(BaseLLMProvider):
 
         for block in final.content:
             if block.type == "tool_use":
-                yield ToolCallRequested(id=block.id, name=block.name, input=dict(block.input))
+                yield ToolCallRequested(
+                    id=block.id, name=block.name, input=dict(block.input)
+                )
         yield Usage(
             input_tokens=final.usage.input_tokens,
             output_tokens=final.usage.output_tokens,

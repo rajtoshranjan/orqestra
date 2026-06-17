@@ -1,17 +1,18 @@
 from unittest.mock import patch
 
+from agent.constants import RunStatus
+from agent.llm.types import Stop, TextDelta, ToolCallRequested, Usage
+from agent.models import AgentConversation
+from agent.tests.fakes import FakeLLMProvider
 from django.test import override_settings
 from django.urls import reverse
 from orqestra.tests import BaseTestCase
 from projects.models import Project
 
-from agent.constants import RunStatus
-from agent.llm.types import Stop, TextDelta, ToolCallRequested, Usage
-from agent.models import AgentConversation
-from agent.tests.fakes import FakeLLMProvider
 
-
-@override_settings(CHANNEL_LAYERS={"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}})
+@override_settings(
+    CHANNEL_LAYERS={"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
+)
 class ApiLoopTests(BaseTestCase):
     def setUp(self):
         super().setUp()
@@ -23,23 +24,30 @@ class ApiLoopTests(BaseTestCase):
     def test_create_send_advance_completes(self, mock_get_provider):
         # One provider instance with two scripted turns: send consumes turn 1,
         # advance consumes turn 2.
-        mock_get_provider.return_value = FakeLLMProvider([
+        mock_get_provider.return_value = FakeLLMProvider(
             [
-                TextDelta(text="Adding a Lambda."),
-                ToolCallRequested(id="tc_1", name="add_resource", input={"service_id": "lambda"}),
-                Usage(input_tokens=20, output_tokens=8),
-                Stop(reason="tool_use"),
-            ],
-            [
-                TextDelta(text="Your Lambda is ready."),
-                Usage(input_tokens=25, output_tokens=6),
-                Stop(reason="end_turn"),
-            ],
-        ])
+                [
+                    TextDelta(text="Adding a Lambda."),
+                    ToolCallRequested(
+                        id="tc_1", name="add_resource", input={"service_id": "lambda"}
+                    ),
+                    Usage(input_tokens=20, output_tokens=8),
+                    Stop(reason="tool_use"),
+                ],
+                [
+                    TextDelta(text="Your Lambda is ready."),
+                    Usage(input_tokens=25, output_tokens=6),
+                    Stop(reason="end_turn"),
+                ],
+            ]
+        )
 
         create = self.client.post(
             reverse("agent-conversation-list"),
-            {"project": str(self.project.id), "catalog": [{"id": "lambda", "name": "AWS Lambda"}]},
+            {
+                "project": str(self.project.id),
+                "catalog": [{"id": "lambda", "name": "AWS Lambda"}],
+            },
             format="json",
         )
         self.assertEqual(create.status_code, 201)
@@ -56,7 +64,15 @@ class ApiLoopTests(BaseTestCase):
 
         advance = self.client.post(
             reverse("agent-run-advance", args=[run_id]),
-            {"op_results": [{"tool_call_id": "tc_1", "content": "node n1 added; validate ok", "is_error": False}]},
+            {
+                "op_results": [
+                    {
+                        "tool_call_id": "tc_1",
+                        "content": "node n1 added; validate ok",
+                        "is_error": False,
+                    }
+                ]
+            },
             format="json",
         )
         self.assertEqual(advance.data["status"], RunStatus.COMPLETED.value)

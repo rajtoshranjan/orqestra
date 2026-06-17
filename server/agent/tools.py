@@ -52,9 +52,18 @@ def graph_tool_specs() -> list[ToolSpec]:
             input_schema={
                 "type": "object",
                 "properties": {
-                    "service_id": {"type": "string", "description": "Registry service id, e.g. 'lambda'."},
-                    "label": {"type": "string", "description": "Human-readable node label."},
-                    "config": {"type": "object", "description": "Resource configuration values."},
+                    "service_id": {
+                        "type": "string",
+                        "description": "Registry service id, e.g. 'lambda'.",
+                    },
+                    "label": {
+                        "type": "string",
+                        "description": "Human-readable node label.",
+                    },
+                    "config": {
+                        "type": "object",
+                        "description": "Resource configuration values.",
+                    },
                     "parent_id": {
                         "type": ["string", "null"],
                         "description": "Container node id this resource nests inside, if any.",

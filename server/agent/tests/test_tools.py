@@ -1,7 +1,6 @@
-from django.test import SimpleTestCase
-
 from agent.llm.types import ToolSpec
 from agent.tools import GRAPH_OP_NAMES, graph_tool_specs
+from django.test import SimpleTestCase
 
 
 class ToolSpecTests(SimpleTestCase):

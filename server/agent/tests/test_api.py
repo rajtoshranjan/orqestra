@@ -1,5 +1,10 @@
 from unittest.mock import patch
 
+from accounts.models import User
+from agent.constants import MessageRole, RunStatus
+from agent.llm.types import Stop, TextDelta, ToolCallRequested, Usage
+from agent.models import AgentConversation, AgentMessage, AgentRun
+from agent.tests.fakes import FakeLLMProvider
 from django.test import override_settings
 from django.urls import reverse
 from organisations.models import Organisation
@@ -7,14 +12,10 @@ from orqestra.tests import BaseTestCase
 from projects.models import Project
 from rest_framework import status
 
-from accounts.models import User
-from agent.constants import MessageRole, RunStatus
-from agent.llm.types import Stop, TextDelta, ToolCallRequested, Usage
-from agent.models import AgentConversation, AgentMessage, AgentRun
-from agent.tests.fakes import FakeLLMProvider
 
-
-@override_settings(CHANNEL_LAYERS={"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}})
+@override_settings(
+    CHANNEL_LAYERS={"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
+)
 class ConversationApiTests(BaseTestCase):
     def setUp(self):
         super().setUp()
@@ -27,7 +28,9 @@ class ConversationApiTests(BaseTestCase):
             reverse("agent-conversation-list"),
             {
                 "project": str(self.project.id),
-                "catalog": [{"id": "lambda", "name": "AWS Lambda", "category": "compute"}],
+                "catalog": [
+                    {"id": "lambda", "name": "AWS Lambda", "category": "compute"}
+                ],
             },
             format="json",
         )
@@ -78,7 +81,9 @@ class ConversationApiTests(BaseTestCase):
         self.assertEqual(len(response.data), 1)
 
 
-@override_settings(CHANNEL_LAYERS={"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}})
+@override_settings(
+    CHANNEL_LAYERS={"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
+)
 class SendActionTests(BaseTestCase):
     def setUp(self):
         super().setUp()
@@ -93,14 +98,18 @@ class SendActionTests(BaseTestCase):
 
     @patch("agent.views.get_active_provider")
     def test_send_runs_first_turn_and_returns_ops(self, mock_get_provider):
-        mock_get_provider.return_value = FakeLLMProvider([
+        mock_get_provider.return_value = FakeLLMProvider(
             [
-                TextDelta(text="Adding a Lambda."),
-                ToolCallRequested(id="tc_1", name="add_resource", input={"service_id": "lambda"}),
-                Usage(input_tokens=10, output_tokens=4),
-                Stop(reason="tool_use"),
+                [
+                    TextDelta(text="Adding a Lambda."),
+                    ToolCallRequested(
+                        id="tc_1", name="add_resource", input={"service_id": "lambda"}
+                    ),
+                    Usage(input_tokens=10, output_tokens=4),
+                    Stop(reason="tool_use"),
+                ]
             ]
-        ])
+        )
 
         response = self.client.post(
             reverse("agent-conversation-send", args=[self.conversation.id]),
@@ -126,7 +135,9 @@ class SendActionTests(BaseTestCase):
         self.assertEqual(response.status_code, 400)
 
 
-@override_settings(CHANNEL_LAYERS={"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}})
+@override_settings(
+    CHANNEL_LAYERS={"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
+)
 class AdvanceActionTests(BaseTestCase):
     def setUp(self):
         super().setUp()
@@ -145,13 +156,27 @@ class AdvanceActionTests(BaseTestCase):
 
     @patch("agent.views.get_active_provider")
     def test_advance_with_op_results_completes_run(self, mock_get_provider):
-        mock_get_provider.return_value = FakeLLMProvider([
-            [TextDelta(text="Done."), Usage(input_tokens=3, output_tokens=1), Stop(reason="end_turn")]
-        ])
+        mock_get_provider.return_value = FakeLLMProvider(
+            [
+                [
+                    TextDelta(text="Done."),
+                    Usage(input_tokens=3, output_tokens=1),
+                    Stop(reason="end_turn"),
+                ]
+            ]
+        )
 
         response = self.client.post(
             reverse("agent-run-advance", args=[self.run.id]),
-            {"op_results": [{"tool_call_id": "tc_1", "content": "node n1 added", "is_error": False}]},
+            {
+                "op_results": [
+                    {
+                        "tool_call_id": "tc_1",
+                        "content": "node n1 added",
+                        "is_error": False,
+                    }
+                ]
+            },
             format="json",
         )
 

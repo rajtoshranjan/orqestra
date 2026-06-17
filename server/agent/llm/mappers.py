@@ -1,18 +1,15 @@
 from typing import Any
 
-from .types import (
-    LLMMessage,
-    Role,
-    TextBlock,
-    ToolCallBlock,
-    ToolResultBlock,
-    ToolSpec,
-)
+from .types import LLMMessage, Role, TextBlock, ToolCallBlock, ToolResultBlock, ToolSpec
 
 
 def to_anthropic_tools(tools: list[ToolSpec]) -> list[dict[str, Any]]:
     return [
-        {"name": tool.name, "description": tool.description, "input_schema": tool.input_schema}
+        {
+            "name": tool.name,
+            "description": tool.description,
+            "input_schema": tool.input_schema,
+        }
         for tool in tools
     ]
 
@@ -26,7 +23,12 @@ def to_anthropic_messages(messages: list[LLMMessage]) -> list[dict[str, Any]]:
                 content.append({"type": "text", "text": block.text})
             elif isinstance(block, ToolCallBlock):
                 content.append(
-                    {"type": "tool_use", "id": block.id, "name": block.name, "input": block.input}
+                    {
+                        "type": "tool_use",
+                        "id": block.id,
+                        "name": block.name,
+                        "input": block.input,
+                    }
                 )
             elif isinstance(block, ToolResultBlock):
                 content.append(

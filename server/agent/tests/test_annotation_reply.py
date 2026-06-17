@@ -1,3 +1,5 @@
+from accounts.models import User
+from agent.constants import AGENT_ID
 from annotations.models import Annotation, Comment, Notification
 from django.test import override_settings
 from django.urls import reverse
@@ -7,11 +9,10 @@ from orqestra.tests import BaseTestCase
 from projects.models import Project
 from rest_framework import status
 
-from accounts.models import User
-from agent.constants import AGENT_ID
 
-
-@override_settings(CHANNEL_LAYERS={"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}})
+@override_settings(
+    CHANNEL_LAYERS={"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
+)
 class AgentAnnotationReplyTests(BaseTestCase):
     def setUp(self):
         super().setUp()
@@ -38,7 +39,9 @@ class AgentAnnotationReplyTests(BaseTestCase):
         self.assertEqual(comment.origin, AGENT_ID)
         self.assertIsNone(comment.author)
         self.assertEqual(comment.body, "Added a cache in front of the database.")
-        self.assertEqual(self.annotation.events.filter(event_type="comment_added").count(), 1)
+        self.assertEqual(
+            self.annotation.events.filter(event_type="comment_added").count(), 1
+        )
 
     def test_reply_requires_a_body(self):
         response = self.client.post(
@@ -68,7 +71,9 @@ class AgentAnnotationReplyTests(BaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
-@override_settings(CHANNEL_LAYERS={"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}})
+@override_settings(
+    CHANNEL_LAYERS={"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
+)
 class AgentReplyNotificationTests(BaseTestCase):
     def setUp(self):
         super().setUp()

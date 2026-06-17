@@ -1,14 +1,10 @@
-from django.test import TestCase
-from organisations.models import Organisation
-from projects.models import Project
-
 from accounts.models import User
 from agent.engine import AdvanceResult, OpRequest
 from agent.models import AgentConversation, AgentMessage, AgentRun
-from agent.serializers import (
-    AgentConversationDetailSerializer,
-    advance_result_to_dict,
-)
+from agent.serializers import AgentConversationDetailSerializer, advance_result_to_dict
+from django.test import TestCase
+from organisations.models import Organisation
+from projects.models import Project
 
 
 class SerializerTests(TestCase):

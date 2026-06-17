@@ -1,5 +1,3 @@
-from django.test import SimpleTestCase
-
 from agent.llm.anthropic_provider import AnthropicProvider
 from agent.llm.types import (
     LLMMessage,
@@ -11,6 +9,7 @@ from agent.llm.types import (
     ToolSpec,
     Usage,
 )
+from django.test import SimpleTestCase
 
 
 class _FakeBlock:
@@ -29,7 +28,14 @@ class _FakeUsage:
 class _FakeFinalMessage:
     stop_reason = "tool_use"
     usage = _FakeUsage()
-    content = [_FakeBlock(type="tool_use", id="tc_1", name="add_resource", input={"service_id": "lambda"})]
+    content = [
+        _FakeBlock(
+            type="tool_use",
+            id="tc_1",
+            name="add_resource",
+            input={"service_id": "lambda"},
+        )
+    ]
 
 
 class _FakeStreamContext:
@@ -68,12 +74,23 @@ class AnthropicProviderTests(SimpleTestCase):
             provider.stream(
                 system_prompt="sys",
                 messages=[LLMMessage(role=Role.USER, content=[TextBlock(text="hi")])],
-                tools=[ToolSpec(name="add_resource", description="d", input_schema={"type": "object"})],
+                tools=[
+                    ToolSpec(
+                        name="add_resource",
+                        description="d",
+                        input_schema={"type": "object"},
+                    )
+                ],
             )
         )
 
         self.assertEqual(events[0], TextDelta(text="Adding "))
         self.assertEqual(events[1], TextDelta(text="a Lambda"))
-        self.assertIn(ToolCallRequested(id="tc_1", name="add_resource", input={"service_id": "lambda"}), events)
+        self.assertIn(
+            ToolCallRequested(
+                id="tc_1", name="add_resource", input={"service_id": "lambda"}
+            ),
+            events,
+        )
         self.assertIn(Usage(input_tokens=11, output_tokens=7), events)
         self.assertIn(Stop(reason="tool_use"), events)
