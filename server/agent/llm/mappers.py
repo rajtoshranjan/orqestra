@@ -43,3 +43,83 @@ def to_anthropic_messages(messages: list[LLMMessage]) -> list[dict[str, Any]]:
         role = "assistant" if message.role == Role.ASSISTANT else "user"
         result.append({"role": role, "content": content})
     return result
+
+
+def _sanitize_gemini_schema(schema: Any) -> Any:
+    if isinstance(schema, dict):
+        new_schema = {}
+        for key, value in schema.items():
+            if key == "type" and isinstance(value, list):
+                types_list = [type_str for type_str in value if type_str != "null"]
+                new_schema[key] = types_list[0] if types_list else "string"
+            else:
+                new_schema[key] = _sanitize_gemini_schema(value)
+        return new_schema
+    elif isinstance(schema, list):
+        return [_sanitize_gemini_schema(item) for item in schema]
+    return schema
+
+
+def to_gemini_tools(tools: list[ToolSpec]) -> list[Any]:
+    from google.genai import types
+    declarations = [
+        types.FunctionDeclaration(
+            name=tool.name,
+            description=tool.description,
+            parameters=_sanitize_gemini_schema(tool.input_schema),
+        )
+        for tool in tools
+    ]
+    return [types.Tool(function_declarations=declarations)] if declarations else []
+
+
+def to_gemini_messages(messages: list[LLMMessage]) -> list[Any]:
+    from google.genai import types
+
+    # Pre-scan messages to build a map from tool_call_id -> tool_name.
+    tool_name_map = {}
+    for msg in messages:
+        if msg.role == Role.ASSISTANT:
+            for block in msg.content:
+                if isinstance(block, ToolCallBlock):
+                    tool_name_map[block.id] = block.name
+
+    result: list[types.Content] = []
+    for msg in messages:
+        parts: list[types.Part] = []
+        for block in msg.content:
+            if isinstance(block, TextBlock):
+                parts.append(types.Part.from_text(text=block.text))
+            elif isinstance(block, ToolCallBlock):
+                parts.append(
+                    types.Part(
+                        function_call=types.FunctionCall(
+                            name=block.name,
+                            args=block.input,
+                            id=block.id,
+                        )
+                    )
+                )
+            elif isinstance(block, ToolResultBlock):
+                tool_name = tool_name_map.get(block.tool_call_id, "unknown_tool")
+                parts.append(
+                    types.Part(
+                        function_response=types.FunctionResponse(
+                            name=tool_name,
+                            response={"result": block.content},
+                            id=block.tool_call_id,
+                        )
+                    )
+                )
+
+        # Determine the Gemini role: Role.USER -> "user", Role.ASSISTANT -> "model", Role.TOOL -> "tool".
+        if msg.role == Role.ASSISTANT:
+            gemini_role = "model"
+        elif msg.role == Role.TOOL:
+            gemini_role = "tool"
+        else:
+            gemini_role = "user"
+
+        result.append(types.Content(role=gemini_role, parts=parts))
+    return result
+

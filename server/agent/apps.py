@@ -9,6 +9,8 @@ class AgentConfig(AppConfig):
         # Register LLM providers on startup. Import here to avoid app-registry
         # import-time issues.
         from .llm.anthropic_provider import AnthropicProvider
+        from .llm.gemini_provider import GeminiProvider
         from .llm.registry import llm_registry
 
         llm_registry.register(AnthropicProvider())
+        llm_registry.register(GeminiProvider())

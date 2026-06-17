@@ -41,3 +41,4 @@ class EnvVariable(Enum):
     AGENT_LLM_PROVIDER = os.environ.get("AGENT_LLM_PROVIDER", "anthropic")
     AGENT_LLM_MODEL = os.environ.get("AGENT_LLM_MODEL", "claude-opus-4-8")
     ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+    GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
