@@ -82,8 +82,10 @@ function ThreadComment({
       <div className="flex items-center gap-2">
         <span
           className={cn(
-            'flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-primary',
-            isAgent ? 'bg-primary/20' : 'bg-primary/15',
+            'flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold',
+            isAgent
+              ? 'bg-gradient-to-br from-[#7156FB] to-[#9C86FF] text-white shadow-sm'
+              : 'bg-primary/15 text-primary',
           )}
         >
           {isAgent ? <Sparkles size={12} /> : getInitials(comment.authorName || '?')}

@@ -8,18 +8,19 @@ import {
 import { makeId } from '@/utils/diagram';
 
 import { buildAgentCatalog } from './catalog';
-import { type GraphState } from './op-executor';
-import { applyConfirmedOp, processOps } from './run-loop';
+import { describeOp, type AgentOpIcon } from './op-label';
+import { executeOp, type GraphState } from './op-executor';
+import { resolveOpRisk } from './risk';
+import { applyConfirmedOp } from './run-loop';
 
 import type { AgentAdvanceResponse, AgentOp, AgentOpResult } from '@/api/agent';
 
-export type AgentChatMessage = {
-  id: string;
-  role: 'user' | 'assistant';
-  text: string;
-};
-
 export type AgentRunStatus = 'idle' | 'thinking' | 'awaiting_confirm' | 'error';
+
+/** A chat turn or a single graph action — rendered as one chronological feed. */
+export type AgentTimelineItem =
+  | { id: string; kind: 'message'; role: 'user' | 'assistant'; text: string }
+  | { id: string; kind: 'activity'; icon: AgentOpIcon; label: string; isError: boolean };
 
 export type UseAgentRunOptions = {
   projectId: string;
@@ -27,8 +28,18 @@ export type UseAgentRunOptions = {
   applyGraph: (next: GraphState) => void;
 };
 
+// A short beat between ops so the user watches the architecture build up.
+const STEP_DELAY_MS = 200;
+const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+type StepOutcome = {
+  state: GraphState;
+  results: AgentOpResult[];
+  pending?: { op: AgentOp; remaining: AgentOp[] };
+};
+
 export function useAgentRun({ projectId, getGraph, applyGraph }: UseAgentRunOptions) {
-  const [messages, setMessages] = useState<AgentChatMessage[]>([]);
+  const [items, setItems] = useState<AgentTimelineItem[]>([]);
   const [status, setStatus] = useState<AgentRunStatus>('idle');
   const [pendingOp, setPendingOp] = useState<AgentOp | null>(null);
 
@@ -38,11 +49,56 @@ export function useAgentRun({ projectId, getGraph, applyGraph }: UseAgentRunOpti
   const remainingRef = useRef<AgentOp[]>([]);
 
   const appendAssistant = useCallback((text: string) => {
-    if (!text) return;
-    setMessages((prev) => [...prev, { id: makeId(), role: 'assistant', text }]);
+    if (!text.trim()) return;
+    setItems((prev) => [
+      ...prev,
+      { id: makeId(), kind: 'message', role: 'assistant', text },
+    ]);
   }, []);
 
-  // Drive the client loop: process each turn's ops, report results, repeat
+  const pushActivity = useCallback((op: AgentOp, isError: boolean) => {
+    const { icon, label } = describeOp(op);
+    setItems((prev) => [...prev, { id: makeId(), kind: 'activity', icon, label, isError }]);
+  }, []);
+
+  const pushSkipped = useCallback((op: AgentOp) => {
+    const { label } = describeOp(op);
+    setItems((prev) => [
+      ...prev,
+      { id: makeId(), kind: 'activity', icon: 'info', label: `Skipped — ${label}`, isError: false },
+    ]);
+  }, []);
+
+  // Apply a turn's ops one at a time (with a beat) so the build is visible.
+  // Stops at the first op that needs confirmation.
+  const applyOpsStepwise = useCallback(
+    async (ops: AgentOp[], startState: GraphState): Promise<StepOutcome> => {
+      let state = startState;
+      const results: AgentOpResult[] = [];
+
+      for (let index = 0; index < ops.length; index += 1) {
+        const op = ops[index];
+        if (resolveOpRisk(op.risk, op.name, op.input) === 'confirm') {
+          return { state, results, pending: { op, remaining: ops.slice(index + 1) } };
+        }
+        const outcome = executeOp(op.name, op.input, state);
+        state = outcome.state;
+        applyGraph(state);
+        pushActivity(op, outcome.isError);
+        results.push({
+          toolCallId: op.toolCallId,
+          content: outcome.content,
+          isError: outcome.isError,
+        });
+        if (index < ops.length - 1) await delay(STEP_DELAY_MS);
+      }
+
+      return { state, results };
+    },
+    [applyGraph, pushActivity],
+  );
+
+  // Drive the client loop: narrate, apply ops, report results, repeat
   // until the run completes or an op needs confirmation.
   const drive = useCallback(
     async (initial: AgentAdvanceResponse) => {
@@ -56,9 +112,7 @@ export function useAgentRun({ projectId, getGraph, applyGraph }: UseAgentRunOpti
           return;
         }
 
-        const outcome = processOps(response.ops, getGraph());
-        applyGraph(outcome.state);
-
+        const outcome = await applyOpsStepwise(response.ops, getGraph());
         if (outcome.pending) {
           pendingResultsRef.current = outcome.results;
           remainingRef.current = outcome.pending.remaining;
@@ -70,7 +124,7 @@ export function useAgentRun({ projectId, getGraph, applyGraph }: UseAgentRunOpti
         response = await advanceAgentRun(response.runId, outcome.results);
       }
     },
-    [appendAssistant, getGraph, applyGraph],
+    [appendAssistant, applyOpsStepwise, getGraph],
   );
 
   const sendMessage = useCallback(
@@ -78,7 +132,10 @@ export function useAgentRun({ projectId, getGraph, applyGraph }: UseAgentRunOpti
       const trimmed = text.trim();
       if (!trimmed || status === 'thinking') return;
 
-      setMessages((prev) => [...prev, { id: makeId(), role: 'user', text: trimmed }]);
+      setItems((prev) => [
+        ...prev,
+        { id: makeId(), kind: 'message', role: 'user', text: trimmed },
+      ]);
       setStatus('thinking');
       try {
         if (!conversationIdRef.current) {
@@ -107,9 +164,13 @@ export function useAgentRun({ projectId, getGraph, applyGraph }: UseAgentRunOpti
       try {
         const applied = applyConfirmedOp(op, getGraph(), approved);
         applyGraph(applied.state);
+        if (approved) {
+          pushActivity(op, applied.result.isError);
+        } else {
+          pushSkipped(op);
+        }
 
-        const outcome = processOps(remainingRef.current, applied.state);
-        applyGraph(outcome.state);
+        const outcome = await applyOpsStepwise(remainingRef.current, applied.state);
         const results = [...pendingResultsRef.current, applied.result, ...outcome.results];
 
         if (outcome.pending) {
@@ -132,8 +193,18 @@ export function useAgentRun({ projectId, getGraph, applyGraph }: UseAgentRunOpti
         setStatus('error');
       }
     },
-    [pendingOp, getGraph, applyGraph, drive, appendAssistant],
+    [pendingOp, getGraph, applyGraph, pushActivity, pushSkipped, applyOpsStepwise, drive, appendAssistant],
   );
 
-  return { messages, status, pendingOp, sendMessage, confirm };
+  const reset = useCallback(() => {
+    conversationIdRef.current = null;
+    runIdRef.current = null;
+    pendingResultsRef.current = [];
+    remainingRef.current = [];
+    setItems([]);
+    setPendingOp(null);
+    setStatus('idle');
+  }, []);
+
+  return { items, status, pendingOp, sendMessage, confirm, reset };
 }
