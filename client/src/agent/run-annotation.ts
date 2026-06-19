@@ -61,6 +61,11 @@ export async function runAnnotationAgent({
     );
 
     for (;;) {
+      // A failed run carries the provider error and no usable output — surface it
+      // in the thread instead of silently posting the "Done." fallback below.
+      if (response.status === 'failed') {
+        throw new Error(response.error || 'The agent run failed.');
+      }
       if (response.status !== 'awaiting_client' || response.ops.length === 0) {
         break;
       }
