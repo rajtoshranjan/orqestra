@@ -23,6 +23,7 @@ import 'reactflow/dist/style.css';
 import { useLocalStorage } from 'usehooks-ts';
 
 import { buildAnnotationAgentMessage } from '@/agent/annotation-trigger';
+import { selectAnchoredThreads } from '@/agent/inbox';
 import { type GraphState } from '@/agent/op-executor';
 import { runAnnotationAgent } from '@/agent/run-annotation';
 import { useProjectDeploymentState, useCreateDeployment } from '@/api';
@@ -271,6 +272,12 @@ export function CanvasEditor({
       });
     },
   });
+
+  // Canvas-anchored agent threads surfaced in the agent panel's "Threads" tab.
+  const anchoredThreads = React.useMemo(
+    () => selectAnchoredThreads(comments.annotations),
+    [comments.annotations],
+  );
 
   // Onboarding: open the agent panel once for a brand-new (empty) project so the
   // user lands straight in the guided requirements chat. One-shot per project —
@@ -1230,6 +1237,10 @@ export function CanvasEditor({
           getGraph={() => graphRef.current}
           applyGraph={applyAgentGraph}
           open={agentPanelOpen}
+          anchoredThreads={anchoredThreads}
+          activeThreadId={comments.activeAnnotation?.id ?? null}
+          isThreadDetached={comments.isDetached}
+          onOpenThread={comments.jumpToAnnotation}
         />
 
         {selectedNode && (

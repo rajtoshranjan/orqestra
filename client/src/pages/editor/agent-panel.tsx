@@ -7,6 +7,7 @@ import {
   FolderTree,
   Info,
   Link2,
+  MessageSquare,
   Plus,
   RotateCcw,
   ShieldAlert,
@@ -16,13 +17,24 @@ import {
   X,
 } from 'lucide-react';
 
+import type { ClientAnnotation } from '@/api';
 import { type GraphState } from '@/agent/op-executor';
 import { describeOp, type AgentOpIcon } from '@/agent/op-label';
 import { useAgentRun, type AgentTimelineItem } from '@/agent/use-agent-run';
-import { Button, Textarea } from '@/components/ui';
+import {
+  Badge,
+  Button,
+  EmptyState,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  Textarea,
+} from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { useAppDispatch } from '@/store';
 import { setAgentPanelOpen } from '@/store/ui-slice';
+
+import { AnnotationCard } from './comments/annotation-card';
 
 import type { LucideIcon } from 'lucide-react';
 
@@ -58,6 +70,13 @@ type AgentPanelProps = {
   applyGraph: (next: GraphState) => void;
   /** Kept mounted while closed (hidden via CSS) so the thread survives toggles. */
   open: boolean;
+  /** Canvas-anchored agent threads shown in the "Threads" tab. */
+  anchoredThreads: ClientAnnotation[];
+  /** Id of the thread whose popover is currently open on the canvas, if any. */
+  activeThreadId: string | null;
+  isThreadDetached: (annotation: ClientAnnotation) => boolean;
+  /** Jump the canvas to a thread and open its comment popover. */
+  onOpenThread: (annotationId: string) => void;
 };
 
 function AgentAvatar({
@@ -158,11 +177,17 @@ function ThinkingRow() {
   );
 }
 
+type AgentPanelTab = 'chat' | 'threads';
+
 export function AgentPanel({
   projectId,
   getGraph,
   applyGraph,
   open,
+  anchoredThreads,
+  activeThreadId,
+  isThreadDetached,
+  onOpenThread,
 }: AgentPanelProps) {
   const dispatch = useAppDispatch();
   const {
@@ -181,6 +206,9 @@ export function AgentPanel({
     enabled: open,
   });
   const [input, setInput] = useState('');
+  // The panel stays mounted while closed, so the active tab persists across
+  // open/close within a session. Chat is the default — onboarding lands here.
+  const [tab, setTab] = useState<AgentPanelTab>('chat');
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const busy = status === 'thinking' || pendingOp !== null;
@@ -233,7 +261,7 @@ export function AgentPanel({
           </p>
         </div>
         <div className="ml-auto flex items-center gap-0.5">
-          {!isEmpty && (
+          {tab === 'chat' && !isEmpty && (
             <Button
               variant="ghost"
               size="sm"
@@ -260,8 +288,53 @@ export function AgentPanel({
         </div>
       </div>
 
-      {/* Body */}
-      <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-3">
+      {/* Tabs */}
+      <div className="border-b border-border px-2 py-2">
+        <Tabs
+          value={tab}
+          onValueChange={(value) => setTab(value as AgentPanelTab)}
+        >
+          <TabsList className="grid h-8 w-full grid-cols-2">
+            <TabsTrigger value="chat" className="text-[11px]">
+              Chat
+            </TabsTrigger>
+            <TabsTrigger value="threads" className="gap-1.5 text-[11px]">
+              Threads
+              {anchoredThreads.length > 0 && (
+                <Badge variant="outline" className="px-1 py-0 text-[9px]">
+                  {anchoredThreads.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
+      {tab === 'threads' ? (
+        <div className="flex-1 space-y-2 overflow-y-auto p-3">
+          {anchoredThreads.length === 0 ? (
+            <EmptyState
+              icon={MessageSquare}
+              title="No agent threads yet"
+              description="Tag @orqestra in a canvas comment to start an in-context thread the agent will work on."
+              size="sm"
+            />
+          ) : (
+            anchoredThreads.map((annotation) => (
+              <AnnotationCard
+                key={annotation.id}
+                annotation={annotation}
+                isActive={annotation.id === activeThreadId}
+                isDetached={isThreadDetached(annotation)}
+                onClick={() => onOpenThread(annotation.id)}
+              />
+            ))
+          )}
+        </div>
+      ) : (
+        <>
+          {/* Body */}
+          <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-3">
         {isEmpty ? (
           <div className="animate-fade-in flex h-full flex-col items-center justify-center gap-4 px-2 text-center">
             <AgentAvatar className="size-12" iconSize={24} />
@@ -399,6 +472,8 @@ export function AgentPanel({
           Enter to send · Shift+Enter for a new line
         </p>
       </div>
+        </>
+      )}
     </aside>
   );
 }
