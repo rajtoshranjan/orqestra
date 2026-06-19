@@ -246,11 +246,6 @@ export function CanvasEditor({
   const { enrichedEdges } = useEnrichedEdges({ edges, nodes });
 
   /* Collaboration & annotations */
-  // One agent conversation per annotation thread, so follow-up comments in a
-  // thread the agent is engaged in keep its memory of what it already did.
-  const annotationConversationsRef = React.useRef<Map<string, string>>(
-    new Map(),
-  );
   const comments = useComments({
     projectId: currentProjectId,
     nodes,
@@ -267,11 +262,6 @@ export function CanvasEditor({
         message: buildAnnotationAgentMessage(req),
         getGraph: () => graphRef.current,
         applyGraph: applyAgentGraph,
-        conversationId: annotationConversationsRef.current.get(
-          req.annotationId,
-        ),
-        onConversation: (id) =>
-          annotationConversationsRef.current.set(req.annotationId, id),
       }).catch(() => {
         toast({
           title: 'Agent error',

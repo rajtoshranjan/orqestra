@@ -1,6 +1,7 @@
 import {
   advanceAgentRun,
   createAgentConversation,
+  fetchConversationForAnnotation,
   replyToAnnotation,
   sendAgentMessage,
 } from '@/api/agent';
@@ -16,12 +17,6 @@ export type RunAnnotationAgentOptions = {
   message: string;
   getGraph: () => GraphState;
   applyGraph: (next: GraphState) => void;
-  /** Reuse an existing conversation so the agent remembers the thread across
-   * follow-up comments. Omit to start a fresh one. */
-  conversationId?: string | null;
-  /** Reports the conversation id used (created or reused) so the caller can
-   * keep following the same thread. */
-  onConversation?: (conversationId: string) => void;
   /** Re-tidy the canvas after structural changes (added/removed/wired nodes). */
   layoutGraph?: (graph: GraphState) => GraphState;
 };
@@ -37,21 +32,23 @@ export async function runAnnotationAgent({
   message,
   getGraph,
   applyGraph,
-  conversationId,
-  onConversation,
   layoutGraph,
 }: RunAnnotationAgentOptions): Promise<void> {
   let declinedCount = 0;
   try {
-    let activeConversationId = conversationId ?? null;
+    // Reuse the conversation already anchored to this thread (persisted on the
+    // server) so the agent keeps its memory across reloads; create one only the
+    // first time the thread engages the agent.
+    let activeConversationId =
+      await fetchConversationForAnnotation(annotationId);
     if (!activeConversationId) {
       const conversation = await createAgentConversation({
         projectId,
         catalog: buildAgentCatalog(),
+        annotationId,
       });
       activeConversationId = conversation.id;
     }
-    onConversation?.(activeConversationId);
 
     // Thread the applied state across turns rather than re-reading getGraph()
     // (React state may not have flushed between awaits).
