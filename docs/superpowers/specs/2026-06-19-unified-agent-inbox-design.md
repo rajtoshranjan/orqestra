@@ -56,10 +56,13 @@ backend change.
    the comment popover there; the conversation stays on the canvas. The panel is
    an index/launcher for anchored threads.
 3. **Scope = inbox + both bug fixes**, via a shared migration.
-4. **Panel default view = the list**, with two refinements for friction:
-   - Empty/new project onboarding opens **straight into the build chat view**.
-   - The panel **remembers the last-open view within a session** (list vs. build
-     chat), so reopening lands where you left off.
+4. **Panel is a tabbed inbox: "Chat" | "Threads".**
+   - **Chat** tab = the standalone build conversation (today's panel body). Default
+     tab, so onboarding and the primary workflow land here with no extra clicks.
+   - **Threads** tab = the canvas-anchored agent threads (launchers that jump to
+     canvas), with a count badge.
+   - The active tab is **remembered within the session** (local state; the panel
+     stays mounted while hidden), so reopening returns to the last tab.
 
 ---
 
@@ -114,31 +117,32 @@ Remove the ephemeral `annotationConversationsRef` Map. Persist and reuse the lin
 
 ## Section D — Frontend: agent panel becomes a two-view inbox
 
-The panel (`agent-panel.tsx`) gains a lightweight view switch held in **local
-component state**. `AgentPanel` already stays mounted while closed (hidden via
-CSS, per its existing doc comment), so the active view naturally persists across
-open/close without touching Redux.
+The panel (`agent-panel.tsx`) becomes a tabbed inbox using the shadcn `Tabs`
+primitive (already used in `comments-sidebar.tsx`). The active tab is held in
+**local component state**; `AgentPanel` already stays mounted while closed (hidden
+via CSS, per its existing doc comment), so the active tab naturally persists
+across open/close without touching Redux.
 
-**List view (default):**
-- A pinned **"Build chat"** entry at the top → opens the build-chat view inline.
-- An **"On the canvas"** section listing anchored agent threads.
+**Chat tab (default):**
+- The current transcript + composer (today's `AgentPanel` body), unchanged except
+  that it consumes the `standalone=true` rehydrate from Section B. Default tab, so
+  onboarding and the primary "describe your app" flow land here directly.
+
+**Threads tab:**
+- Lists the canvas-anchored agent threads; a count badge on the tab shows how many.
   - Source: the annotations already loaded by `useComments`, filtered with the
-    existing `threadEngagesAgent()` from `agent/annotation-trigger.ts`.
-  - Rendering: **reuse the `AnnotationCard` pattern** from `comments-sidebar.tsx`
-    (extract it to a shared component if needed — do not duplicate it).
-  - Resolved anchored threads hidden by default, mirroring the comments sidebar.
+    existing `threadEngagesAgent()` from `agent/annotation-trigger.ts` (which
+    already excludes resolved threads), via a small pure util `selectAnchoredThreads`.
+  - Rendering: **reuse the `AnnotationCard`** from `comments-sidebar.tsx` —
+    extracted to its own shared component `comments/annotation-card.tsx`, not
+    duplicated.
 - Clicking an anchored thread → `comments.jumpToAnnotation(id)` (reused): centers
-  the canvas, sets the active annotation, and opens the thread popover. If the
-  popover only renders in comment mode, the open handler also enables comment
-  mode so the thread is actually visible.
+  the canvas, sets the active annotation, and opens the thread popover. The
+  popover renders whenever `activeAnnotation` is set (`comment-layer.tsx:454`),
+  **not** gated by comment mode, so no mode toggle is needed.
 
-**Build-chat view:**
-- The current transcript + composer (today's `AgentPanel` body), with a back
-  arrow to the list. `useAgentRun` is unchanged except that it consumes the
-  `standalone=true` rehydrate from Section B.
-
-**Header** adapts to the active view (list: "Orqestra" + new-chat; chat: back
-arrow + new-chat).
+**Header** keeps the "Orqestra" identity + new-chat/close controls; the new-chat
+control acts on the Chat tab's conversation.
 
 ## Section E — Wiring
 
@@ -153,14 +157,14 @@ down:
 No duplicate annotation fetching, no new global state store. The build-chat
 conversation continues to live in `useAgentRun`.
 
-## Section F — Onboarding & session view memory
+## Section F — Onboarding & session tab memory
 
-- The existing empty-project auto-open (`autoOpenedAgentForRef` effect) opens the
-  panel **into the build-chat view**, preserving the guided "describe your app"
-  flow.
-- The panel's active view (list vs. build chat) lives in `AgentPanel` local state
+- The existing empty-project auto-open (`autoOpenedAgentForRef` effect) needs no
+  change: the **Chat tab is the default**, so a brand-new project lands directly
+  in the guided "describe your app" flow.
+- The panel's active tab (Chat vs. Threads) lives in `AgentPanel` local state
   (Section D). Because the panel stays mounted while hidden, reopening returns to
-  the last view rather than always resetting to the list.
+  the last tab.
 
 ## Section G — Testing
 
