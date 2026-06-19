@@ -56,6 +56,8 @@ type AgentPanelProps = {
   projectId: string;
   getGraph: () => GraphState;
   applyGraph: (next: GraphState) => void;
+  /** Kept mounted while closed (hidden via CSS) so the thread survives toggles. */
+  open: boolean;
 };
 
 function AgentAvatar({
@@ -116,7 +118,9 @@ function ActivityRow({
 
 function TimelineItem({ item }: { item: AgentTimelineItem }) {
   if (item.kind === 'activity') {
-    return <ActivityRow icon={item.icon} label={item.label} isError={item.isError} />;
+    return (
+      <ActivityRow icon={item.icon} label={item.label} isError={item.isError} />
+    );
   }
   if (item.role === 'user') {
     return (
@@ -154,12 +158,27 @@ function ThinkingRow() {
   );
 }
 
-export function AgentPanel({ projectId, getGraph, applyGraph }: AgentPanelProps) {
+export function AgentPanel({
+  projectId,
+  getGraph,
+  applyGraph,
+  open,
+}: AgentPanelProps) {
   const dispatch = useAppDispatch();
-  const { items, status, pendingOp, sendMessage, confirm, reset } = useAgentRun({
+  const {
+    items,
+    status,
+    pendingOp,
+    errorText,
+    sendMessage,
+    confirm,
+    reset,
+    retry,
+  } = useAgentRun({
     projectId,
     getGraph,
     applyGraph,
+    enabled: open,
   });
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -180,13 +199,24 @@ export function AgentPanel({ projectId, getGraph, applyGraph }: AgentPanelProps)
   };
 
   return (
-    <aside className="flex w-[400px] shrink-0 flex-col border-l border-border bg-card">
+    <aside
+      className={cn(
+        'flex w-[400px] shrink-0 flex-col border-l border-border bg-card',
+        !open && 'hidden',
+      )}
+    >
       {/* Header */}
       <div className="flex items-center gap-2.5 border-b border-border px-3 py-2.5">
-        <AgentAvatar className="size-7" iconSize={14} busy={status === 'thinking'} />
+        <AgentAvatar
+          className="size-7"
+          iconSize={14}
+          busy={status === 'thinking'}
+        />
         <div className="min-w-0 leading-tight">
           <div className="flex items-center gap-1.5">
-            <span className="text-gradient text-sm font-semibold">Orqestra</span>
+            <span className="text-gradient text-sm font-semibold">
+              Orqestra
+            </span>
             <span
               className={cn(
                 'size-1.5 rounded-full',
@@ -317,9 +347,23 @@ export function AgentPanel({ projectId, getGraph, applyGraph }: AgentPanelProps)
           })()}
 
         {status === 'error' && (
-          <p className="text-xs text-destructive">
-            Orqestra hit an error. Try sending your message again.
-          </p>
+          <div className="animate-scale-in space-y-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-destructive">
+              <Info size={14} /> Orqestra hit an error
+            </div>
+            <p className="text-[11px] leading-relaxed text-muted-foreground">
+              {errorText || 'Something went wrong.'}
+            </p>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 gap-1.5 text-xs"
+              onClick={() => void retry()}
+              disabled={busy}
+            >
+              <RotateCcw size={12} /> Try again
+            </Button>
+          </div>
         )}
       </div>
 

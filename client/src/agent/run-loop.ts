@@ -25,7 +25,11 @@ export function processOps(
   for (let i = 0; i < ops.length; i++) {
     const op = ops[i];
     if (resolveRisk(op.risk, op.name, op.input) === 'confirm') {
-      return { state: current, results, pending: { op, remaining: ops.slice(i + 1) } };
+      return {
+        state: current,
+        results,
+        pending: { op, remaining: ops.slice(i + 1) },
+      };
     }
     const outcome = executeOp(op.name, op.input, current);
     current = outcome.state;
@@ -70,7 +74,19 @@ export type AutoProcessResult = {
   state: GraphState;
   results: AgentOpResult[];
   declined: AgentOp[];
+  /** True when an applied op changed the graph's topology (added/removed/wired/
+   * re-parented a node) — i.e. the layout should be re-tidied. Pure `configure`
+   * edits don't move anything, so they don't set this. */
+  structural: boolean;
 };
+
+/** Ops that change node positions/topology and so warrant a layout pass. */
+export const STRUCTURAL_OPS = new Set([
+  'add_resource',
+  'connect',
+  'remove',
+  'set_parent',
+]);
 
 /**
  * Like processOps but never stops: safe ops apply, confirm-risk ops are
@@ -85,6 +101,7 @@ export function processOpsAutoDecline(
   let current = state;
   const results: AgentOpResult[] = [];
   const declined: AgentOp[] = [];
+  let structural = false;
 
   for (const op of ops) {
     if (resolveRisk(op.risk, op.name, op.input) === 'confirm') {
@@ -95,6 +112,7 @@ export function processOpsAutoDecline(
     }
     const outcome = executeOp(op.name, op.input, current);
     current = outcome.state;
+    if (outcome.mutated && STRUCTURAL_OPS.has(op.name)) structural = true;
     results.push({
       toolCallId: op.toolCallId,
       content: outcome.content,
@@ -102,5 +120,5 @@ export function processOpsAutoDecline(
     });
   }
 
-  return { state: current, results, declined };
+  return { state: current, results, declined, structural };
 }

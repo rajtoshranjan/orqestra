@@ -29,6 +29,11 @@ class AnthropicProvider(BaseLLMProvider):
 
     def _get_client(self):
         if self._client is None:
+            if not settings.ANTHROPIC_API_KEY:
+                raise RuntimeError(
+                    "The agent is not configured: ANTHROPIC_API_KEY is missing on "
+                    "the server. Set it (or switch AGENT_LLM_PROVIDER) and retry."
+                )
             import anthropic
 
             self._client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)

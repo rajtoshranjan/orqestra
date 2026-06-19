@@ -95,6 +95,8 @@ class AgentConversationViewSet(
         if not message_text:
             raise ValidationError({"message": "This field is required."})
 
+        graph = self._validated_graph(request)
+
         AgentMessage.objects.create(
             conversation=conversation,
             role=MessageRole.USER.value,
@@ -102,9 +104,18 @@ class AgentConversationViewSet(
         )
         run = AgentRun.objects.create(conversation=conversation)
         result = build_engine(conversation).advance(
-            run, op_results=[], catalog=conversation.catalog or []
+            run, op_results=[], catalog=conversation.catalog or [], graph=graph
         )
         return Response(advance_result_to_dict(run, result))
+
+    @staticmethod
+    def _validated_graph(request):
+        graph = request.data.get("graph")
+        if graph is None:
+            return None
+        if not isinstance(graph, dict):
+            raise ValidationError({"graph": "Must be an object with nodes and edges."})
+        return graph
 
 
 class AgentRunViewSet(viewsets.GenericViewSet):
@@ -123,9 +134,15 @@ class AgentRunViewSet(viewsets.GenericViewSet):
         op_results = request.data.get("op_results") or []
         if not isinstance(op_results, list):
             raise ValidationError({"op_results": "Must be a list."})
+        graph = request.data.get("graph")
+        if graph is not None and not isinstance(graph, dict):
+            raise ValidationError({"graph": "Must be an object with nodes and edges."})
         conversation = run.conversation
         result = build_engine(conversation).advance(
-            run, op_results=op_results, catalog=conversation.catalog or []
+            run,
+            op_results=op_results,
+            catalog=conversation.catalog or [],
+            graph=graph,
         )
         return Response(advance_result_to_dict(run, result))
 

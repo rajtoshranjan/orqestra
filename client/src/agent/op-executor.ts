@@ -1,3 +1,4 @@
+import { camelToSnakeRecursive } from '@/api/types';
 import { registry } from '@/services';
 import type { DiagramEdge, DiagramEdgeData, DiagramNode } from '@/types';
 import {
@@ -9,6 +10,21 @@ import {
 } from '@/utils/diagram';
 
 export type GraphState = { nodes: DiagramNode[]; edges: DiagramEdge[] };
+
+/** The persisted (snake_case) shape the agent backend reads for its prompt. */
+export type ServerGraphSnapshot = { nodes: unknown[]; edges: unknown[] };
+
+/**
+ * Convert the live client graph into the same snake_case shape the project is
+ * saved in, so the agent's system prompt reflects exactly what the user sees
+ * (rather than the debounced-autosave DB snapshot).
+ */
+export function toServerGraph(graph: GraphState): ServerGraphSnapshot {
+  return {
+    nodes: camelToSnakeRecursive(graph.nodes),
+    edges: camelToSnakeRecursive(graph.edges),
+  };
+}
 
 export type OpOutcome = {
   state: GraphState;

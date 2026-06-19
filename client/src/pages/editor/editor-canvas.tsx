@@ -28,8 +28,8 @@ import { runAnnotationAgent } from '@/agent/run-annotation';
 import { useProjectDeploymentState, useCreateDeployment } from '@/api';
 import { ConfirmDialog } from '@/components/ui';
 import { usePermissions } from '@/hooks';
-import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { useActiveDeploymentResult } from '@/hooks/use-active-deployment-result';
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { toast } from '@/hooks/use-toast';
 import { registry } from '@/services';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -246,6 +246,11 @@ export function CanvasEditor({
   const { enrichedEdges } = useEnrichedEdges({ edges, nodes });
 
   /* Collaboration & annotations */
+  // One agent conversation per annotation thread, so follow-up comments in a
+  // thread the agent is engaged in keep its memory of what it already did.
+  const annotationConversationsRef = React.useRef<Map<string, string>>(
+    new Map(),
+  );
   const comments = useComments({
     projectId: currentProjectId,
     nodes,
@@ -262,6 +267,11 @@ export function CanvasEditor({
         message: buildAnnotationAgentMessage(req),
         getGraph: () => graphRef.current,
         applyGraph: applyAgentGraph,
+        conversationId: annotationConversationsRef.current.get(
+          req.annotationId,
+        ),
+        onConversation: (id) =>
+          annotationConversationsRef.current.set(req.annotationId, id),
       }).catch(() => {
         toast({
           title: 'Agent error',
@@ -271,6 +281,18 @@ export function CanvasEditor({
       });
     },
   });
+
+  // Onboarding: open the agent panel once for a brand-new (empty) project so the
+  // user lands straight in the guided requirements chat. One-shot per project —
+  // we never fight the user reopening it after they close it.
+  const autoOpenedAgentForRef = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    if (readOnly) return;
+    if (autoOpenedAgentForRef.current === currentProjectId) return;
+    if (nodes.length > 0) return;
+    autoOpenedAgentForRef.current = currentProjectId;
+    dispatch(setAgentPanelOpen(true));
+  }, [currentProjectId, nodes.length, readOnly, dispatch]);
 
   const toggleCommentMode = React.useCallback(() => {
     dispatch(setCommentMode(!commentMode));
@@ -1150,6 +1172,7 @@ export function CanvasEditor({
           {nodes.length === 0 && (
             <CanvasEmptyState
               onApplyStarter={handleApplyStarter}
+              onUseAgent={() => dispatch(setAgentPanelOpen(true))}
               readOnly={readOnly}
             />
           )}
@@ -1212,13 +1235,12 @@ export function CanvasEditor({
         </div>
 
         {commentMode && <CommentsSidebar comments={comments} />}
-        {agentPanelOpen && (
-          <AgentPanel
-            projectId={currentProjectId}
-            getGraph={() => graphRef.current}
-            applyGraph={applyAgentGraph}
-          />
-        )}
+        <AgentPanel
+          projectId={currentProjectId}
+          getGraph={() => graphRef.current}
+          applyGraph={applyAgentGraph}
+          open={agentPanelOpen}
+        />
 
         {selectedNode && (
           <NodeInspector

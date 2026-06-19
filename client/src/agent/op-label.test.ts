@@ -4,7 +4,9 @@ import { describeOp } from './op-label';
 
 describe('describeOp', () => {
   it('describes add_resource with the service id', () => {
-    expect(describeOp({ name: 'add_resource', input: { service_id: 'lambda' } })).toEqual({
+    expect(
+      describeOp({ name: 'add_resource', input: { service_id: 'lambda' } }),
+    ).toEqual({
       icon: 'add',
       label: 'Added lambda',
     });
@@ -12,7 +14,10 @@ describe('describeOp', () => {
 
   it('includes an explicit label when provided', () => {
     expect(
-      describeOp({ name: 'add_resource', input: { service_id: 'lambda', label: 'API' } }).label,
+      describeOp({
+        name: 'add_resource',
+        input: { service_id: 'lambda', label: 'API' },
+      }).label,
     ).toBe('Added lambda "API"');
   });
 

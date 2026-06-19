@@ -5,7 +5,11 @@ import '@/services'; // real registry for executeOp
 import type { AgentOp } from '@/api/agent';
 
 import { type GraphState } from './op-executor';
-import { applyConfirmedOp, processOps, processOpsAutoDecline } from './run-loop';
+import {
+  applyConfirmedOp,
+  processOps,
+  processOpsAutoDecline,
+} from './run-loop';
 
 const empty = (): GraphState => ({ nodes: [], edges: [] });
 
@@ -55,7 +59,10 @@ describe('processOps', () => {
 
 describe('applyConfirmedOp', () => {
   it('executes the op when approved', () => {
-    const added = processOps([op('add_resource', { service_id: 'lambda' })], empty());
+    const added = processOps(
+      [op('add_resource', { service_id: 'lambda' })],
+      empty(),
+    );
     const node = added.state.nodes[0];
 
     const { state, result } = applyConfirmedOp(
@@ -69,7 +76,10 @@ describe('applyConfirmedOp', () => {
   });
 
   it('leaves the graph unchanged when declined', () => {
-    const added = processOps([op('add_resource', { service_id: 'lambda' })], empty());
+    const added = processOps(
+      [op('add_resource', { service_id: 'lambda' })],
+      empty(),
+    );
 
     const { state, result } = applyConfirmedOp(
       op('remove', { target_id: added.state.nodes[0].id }),

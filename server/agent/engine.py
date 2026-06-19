@@ -44,6 +44,48 @@ _ROLE_TO_CANONICAL = {
 }
 
 
+def _repair_history(history: list[LLMMessage]) -> list[LLMMessage]:
+    """Drop unmatched tool_use / tool_result blocks.
+
+    An abandoned run (client closed the panel, disconnected, etc.) can leave an
+    assistant `tool_use` block with no matching `tool_result` — replaying that
+    verbatim makes the LLM API reject the whole request and permanently poisons
+    the conversation. Keep a tool call only when its result also exists (and vice
+    versa); drop any message left empty.
+    """
+    tool_use_ids = {
+        block.id
+        for message in history
+        for block in message.content
+        if isinstance(block, ToolCallBlock)
+    }
+    tool_result_ids = {
+        block.tool_call_id
+        for message in history
+        for block in message.content
+        if isinstance(block, ToolResultBlock)
+    }
+    matched = tool_use_ids & tool_result_ids
+    if matched == (tool_use_ids | tool_result_ids):
+        return history  # every pair is satisfied; nothing to repair
+
+    repaired: list[LLMMessage] = []
+    for message in history:
+        blocks: list = []
+        for block in message.content:
+            if isinstance(block, ToolCallBlock) and block.id not in matched:
+                continue
+            if (
+                isinstance(block, ToolResultBlock)
+                and block.tool_call_id not in matched
+            ):
+                continue
+            blocks.append(block)
+        if blocks:
+            repaired.append(LLMMessage(role=message.role, content=blocks))
+    return repaired
+
+
 @dataclass
 class OpRequest:
     tool_call_id: str
@@ -73,7 +115,11 @@ class AgentEngine:
         )
 
     def advance(
-        self, run: AgentRun, op_results: list[dict], catalog: list[dict]
+        self,
+        run: AgentRun,
+        op_results: list[dict],
+        catalog: list[dict],
+        graph: dict | None = None,
     ) -> AdvanceResult:
         if run.turn_count >= self.max_turns:
             return self._fail(run, f"Exceeded max turns ({self.max_turns}).")
@@ -103,7 +149,16 @@ class AgentEngine:
 
         # 2. Rebuild the canonical message history.
         history = self._load_history(conversation)
-        system_prompt = build_system_prompt(catalog, conversation.project)
+        # Prefer the client's live canvas snapshot (exactly what the user sees);
+        # fall back to the persisted project graph when it isn't supplied.
+        if graph is not None:
+            nodes = graph.get("nodes") or []
+            edges = graph.get("edges") or []
+        else:
+            project = conversation.project
+            nodes = project.nodes or []
+            edges = project.edges or []
+        system_prompt = build_system_prompt(catalog, nodes, edges)
 
         # 3. Run one model turn, accumulating text + tool calls.
         text_parts: list[str] = []
@@ -215,7 +270,7 @@ class AgentEngine:
                     content=json_to_content_blocks(message.content),
                 )
             )
-        return history
+        return _repair_history(history)
 
     def _fail(self, run: AgentRun, error: str) -> AdvanceResult:
         run.status = RunStatus.FAILED.value

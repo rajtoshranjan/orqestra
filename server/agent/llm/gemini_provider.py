@@ -27,8 +27,14 @@ class GeminiProvider(BaseLLMProvider):
 
     def _get_client(self):
         if self._client is None:
-            from google import genai
             api_key = getattr(settings, "GEMINI_API_KEY", "") or None
+            if not api_key:
+                raise RuntimeError(
+                    "The agent is not configured: GEMINI_API_KEY is missing on the "
+                    "server. Set it (or switch AGENT_LLM_PROVIDER) and retry."
+                )
+            from google import genai
+
             self._client = genai.Client(api_key=api_key)
         return self._client
 

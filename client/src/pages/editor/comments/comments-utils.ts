@@ -232,6 +232,9 @@ export type CommentLine = {
   segments: CommentInlineSegment[];
 };
 
+// Plain `@orqestra` agent tag (not a user token, not inside an email).
+const AGENT_MENTION_INLINE = /(?<![\w.@])(@[Oo]rqestra)\b/;
+
 const INLINE_PATTERN = new RegExp(
   [
     MENTION_TOKEN_PATTERN.source,
@@ -240,6 +243,7 @@ const INLINE_PATTERN = new RegExp(
     /`([^`]+)`/.source,
     /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/.source,
     /(https?:\/\/[^\s]+)/.source,
+    AGENT_MENTION_INLINE.source,
   ].join('|'),
   'g',
 );
@@ -264,9 +268,13 @@ const parseInlineSegments = (text: string): CommentInlineSegment[] => {
       linkText,
       linkHref,
       bareUrl,
+      agentMention,
     ] = match;
     if (mentionName && mentionId) {
       segments.push({ type: 'mention', name: mentionName, userId: mentionId });
+    } else if (agentMention) {
+      // Render the agent tag like a named mention chip.
+      segments.push({ type: 'mention', name: 'Orqestra', userId: 'orqestra' });
     } else if (bold) {
       segments.push({ type: 'bold', text: bold });
     } else if (italic) {

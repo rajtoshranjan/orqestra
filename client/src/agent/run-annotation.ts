@@ -6,7 +6,8 @@ import {
 } from '@/api/agent';
 
 import { buildAgentCatalog } from './catalog';
-import { type GraphState } from './op-executor';
+import { describeAgentError } from './errors';
+import { toServerGraph, type GraphState } from './op-executor';
 import { processOpsAutoDecline } from './run-loop';
 
 export type RunAnnotationAgentOptions = {
@@ -15,6 +16,14 @@ export type RunAnnotationAgentOptions = {
   message: string;
   getGraph: () => GraphState;
   applyGraph: (next: GraphState) => void;
+  /** Reuse an existing conversation so the agent remembers the thread across
+   * follow-up comments. Omit to start a fresh one. */
+  conversationId?: string | null;
+  /** Reports the conversation id used (created or reused) so the caller can
+   * keep following the same thread. */
+  onConversation?: (conversationId: string) => void;
+  /** Re-tidy the canvas after structural changes (added/removed/wired nodes). */
+  layoutGraph?: (graph: GraphState) => GraphState;
 };
 
 /**
@@ -28,34 +37,64 @@ export async function runAnnotationAgent({
   message,
   getGraph,
   applyGraph,
+  conversationId,
+  onConversation,
+  layoutGraph,
 }: RunAnnotationAgentOptions): Promise<void> {
   let declinedCount = 0;
   try {
-    const conversation = await createAgentConversation({
-      projectId,
-      catalog: buildAgentCatalog(),
-    });
-    let response = await sendAgentMessage(conversation.id, message);
+    let activeConversationId = conversationId ?? null;
+    if (!activeConversationId) {
+      const conversation = await createAgentConversation({
+        projectId,
+        catalog: buildAgentCatalog(),
+      });
+      activeConversationId = conversation.id;
+    }
+    onConversation?.(activeConversationId);
+
+    // Thread the applied state across turns rather than re-reading getGraph()
+    // (React state may not have flushed between awaits).
+    let latestState = getGraph();
+    let structural = false;
+    let response = await sendAgentMessage(
+      activeConversationId,
+      message,
+      toServerGraph(latestState),
+    );
 
     for (;;) {
       if (response.status !== 'awaiting_client' || response.ops.length === 0) {
         break;
       }
-      const outcome = processOpsAutoDecline(response.ops, getGraph());
-      applyGraph(outcome.state);
+      const outcome = processOpsAutoDecline(response.ops, latestState);
+      latestState = outcome.state;
+      structural = structural || outcome.structural;
+      applyGraph(latestState);
       declinedCount += outcome.declined.length;
-      response = await advanceAgentRun(response.runId, outcome.results);
+      response = await advanceAgentRun(
+        response.runId,
+        outcome.results,
+        toServerGraph(latestState),
+      );
+    }
+
+    if (structural && layoutGraph) {
+      applyGraph(layoutGraph(latestState));
     }
 
     const note =
       declinedCount > 0
         ? `\n\nI held off on ${declinedCount} higher-impact change(s) — open the agent panel (⌘J) to review them.`
         : '';
-    await replyToAnnotation(annotationId, (response.assistantText || 'Done.') + note);
+    await replyToAnnotation(
+      annotationId,
+      (response.assistantText || 'Done.') + note,
+    );
   } catch (error) {
     await replyToAnnotation(
       annotationId,
-      `I couldn't complete that request: ${String(error)}`,
+      `I couldn't complete that request: ${describeAgentError(error)}`,
     ).catch(() => undefined);
     throw error;
   }

@@ -2,7 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useSearchParams } from 'react-router-dom';
 
-import { bodyMentionsAgent } from '@/agent/annotation-trigger';
+import {
+  bodyMentionsAgent,
+  shouldTriggerAgent,
+} from '@/agent/annotation-trigger';
 import {
   useAddComment,
   useCreateAnnotation,
@@ -253,7 +256,14 @@ export const useComments = ({
         });
       }
     },
-    [draft, createAnnotationMutation, projectId, dispatch, onAgentRequest, nodes],
+    [
+      draft,
+      createAnnotationMutation,
+      projectId,
+      dispatch,
+      onAgentRequest,
+      nodes,
+    ],
   );
 
   /* Navigation */
@@ -353,7 +363,11 @@ export const useComments = ({
       if (!activeAnnotationId) return;
       addCommentMutation.mutate({ annotationId: activeAnnotationId, body });
 
-      if (onAgentRequest && bodyMentionsAgent(body) && activeAnnotation) {
+      if (
+        onAgentRequest &&
+        activeAnnotation &&
+        shouldTriggerAgent(body, activeAnnotation)
+      ) {
         const label =
           activeAnnotation.targetType === 'node' && activeAnnotation.targetId
             ? nodes.find((n) => n.id === activeAnnotation.targetId)?.data.label
@@ -367,7 +381,13 @@ export const useComments = ({
         });
       }
     },
-    [activeAnnotationId, addCommentMutation, onAgentRequest, activeAnnotation, nodes],
+    [
+      activeAnnotationId,
+      addCommentMutation,
+      onAgentRequest,
+      activeAnnotation,
+      nodes,
+    ],
   );
 
   const deleteActiveAnnotation = useCallback(() => {

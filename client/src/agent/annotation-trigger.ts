@@ -5,6 +5,33 @@ export function bodyMentionsAgent(body: string): boolean {
   return AGENT_MENTION_PATTERN.test(body);
 }
 
+type AgentThreadComment = { body: string; authorType?: string };
+type AgentThreadState = { status: string; comments: AgentThreadComment[] };
+
+/**
+ * Once the agent has been tagged in a thread (or has already replied) it stays
+ * engaged and follows every subsequent comment — until the thread is resolved.
+ */
+export function threadEngagesAgent(thread: AgentThreadState): boolean {
+  if (thread.status === 'resolved') return false;
+  return thread.comments.some(
+    (comment) =>
+      comment.authorType === 'agent' || bodyMentionsAgent(comment.body),
+  );
+}
+
+/**
+ * Whether a newly submitted comment should hand off to the agent: either it
+ * tags `@orqestra` explicitly, or it lands in an open thread the agent is
+ * already engaged in (so the user needn't re-tag on every reply).
+ */
+export function shouldTriggerAgent(
+  body: string,
+  thread: AgentThreadState,
+): boolean {
+  return bodyMentionsAgent(body) || threadEngagesAgent(thread);
+}
+
 export type AnnotationContext = {
   targetType: string;
   targetId?: string;
