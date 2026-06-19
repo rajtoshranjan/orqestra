@@ -9,6 +9,16 @@ class AgentConversation(BaseModel):
     project = models.ForeignKey(
         "projects.Project", on_delete=models.CASCADE, related_name="agent_conversations"
     )
+    # Set when the conversation is anchored to a canvas @orqestra comment thread.
+    # Null for standalone "build chat" conversations shown in the agent panel.
+    # CASCADE so a deleted thread's chat can't resurface as a standalone build chat.
+    annotation = models.ForeignKey(
+        "annotations.Annotation",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="agent_conversations",
+    )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
