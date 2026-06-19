@@ -14,9 +14,13 @@ export const AuthLayout = () => {
       <div className="relative z-10 flex w-full max-w-sm flex-col gap-6">
         <Link
           to="/"
-          className="flex items-center gap-2.5 self-center text-lg font-bold tracking-tight text-foreground transition-opacity hover:opacity-90"
+          className="group flex items-center gap-2 self-center text-xl font-extrabold tracking-[-0.03em] text-foreground transition-all duration-200 hover:opacity-95"
         >
-          <OrqestraMark variant="color" size={22} />
+          <OrqestraMark
+            variant="color"
+            size={24}
+            className="logo-mark-aligned shrink-0"
+          />
           Orqestra
         </Link>
         <div className="flex flex-col gap-6">

@@ -597,3 +597,16 @@
   color: var(--color-text-muted, hsl(var(--muted-foreground)));
   pointer-events: none;
 }
+
+/* Orqestra Brand & Logo Interactive Tweaks */
+.logo-mark-aligned {
+  transform: translateY(10%);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.group:hover .logo-mark-aligned {
+  transform: translateY(10%) scale(1.05);
+}
+
+
+
