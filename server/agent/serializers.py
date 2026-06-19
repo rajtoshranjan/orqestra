@@ -1,3 +1,4 @@
+from annotations.models import Annotation
 from rest_framework import serializers
 
 from .engine import AdvanceResult
@@ -20,12 +21,16 @@ class AgentMessageSerializer(serializers.ModelSerializer):
 
 class AgentConversationSerializer(serializers.ModelSerializer):
     catalog = serializers.JSONField(required=False, write_only=True)
+    annotation = serializers.PrimaryKeyRelatedField(
+        queryset=Annotation.objects.all(), required=False, allow_null=True
+    )
 
     class Meta:
         model = AgentConversation
         fields = [
             "id",
             "project",
+            "annotation",
             "title",
             "status",
             "catalog",

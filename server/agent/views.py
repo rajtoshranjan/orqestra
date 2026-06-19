@@ -65,9 +65,17 @@ class AgentConversationViewSet(
             project__organisation=active_org
         ).select_related("project")
         if self.action == "list":
-            project_id = self.request.query_params.get("project")
+            params = self.request.query_params
+            project_id = params.get("project")
             if project_id:
                 queryset = queryset.filter(project_id=project_id)
+            # Standalone "build chat" conversations only — keeps annotation-anchored
+            # threads out of the agent panel's rehydrate.
+            if params.get("standalone") == "true":
+                queryset = queryset.filter(annotation__isnull=True)
+            annotation_id = params.get("annotation")
+            if annotation_id:
+                queryset = queryset.filter(annotation_id=annotation_id)
         return queryset
 
     def perform_create(self, serializer):
@@ -76,6 +84,11 @@ class AgentConversationViewSet(
         if project.organisation_id != active_org.id:
             raise ValidationError(
                 {"project": "Project must belong to the active organisation."}
+            )
+        annotation = serializer.validated_data.get("annotation")
+        if annotation is not None and annotation.project_id != project.id:
+            raise ValidationError(
+                {"annotation": "Annotation must belong to the same project."}
             )
         conversation = serializer.save(created_by=self.request.user)
         log_action(

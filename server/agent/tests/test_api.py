@@ -5,6 +5,7 @@ from agent.constants import MessageRole, RunStatus
 from agent.llm.types import Stop, TextDelta, ToolCallRequested, Usage
 from agent.models import AgentConversation, AgentMessage, AgentRun
 from agent.tests.fakes import FakeLLMProvider
+from annotations.models import Annotation
 from django.test import override_settings
 from django.urls import reverse
 from organisations.models import Organisation
@@ -79,6 +80,82 @@ class ConversationApiTests(BaseTestCase):
         response = self.client.get(reverse("agent-conversation-list"))
 
         self.assertEqual(len(response.data), 1)
+
+
+@override_settings(
+    CHANNEL_LAYERS={"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}
+)
+class ConversationAnnotationFilterTests(BaseTestCase):
+    def setUp(self):
+        super().setUp()
+        self.project = Project.objects.create(
+            organisation=self.organisation, name="P", nodes=[], edges=[]
+        )
+        self.annotation = Annotation.objects.create(
+            project=self.project, author=self.user, target_type="canvas"
+        )
+
+    def test_create_conversation_links_annotation(self):
+        response = self.client.post(
+            reverse("agent-conversation-list"),
+            {"project": str(self.project.id), "annotation": str(self.annotation.id)},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        conversation = AgentConversation.objects.get()
+        self.assertEqual(conversation.annotation_id, self.annotation.id)
+
+    def test_standalone_filter_excludes_annotation_chats(self):
+        standalone = AgentConversation.objects.create(
+            project=self.project, created_by=self.user
+        )
+        AgentConversation.objects.create(
+            project=self.project, created_by=self.user, annotation=self.annotation
+        )
+
+        response = self.client.get(
+            reverse("agent-conversation-list"),
+            {"project": str(self.project.id), "standalone": "true"},
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        ids = [row["id"] for row in response.data]
+        self.assertEqual(ids, [str(standalone.id)])
+
+    def test_annotation_filter_returns_only_linked_conversation(self):
+        AgentConversation.objects.create(project=self.project, created_by=self.user)
+        linked = AgentConversation.objects.create(
+            project=self.project, created_by=self.user, annotation=self.annotation
+        )
+
+        response = self.client.get(
+            reverse("agent-conversation-list"),
+            {"annotation": str(self.annotation.id)},
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        ids = [row["id"] for row in response.data]
+        self.assertEqual(ids, [str(linked.id)])
+
+    def test_create_rejects_annotation_from_another_project(self):
+        other_project = Project.objects.create(
+            organisation=self.organisation, name="Other", nodes=[], edges=[]
+        )
+        foreign_annotation = Annotation.objects.create(
+            project=other_project, author=self.user, target_type="canvas"
+        )
+
+        response = self.client.post(
+            reverse("agent-conversation-list"),
+            {
+                "project": str(self.project.id),
+                "annotation": str(foreign_annotation.id),
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 @override_settings(
