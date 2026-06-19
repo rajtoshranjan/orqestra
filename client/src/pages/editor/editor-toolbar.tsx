@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 
 import { NotificationsBell } from '@/components';
-import { CommentMarker } from '@/components/icons';
+import { CommentMarker, OrqestraMark } from '@/components/icons';
 import {
   Badge,
   Button,
@@ -143,8 +143,15 @@ function EditorToolbarComponent({
             <ArrowLeft size={16} />
           </Button>
 
-          <span className="hidden select-none items-center gap-1.5 px-1.5 font-sans text-sm font-bold tracking-tight text-foreground sm:inline-flex">
-            Orqestra
+          <span className="group hidden select-none items-center gap-2 px-1.5 sm:inline-flex">
+            <OrqestraMark
+              variant="color"
+              size={16}
+              className="logo-mark-aligned shrink-0"
+            />
+            <span className="font-sans text-sm font-extrabold tracking-[-0.03em] text-foreground">
+              Orqestra
+            </span>
           </span>
 
           {/* Divider */}

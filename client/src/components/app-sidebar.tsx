@@ -184,12 +184,16 @@ export function AppSidebar({ onNavigate }: AppSidebarProps) {
             type="button"
             onClick={() => onNavigate('/')}
             aria-label="Go to projects"
-            className="flex min-w-0 items-center gap-2"
+            className="group flex min-w-0 items-center gap-2"
           >
-            <OrqestraMark variant="color" size={20} className="shrink-0" />
+            <OrqestraMark
+              variant="color"
+              size={20}
+              className="logo-mark-aligned shrink-0"
+            />
             <span
               className={cn(
-                'hidden truncate text-sm font-bold tracking-tight md:block',
+                'hidden truncate font-extrabold tracking-[-0.03em] text-foreground md:block',
                 isCollapsed && 'md:hidden',
               )}
             >
