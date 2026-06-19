@@ -5,6 +5,7 @@ vi.mock('./client', () => ({ api: { post: vi.fn(), get: vi.fn() } }));
 import {
   advanceAgentRun,
   createAgentConversation,
+  fetchConversationForAnnotation,
   fetchLatestConversation,
   replyToAnnotation,
   sendAgentMessage,
@@ -42,7 +43,10 @@ describe('agent api', () => {
 
     const result = await fetchLatestConversation('p1');
 
-    expect(get).toHaveBeenNthCalledWith(1, '/agent/conversations/?project=p1');
+    expect(get).toHaveBeenNthCalledWith(
+      1,
+      '/agent/conversations/?project=p1&standalone=true',
+    );
     expect(get).toHaveBeenNthCalledWith(2, '/agent/conversations/new/');
     expect(result).toEqual({
       id: 'new',
@@ -54,6 +58,48 @@ describe('agent api', () => {
     get.mockResolvedValueOnce({ data: { data: { results: [] } } });
 
     expect(await fetchLatestConversation('p1')).toBeNull();
+  });
+
+  it('fetches the latest conversation id linked to an annotation', async () => {
+    get.mockResolvedValueOnce({
+      data: {
+        data: {
+          results: [
+            { id: 'old', created_at: '2026-06-01T00:00:00Z' },
+            { id: 'new', created_at: '2026-06-10T00:00:00Z' },
+          ],
+        },
+      },
+    });
+
+    const result = await fetchConversationForAnnotation('a1');
+
+    expect(get).toHaveBeenCalledWith('/agent/conversations/?annotation=a1');
+    expect(result).toBe('new');
+  });
+
+  it('returns null when no conversation is linked to the annotation', async () => {
+    get.mockResolvedValueOnce({ data: { data: { results: [] } } });
+
+    expect(await fetchConversationForAnnotation('a1')).toBeNull();
+  });
+
+  it('creates an annotation-linked conversation when annotationId is given', async () => {
+    post.mockResolvedValue({
+      data: { data: { id: 'c2', project: 'p1', status: 'active' } },
+    });
+
+    await createAgentConversation({
+      projectId: 'p1',
+      catalog: [],
+      annotationId: 'a1',
+    });
+
+    expect(post).toHaveBeenCalledWith('/agent/conversations/', {
+      project: 'p1',
+      catalog: [],
+      annotation: 'a1',
+    });
   });
 
   it('creates a conversation with project + catalog', async () => {

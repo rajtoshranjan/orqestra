@@ -104,13 +104,42 @@ function mapAdvance(data: RawAdvance): AgentAdvanceResponse {
 export async function createAgentConversation(params: {
   projectId: string;
   catalog: AgentCatalogEntry[];
+  /** Anchor the conversation to a canvas comment thread. Omit for build chats. */
+  annotationId?: string;
 }): Promise<{ id: string; projectId: string; status: string }> {
   const response = await api.post<ServerResponse<RawConversation>>(
     '/agent/conversations/',
-    { project: params.projectId, catalog: params.catalog },
+    {
+      project: params.projectId,
+      catalog: params.catalog,
+      ...(params.annotationId ? { annotation: params.annotationId } : {}),
+    },
   );
   const data = response.data.data;
   return { id: data.id, projectId: data.project, status: data.status };
+}
+
+/**
+ * Resolve the conversation already anchored to an annotation thread, so a
+ * follow-up `@orqestra` reply reuses it and the agent keeps its memory of the
+ * thread. Returns null when the thread has no conversation yet.
+ */
+export async function fetchConversationForAnnotation(
+  annotationId: string,
+): Promise<string | null> {
+  const list = await api.get<
+    ServerResponse<
+      RawConversationSummary[] | { results: RawConversationSummary[] }
+    >
+  >(`/agent/conversations/?annotation=${annotationId}`);
+  const payload = list.data.data;
+  const results = Array.isArray(payload) ? payload : (payload?.results ?? []);
+  if (results.length === 0) return null;
+
+  const latest = [...results].sort((a, b) =>
+    a.created_at < b.created_at ? 1 : -1,
+  )[0];
+  return latest.id;
 }
 
 /** Live canvas snapshot (persisted snake_case shape) sent so the agent's prompt
@@ -129,7 +158,7 @@ export async function fetchLatestConversation(
     ServerResponse<
       RawConversationSummary[] | { results: RawConversationSummary[] }
     >
-  >(`/agent/conversations/?project=${projectId}`);
+  >(`/agent/conversations/?project=${projectId}&standalone=true`);
   const payload = list.data.data;
   const results = Array.isArray(payload) ? payload : (payload?.results ?? []);
   if (results.length === 0) return null;
