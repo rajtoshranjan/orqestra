@@ -1,5 +1,6 @@
 import { Sparkles, Grid3x3, Lock, Rocket } from 'lucide-react';
 
+import { Button } from '@/components/ui';
 import { registry } from '@/services';
 import type { DiagramNode, DiagramEdge } from '@/types';
 import {
@@ -14,11 +15,14 @@ type CanvasEmptyStateProps = {
     nodes: DiagramNode[];
     edges: DiagramEdge[];
   }) => void;
+  /** Open the Orqestra agent panel to design via chat. */
+  onUseAgent?: () => void;
   readOnly?: boolean;
 };
 
 export function CanvasEmptyState({
   onApplyStarter,
+  onUseAgent,
   readOnly = false,
 }: CanvasEmptyStateProps) {
   const lambdaSvc = registry.find('lambda');
@@ -78,9 +82,20 @@ export function CanvasEmptyState({
           <p className="mx-auto mt-2 max-w-lg text-sm text-muted-foreground">
             {readOnly
               ? 'No resources have been added yet. You have read-only access to this organisation.'
-              : 'Choose a production-grade starter template below to begin designing your architecture.'}
+              : 'Describe your app to Orqestra AI and watch it build a validated architecture — or start from a template below.'}
           </p>
         </div>
+
+        {!readOnly && onUseAgent && (
+          <Button
+            size="lg"
+            className="mt-6 gap-2 rounded-xl"
+            onClick={onUseAgent}
+          >
+            <Sparkles size={16} />
+            Design with Orqestra AI
+          </Button>
+        )}
 
         {!readOnly && (
           <div className="mt-12 grid w-full max-w-5xl grid-cols-1 gap-4 text-left sm:grid-cols-2 lg:grid-cols-4">

@@ -6,5 +6,6 @@ urlpatterns = [
     path("deployments/", include("deployments.urls")),
     path("projects/", include("projects.urls")),
     path("annotations/", include("annotations.urls")),
+    path("agent/", include("agent.urls")),
     path("", include("cloud_services.urls")),
 ]

@@ -3,6 +3,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import {
+  bodyMentionsAgent,
+  shouldTriggerAgent,
+} from '@/agent/annotation-trigger';
+import {
   useAddComment,
   useCreateAnnotation,
   useDeleteAnnotation,
@@ -53,6 +57,13 @@ type UseCommentsParams = {
   nodes: DiagramNode[];
   edges: DiagramEdge[];
   reactFlowInstance: ReactFlowInstance<ServiceNodeData> | null;
+  onAgentRequest?: (req: {
+    annotationId: string;
+    targetType: AnnotationTargetType;
+    targetId?: string;
+    label?: string;
+    body: string;
+  }) => void;
 };
 
 export const useComments = ({
@@ -60,6 +71,7 @@ export const useComments = ({
   nodes,
   edges,
   reactFlowInstance,
+  onAgentRequest,
 }: UseCommentsParams) => {
   const dispatch = useAppDispatch();
   const { commentMode, reviewMode, activeAnnotationId, annotationFilters } =
@@ -219,17 +231,39 @@ export const useComments = ({
   const submitDraft = useCallback(
     async (body: string) => {
       if (!draft) return;
+      const { targetType, targetId } = draft;
       const annotation = await createAnnotationMutation.mutateAsync({
         projectId,
-        targetType: draft.targetType,
-        targetId: draft.targetId,
+        targetType,
+        targetId,
         position: draft.position,
         body,
       });
       setDraft(null);
       dispatch(setActiveAnnotationId(annotation.id));
+
+      if (onAgentRequest && bodyMentionsAgent(body)) {
+        const label =
+          targetType === 'node' && targetId
+            ? nodes.find((n) => n.id === targetId)?.data.label
+            : undefined;
+        onAgentRequest({
+          annotationId: annotation.id,
+          targetType,
+          targetId,
+          label,
+          body,
+        });
+      }
     },
-    [draft, createAnnotationMutation, projectId, dispatch],
+    [
+      draft,
+      createAnnotationMutation,
+      projectId,
+      dispatch,
+      onAgentRequest,
+      nodes,
+    ],
   );
 
   /* Navigation */
@@ -328,8 +362,32 @@ export const useComments = ({
     (body: string) => {
       if (!activeAnnotationId) return;
       addCommentMutation.mutate({ annotationId: activeAnnotationId, body });
+
+      if (
+        onAgentRequest &&
+        activeAnnotation &&
+        shouldTriggerAgent(body, activeAnnotation)
+      ) {
+        const label =
+          activeAnnotation.targetType === 'node' && activeAnnotation.targetId
+            ? nodes.find((n) => n.id === activeAnnotation.targetId)?.data.label
+            : undefined;
+        onAgentRequest({
+          annotationId: activeAnnotationId,
+          targetType: activeAnnotation.targetType,
+          targetId: activeAnnotation.targetId,
+          label,
+          body,
+        });
+      }
     },
-    [activeAnnotationId, addCommentMutation],
+    [
+      activeAnnotationId,
+      addCommentMutation,
+      onAgentRequest,
+      activeAnnotation,
+      nodes,
+    ],
   );
 
   const deleteActiveAnnotation = useCallback(() => {

@@ -1,15 +1,20 @@
 import { useEffect, useRef } from 'react';
 
+import { Sparkles } from 'lucide-react';
+
 import type { MentionableUser } from '@/api';
 import { cn } from '@/lib/utils';
 
 import { getInitials } from './comments-utils';
 
+/** A mentionable user, or the Orqestra agent (isAgent) for tagging the AI. */
+export type MentionSuggestion = MentionableUser & { isAgent?: boolean };
+
 type MentionAutocompleteProps = {
-  users: MentionableUser[];
+  users: MentionSuggestion[];
   highlightedIndex: number;
   onHighlight: (index: number) => void;
-  onSelect: (user: MentionableUser) => void;
+  onSelect: (user: MentionSuggestion) => void;
 };
 
 /**
@@ -51,14 +56,21 @@ export function MentionAutocomplete({
             index === highlightedIndex ? 'bg-accent' : 'hover:bg-accent/60',
           )}
         >
-          <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/15 text-[9px] font-semibold text-primary">
-            {getInitials(user.name)}
+          <span
+            className={cn(
+              'flex size-5 shrink-0 items-center justify-center rounded-full text-[9px] font-semibold',
+              user.isAgent
+                ? 'bg-gradient-to-br from-[#7156FB] to-[#9C86FF] text-white'
+                : 'bg-primary/15 text-primary',
+            )}
+          >
+            {user.isAgent ? <Sparkles size={11} /> : getInitials(user.name)}
           </span>
           <span className="truncate font-medium text-foreground">
             {user.name}
           </span>
           <span className="ml-auto truncate text-[10px] text-muted-foreground">
-            {user.email}
+            {user.isAgent ? 'AI architect' : user.email}
           </span>
         </button>
       ))}

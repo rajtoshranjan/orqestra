@@ -52,3 +52,14 @@ def send_notification_event(org_id, event_type, payload):
     group_name = f"org_{org_id}"
     full_event_type = f"notification.{event_type}"
     emit_event(group_name, full_event_type, payload)
+
+
+def send_agent_event(project_id, event_type, payload):
+    """
+    Emits an agent event for a specific project's group.
+
+    Unlike the other helpers, event_type is forwarded as-is: agent event types
+    (see agent/constants.py) already carry the 'agent.' prefix.
+    """
+    group_name = f"project_{project_id}"
+    emit_event(group_name, event_type, payload)

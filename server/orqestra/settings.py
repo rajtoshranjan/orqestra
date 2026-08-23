@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "projects",
     "annotations",
     "realtime",
+    "agent",
 ]
 
 MIDDLEWARE = [
@@ -159,6 +160,14 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
+
+# Agent / LLM
+AGENT_LLM_PROVIDER = EnvVariable.AGENT_LLM_PROVIDER.value
+AGENT_LLM_MODEL = EnvVariable.AGENT_LLM_MODEL.value
+ANTHROPIC_API_KEY = EnvVariable.ANTHROPIC_API_KEY.value
+GEMINI_API_KEY = EnvVariable.GEMINI_API_KEY.value
+AGENT_MAX_TURNS = 20
 
 
 # Logging

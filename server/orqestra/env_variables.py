@@ -36,3 +36,9 @@ class EnvVariable(Enum):
     # Redis Variables
     REDIS_HOST = os.environ.get("REDIS_HOST", "redis")
     REDIS_PORT = os.environ.get("REDIS_PORT", "6379")
+
+    # Agent / LLM Variables.
+    AGENT_LLM_PROVIDER = os.environ.get("AGENT_LLM_PROVIDER", "anthropic")
+    AGENT_LLM_MODEL = os.environ.get("AGENT_LLM_MODEL", "claude-opus-4-8")
+    ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+    GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")

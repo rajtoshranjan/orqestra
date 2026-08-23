@@ -3,20 +3,30 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { SendHorizontal } from 'lucide-react';
 
 import { useMentionableUsers } from '@/api';
-import type { MentionableUser } from '@/api';
 import { Button } from '@/components/ui';
 import { cn } from '@/lib/utils';
 
 import { MentionAutocomplete } from './mention-autocomplete';
 import {
   getMentionQueryAtCaret,
+  insertAgentMention,
   insertMentionChip,
   placeCaretAtEnd,
   renderMentionValue,
   serializeMentionValue,
 } from './mention-editable';
 
+import type { MentionSuggestion } from './mention-autocomplete';
 import type { CaretMentionQuery } from './mention-editable';
+
+/** Synthetic picker entry for tagging the Orqestra agent in a comment. */
+const AGENT_SUGGESTION: MentionSuggestion = {
+  id: 'orqestra',
+  name: 'Orqestra',
+  email: '',
+  role: 'regular',
+  isAgent: true,
+};
 
 type CommentComposerProps = {
   placeholder?: string;
@@ -57,16 +67,19 @@ export function CommentComposer({
 
   const { data: mentionableUsers } = useMentionableUsers(mentionQuery !== null);
 
-  const suggestions = useMemo(() => {
-    if (!mentionQuery || !mentionableUsers) return [];
+  const suggestions = useMemo<MentionSuggestion[]>(() => {
+    if (!mentionQuery) return [];
     const query = mentionQuery.query.toLowerCase();
-    return mentionableUsers
+    const userMatches = (mentionableUsers ?? [])
       .filter(
         (user) =>
           user.name.toLowerCase().includes(query) ||
           user.email.toLowerCase().includes(query),
       )
       .slice(0, 6);
+    // Offer the agent first whenever the query is a prefix of "orqestra".
+    const agentMatches = 'orqestra'.startsWith(query) ? [AGENT_SUGGESTION] : [];
+    return [...agentMatches, ...userMatches];
   }, [mentionQuery, mentionableUsers]);
 
   const refreshMentionQuery = () => {
@@ -77,16 +90,24 @@ export function CommentComposer({
     if (next) setHighlightedIndex(0);
   };
 
-  const insertMention = (user: MentionableUser) => {
+  const insertMention = (suggestion: MentionSuggestion) => {
     const editor = editorRef.current;
     if (!editor || !mentionQuery) return;
-    insertMentionChip(
-      mentionQuery.node,
-      mentionQuery.start,
-      mentionQuery.end,
-      user.name,
-      user.id,
-    );
+    if (suggestion.isAgent) {
+      insertAgentMention(
+        mentionQuery.node,
+        mentionQuery.start,
+        mentionQuery.end,
+      );
+    } else {
+      insertMentionChip(
+        mentionQuery.node,
+        mentionQuery.start,
+        mentionQuery.end,
+        suggestion.name,
+        suggestion.id,
+      );
+    }
     setMentionQuery(null);
     setIsEmpty(false);
     editor.focus();

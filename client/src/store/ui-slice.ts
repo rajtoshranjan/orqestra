@@ -7,6 +7,7 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 type UiState = {
   deployDrawerOpen: boolean;
   projectSettingsOpen: boolean;
+  agentPanelOpen: boolean;
   contextMenu: ContextMenuState | null;
   theme: 'dark' | 'light';
   commentMode: boolean;
@@ -25,6 +26,7 @@ const getInitialTheme = (): 'dark' | 'light' => {
 const initialState: UiState = {
   deployDrawerOpen: false,
   projectSettingsOpen: false,
+  agentPanelOpen: false,
   contextMenu: null,
   theme: getInitialTheme(),
   commentMode: false,
@@ -42,6 +44,9 @@ export const uiSlice = createSlice({
     },
     setProjectSettingsOpen: (state, action: PayloadAction<boolean>) => {
       state.projectSettingsOpen = action.payload;
+    },
+    setAgentPanelOpen: (state, action: PayloadAction<boolean>) => {
+      state.agentPanelOpen = action.payload;
     },
     setContextMenu: (state, action: PayloadAction<ContextMenuState | null>) => {
       state.contextMenu = action.payload;
@@ -92,6 +97,7 @@ export const uiSlice = createSlice({
 export const {
   setDeployDrawerOpen,
   setProjectSettingsOpen,
+  setAgentPanelOpen,
   setContextMenu,
   setTheme,
   toggleTheme,

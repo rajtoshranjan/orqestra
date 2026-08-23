@@ -18,6 +18,17 @@ export const createMentionChip = (
   return chip;
 };
 
+/** Chip for tagging the Orqestra agent. Serializes to the plain `@orqestra`
+ * trigger the agent annotation runner detects (no user-mention token). */
+export const createAgentMentionChip = (): HTMLSpanElement => {
+  const chip = document.createElement('span');
+  chip.contentEditable = 'false';
+  chip.dataset.mentionAgent = 'orqestra';
+  chip.className = MENTION_CHIP_CLASS;
+  chip.textContent = '@Orqestra';
+  return chip;
+};
+
 /** Rebuilds the editable's contents from a canonical token-based string. */
 export const renderMentionValue = (root: HTMLElement, value: string) => {
   root.innerHTML = '';
@@ -53,6 +64,10 @@ export const serializeMentionValue = (root: HTMLElement): string => {
       result += '\n';
       return;
     }
+    if (element.dataset.mentionAgent) {
+      result += '@orqestra';
+      return;
+    }
     const { mentionName, mentionId } = element.dataset;
     if (mentionName && mentionId) {
       result += buildMentionToken(mentionName, mentionId);
@@ -73,6 +88,29 @@ export const insertMentionChip = (
   const before = document.createTextNode(text.slice(0, start));
   const after = document.createTextNode(text.slice(end));
   const chip = createMentionChip(name, userId);
+  const space = document.createTextNode(' ');
+
+  const parent = node.parentNode;
+  if (!parent) return;
+  parent.replaceChild(after, node);
+  parent.insertBefore(space, after);
+  parent.insertBefore(chip, space);
+  parent.insertBefore(before, chip);
+
+  const range = document.createRange();
+  range.setStartBefore(after);
+  range.collapse(true);
+  const selection = window.getSelection();
+  selection?.removeAllRanges();
+  selection?.addRange(range);
+};
+
+/** Replaces the `@query` text spanning [start, end) of `node` with an agent chip. */
+export const insertAgentMention = (node: Text, start: number, end: number) => {
+  const text = node.textContent ?? '';
+  const before = document.createTextNode(text.slice(0, start));
+  const after = document.createTextNode(text.slice(end));
+  const chip = createAgentMentionChip();
   const space = document.createTextNode(' ');
 
   const parent = node.parentNode;
