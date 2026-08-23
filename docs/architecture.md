@@ -19,7 +19,7 @@ Orqestra is built around a single idea: the **architecture graph** (the canvas o
 ```
 
 * **`client/`** - React + TypeScript frontend. Renders the architecture canvas (React Flow), property inspectors, and validation feedback.
-* **`server/`** - Django + DRF backend. Owns organisations, projects, AWS accounts, and the cloud service registry. Builds deployment configuration from the graph.
+* **`server/`** - Django + DRF backend. Owns organisations, projects, AWS accounts, the cloud service registry, and the AI agent engine. Builds deployment configuration from the graph.
 * **`deployer/`** - Standalone service that runs OpenTofu to plan and apply infrastructure changes.
 * **`db`** - PostgreSQL database.
 
@@ -128,6 +128,51 @@ Validation runs in three layers:
 
 The validation engine itself is a generic runner; new rules live with their service definitions.
 
+## AI Agent
+
+The agent (`server/agent/`) is an actor on the same graph, not a parallel system.
+Its reasoning runs server-side; the canvas mutations are materialised by the
+client through the frontend service registry and the shared canvas helpers
+(`createServiceNode`, parent sizing, `withValidatedData`), so node defaults,
+layout, and the React Flow envelope are never duplicated on the backend and the
+agent drives the same code paths a human drag-and-drop does.
+
+```
+message ──▶ AgentRun ──▶ LLM turn ──▶ graph ops ──▶ client applies via
+   ▲          (server)    (provider)   (tool calls)  registry + canvas helpers
+   │                                                        │
+   └────────── tool results (validation, cost) ◀────────────┘
+```
+
+Two abstractions keep this decoupled:
+
+* **`BaseLLMProvider`** (`agent/llm/`) - a vendor-neutral streaming interface plus
+  a registry, mirroring the cloud-service provider pattern. The engine never
+  imports a vendor SDK; adapters translate in `agent/llm/mappers.py` and nowhere
+  else. Selected via `AGENT_LLM_PROVIDER` / `AGENT_LLM_MODEL`.
+* **Graph ops** (`agent/tools.py`) - semantic, provider-agnostic operations
+  (`add_resource`, `connect`, `configure`, `set_parent`, `remove`, `validate`,
+  `estimate_cost`, plus catalog lookups). The model never emits raw IaC and
+  selects services by capability, not by hardcoded service ID. Ops are grounded
+  by the prompt (built from the project's catalog snapshot and live canvas) and
+  by the client executing them through the frontend registry, which turns an
+  invalid op into an error tool result the model must correct.
+
+Because `validate()` and `estimate_cost()` are tools, the platform's own
+validation, cost, and security engines are the agent's guardrails and its
+self-correction signal. Op risk is graded: coarse op-type risk server-side
+(`agent/risk.py`), then escalated client-side at apply time from the service's
+`costProfile`, which lives on the frontend service definition.
+
+The client applies each turn's ops one at a time so the build is visible as it
+happens. The engine also broadcasts run events (`agent.message.delta`,
+`agent.tool_call`, `agent.op_applied`, `agent.run.completed`,
+`agent.run.failed`) to the project's Channels group — the same transport
+deployments use — for observers other than the client driving the run; the
+editor panel itself renders from the REST turn loop.
+
+See [ai-agent.md](./ai-agent.md) for the full reference.
+
 ## Deployment Pipeline
 
 ```
@@ -172,4 +217,10 @@ Today, Orqestra targets **AWS** with a growing catalog of services across networ
 
 The provider layer (`cloud_services/providers/aws/`) is structured so that additional providers (Azure, GCP, Kubernetes) could be added alongside AWS without changing the core registry, validation, or deployment framework - but this is not yet implemented.
 
-AI-assisted workflows (architecture generation, recommendations, security review) are an intended direction for the platform but are not yet built; where they exist, they should operate on the graph model via the same registry and `GraphEngine` abstractions described above.
+AI-assisted workflows are built on the same abstractions: the agent operates on
+the graph model through the service registry and the same canvas helpers and
+validation engine human edits use, rather than through a private path of its
+own. Today it is reactive (it acts when chatted with or
+tagged) and design-time only (it never deploys). A proactive background reviewer
+and a server-side op executor - which would let the agent run without a client
+present, behind the same op interface - are the intended next steps.

@@ -20,6 +20,10 @@ The infrastructure graph is canonical. All validation, deployment plans, resourc
 
 Cloud resources are plugins. The orchestration layer must remain provider-agnostic. Never introduce AWS-specific logic into orchestration code. New resources go through the provider registration system — never via modifications to orchestration code.
 
+### Plugin-Based LLM Layer
+
+The AI agent follows the same rule for models. The engine depends on `BaseLLMProvider` and never imports a vendor SDK; vendor translation lives only in `server/agent/llm/mappers.py`. A new model is a new adapter plus a registration in `agent/apps.py` — never an engine change. The agent acts on the graph only through its grounded ops and the frontend service registry and canvas helpers; never give it a private mutation path.
+
 ### Reuse Before Creating
 
 Before writing new code, search for an existing implementation. Reuse existing utilities, components, hooks, serializers, managers, permissions, and API mappers. Match the nearest existing pattern. Consistency over novelty.
@@ -34,8 +38,8 @@ Do not use "patch fixes" to suppress compilation, typing, or linting warnings/er
 
 Monorepo:
 
-- `client/` — all frontend code
-- `server/` — all backend code
+- `client/` — all frontend code (agent client: `client/src/agent/`, panel: `client/src/pages/editor/agent-panel.tsx`)
+- `server/` — all backend code (agent engine, tools, and LLM providers: `server/agent/`)
 
 ---
 
@@ -84,3 +88,4 @@ Load these when working in the relevant area:
 - `docs/agents/backend.md` — Django/DRF patterns, permissions, database, exceptions
 - `docs/agents/testing.md` — testing strategy and base classes
 - `docs/agents/project.md` — code quality, naming, comments
+- `docs/ai-agent.md` — how the AI agent works: surfaces, run loop, ops, risk model, LLM providers

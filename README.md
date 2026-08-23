@@ -4,7 +4,7 @@ Orqestra is an architecture-first cloud engineering platform that enables teams 
 
 Instead of managing infrastructure through configuration files, cloud consoles, or disconnected diagrams, Orqestra treats the architecture itself as the source of truth. Engineers can model systems visually, define relationships between resources, validate infrastructure before deployment, and generate production-ready cloud environments from a single architecture graph.
 
-Orqestra bridges the gap between architecture design and infrastructure deployment by combining visual architecture modeling, infrastructure-as-code generation, deployment automation, and future AI-assisted workflows within a single platform.
+Orqestra bridges the gap between architecture design and infrastructure deployment by combining visual architecture modeling, infrastructure-as-code generation, deployment automation, and an AI agent that designs on the canvas alongside you, within a single platform.
 
 ![Orqestra editor showing a visual architecture graph with Lambda, IAM Role, VPC, Subnet, S3, SNS, and SQS resources](docs/editor.jpg)
 
@@ -13,6 +13,7 @@ Orqestra bridges the gap between architecture design and infrastructure deployme
 - [Why Orqestra?](#why-orqestra)
 - [Core Principles](#core-principles)
 - [Key Capabilities](#key-capabilities)
+- [AI Agent](#ai-agent)
 - [Architecture](#architecture)
 - [Getting Started](#getting-started)
 - [Project Structure](#project-structure)
@@ -43,7 +44,7 @@ Everything derives from the graph:
 * Deployment plans
 * Cost analysis
 * Security analysis
-* Future AI reasoning
+* AI agent reasoning
 
 ## Core Principles
 
@@ -150,30 +151,49 @@ Features include:
 * Permissions
 * Auditability foundations
 
-### Future AI-Native Workflows
+### AI-Native Design
 
-Orqestra is designed with future AI-assisted cloud engineering in mind.
+An AI agent works directly on the architecture graph, using the same registry, validation, and cost engines a human does.
 
-The platform architecture enables future capabilities such as:
+It can:
 
-* Architecture generation
-* Infrastructure recommendations
-* Security reviews
-* Cost optimization
-* Deployment assistance
-* Architecture explanations
+* Generate a complete architecture from a plain-language description
+* Make in-place edits when tagged in a canvas comment
+* Wire dependencies such as IAM roles, networking, and encryption
+* Self-correct against validation errors
+* Explain what it built and why
 
-These capabilities will operate directly on the architecture graph, ensuring that AI and humans share the same source of truth.
+Because the agent edits the same graph, AI and humans genuinely share one source of truth. See [AI Agent](#ai-agent).
+
+## AI Agent
+
+Orqestra ships with an AI agent that designs and edits infrastructure on the canvas with you. It is not a chatbot bolted onto the editor: it acts through the same service registry, canvas helpers, and validation engines a human edit does, so every change it makes is a normal, undoable graph diff.
+
+**Two surfaces:**
+
+* **Agent panel** (`Cmd/Ctrl + J`) - describe an app in plain language and watch the architecture get built live on the canvas, narrated step by step. The panel is a tabbed inbox: *Chat* for the project's build conversation, *Threads* for every canvas-anchored agent thread.
+* **`@orqestra` annotations** - tag the agent in a comment on a node, edge, or the canvas for a local, in-place edit. It makes the change and replies in the same thread, through the existing comment, mention, and notification system.
+
+**How it behaves:**
+
+* **Graded autonomy** - safe edits apply instantly and are undoable; destructive or expensive changes pause the run for confirmation.
+* **Grounded** - it emits semantic graph operations (`add_resource`, `connect`, `configure`, `validate`, `estimate_cost`, …), never raw IaC, and picks services by capability rather than by hardcoded IDs.
+* **Self-correcting** - validation and cost results are fed back to the model as tool results, so the platform's own engines are its guardrails.
+* **Design-time only** - the agent never deploys. A human triggers deployment through the existing pipeline.
+
+**Bring your own model.** The engine depends on a vendor-neutral `BaseLLMProvider` interface, mirroring the cloud-provider plugin pattern. Anthropic and Gemini adapters ship today; adding another is a new adapter plus a registration, with no engine changes. Configure with `AGENT_LLM_PROVIDER`, `AGENT_LLM_MODEL`, and the matching API key in `.env`. API keys stay server-side.
+
+Full reference: [docs/ai-agent.md](./docs/ai-agent.md).
 
 ## Architecture
 
 Orqestra is built as a monorepo with a clear separation between the visual editor, the API, and the deployment engine:
 
 * **`client/`** - React + TypeScript frontend providing the node-based architecture canvas
-* **`server/`** - Django + DRF backend handling organizations, projects, validation, and deployment orchestration
+* **`server/`** - Django + DRF backend handling organizations, projects, validation, deployment orchestration, and the AI agent engine
 * **`deployer/`** - Service responsible for generating and executing infrastructure deployment plans
 
-The orchestration layer is provider-agnostic by design. AWS support is implemented as a plugin, with multi-cloud support planned. For a deeper dive into the platform design, see [docs/architecture.md](./docs/architecture.md).
+The orchestration layer is provider-agnostic by design. AWS support is implemented as a plugin, with multi-cloud support planned. LLMs are pluggable the same way, so the agent is not tied to a single model vendor. For a deeper dive into the platform design, see [docs/architecture.md](./docs/architecture.md).
 
 ## Getting Started
 
@@ -198,7 +218,18 @@ For a comprehensive, step-by-step onboarding guide, refer to the [Getting Starte
    cp .env.template .env
    ```
 
-3. Start the local stack:
+3. To use the AI agent, set an LLM provider and API key in `.env`:
+
+   ```bash
+   AGENT_LLM_PROVIDER=anthropic   # or: gemini
+   AGENT_LLM_MODEL=<model-id>
+   ANTHROPIC_API_KEY=<your-key>   # or GEMINI_API_KEY for gemini
+   ```
+
+   The rest of the platform runs fine without this; the agent reports that it is
+   not configured until a key is set.
+
+4. Start the local stack:
 
    ```bash
    docker compose up --build
@@ -211,6 +242,7 @@ This brings up the following services:
 | `client`    | Frontend application                     | http://localhost:8080       |
 | `server`    | Django API                               | http://localhost:3001       |
 | `db`        | PostgreSQL database                      | localhost:5433               |
+| `redis`     | Channel layer backing real-time events   | localhost:6380               |
 | `deployer`  | Deployment plan generation and execution | http://localhost:8002       |
 | `ministack` | Local AWS emulator for development       | http://localhost:4566       |
 | `stackport` | Web UI for inspecting the AWS emulator   | http://localhost:8082       |
@@ -239,6 +271,8 @@ orqestra/
 
 * [docs/getting-started.md](./docs/getting-started.md) - Step-by-step guide to run and configure Orqestra for the first time
 * [docs/architecture.md](./docs/architecture.md) - Platform architecture and core domain model
+* [docs/ai-agent.md](./docs/ai-agent.md) - How the AI agent works, its action space, risk model, and LLM configuration
+* [docs/access-control.md](./docs/access-control.md) - Roles, permissions, and multi-tenancy rules
 * [AGENTS.md](./AGENTS.md) - Guidelines for contributors and AI coding agents
 * [docs/](./docs) - Additional reference documentation
 
@@ -256,4 +290,4 @@ Orqestra is licensed under the [MIT License](./LICENSE).
 
 ## Vision
 
-The long-term vision for Orqestra is to become the operating system for cloud architecture and infrastructure engineering: a platform where architects, engineers, operators, and future AI agents collaborate through a shared architecture graph to design, understand, validate, and operate cloud systems at any scale.
+The long-term vision for Orqestra is to become the operating system for cloud architecture and infrastructure engineering: a platform where architects, engineers, operators, and AI agents collaborate through a shared architecture graph to design, understand, validate, and operate cloud systems at any scale.

@@ -1,23 +1,54 @@
-## Orqestra Server
+# Orqestra Server
 
-The server is a Django REST Framework API that converts saved diagrams into AWS Lambda deployments by calling the AWS CLI.
+Django + DRF backend for Orqestra. It owns organisations, projects, the cloud
+service registry, deployment orchestration, annotations, and the AI agent
+engine. It runs as an ASGI app (Channels) so real-time deployment and agent
+events can be pushed to the editor over WebSockets.
 
-### Endpoints
+## Apps
 
-- `GET /health`
-- `POST /plan`
-- `POST /deploy`
+| App | Responsibility |
+|-----|----------------|
+| `accounts` | Users, JWT auth, registration |
+| `organisations` | Organisations, members, roles, AWS accounts |
+| `projects` | Projects and the persisted architecture graph |
+| `cloud_services` | Service handler registry and OpenTofu config generation |
+| `deployments` | Deployment records and the deployer handoff |
+| `annotations` | Canvas comments, mentions, notifications |
+| `realtime` | Channels consumers and event fan-out |
+| `agent` | AI agent engine, graph tools, and LLM providers ([docs](../docs/ai-agent.md)) |
 
-### Requirements
+## Route prefixes
 
-- Python 3.12+
-- AWS CLI installed and authenticated
-- `zip` available on the machine
-- An execution role ARN for creating new Lambdas
-  - pass it from the UI, or
-  - export `AWS_LAMBDA_EXECUTION_ROLE_ARN`
+| Prefix | App |
+|--------|-----|
+| `/accounts/` | Auth and users (`login/`, `token/refresh/`, …) |
+| `/organisations/` | Organisations, members, AWS accounts |
+| `/projects/` | Projects and graphs |
+| `/deployments/` | Deployment create, retrieve, callback, project state |
+| `/annotations/` | Comments, mentions, notifications |
+| `/agent/` | Agent conversations, runs, annotation replies |
+| `/health`, `/plan` | Service registry health and plan generation |
 
-### Start (Development)
+## Running
+
+The stack is normally run from the repository root:
+
+```bash
+docker compose up --build
+```
+
+The server listens on port `3001` and reloads on code changes.
+
+Run management commands inside the container:
+
+```bash
+docker compose run --rm server python manage.py migrate
+docker compose run --rm server python manage.py makemigrations
+docker compose run --rm server python manage.py check
+```
+
+### Without Docker
 
 ```bash
 cd server
@@ -26,32 +57,33 @@ uv run python manage.py migrate
 uv run python manage.py runserver 0.0.0.0:3001
 ```
 
-(Or `source .venv/bin/activate` after `uv sync` and drop the `uv run` prefix.)
+Dependencies are managed with `uv` against `pyproject.toml` / `uv.lock` — never
+`pip` or a `requirements.txt`.
 
-The default port is `3001`.
+## Configuration
 
-### Start (Production)
+Settings read from the repository-root `.env` (see `.env.template`). Beyond the
+database and Django basics:
 
-```bash
-uvicorn orqestra.asgi:application --host 0.0.0.0 --port 3001
-```
+| Variable | Purpose |
+|----------|---------|
+| `AGENT_LLM_PROVIDER` | Active LLM provider for the agent: `anthropic` or `gemini` |
+| `AGENT_LLM_MODEL` | Model id passed to that provider |
+| `ANTHROPIC_API_KEY` / `GEMINI_API_KEY` | Credentials for the selected provider |
 
-### Docker
+Providers resolve lazily, so the server boots without a key; the agent reports
+that it is unconfigured until one is set.
 
-```bash
-docker compose up --build
-```
-
-The server container:
-
-- runs the Django app via uvicorn
-- includes `aws` and `zip`
-- mounts `${HOME}/.aws` as `/root/.aws`
-- listens on internal port `3001`
-
-### Tests
+## Tests
 
 ```bash
-cd server
-uv run python manage.py test
+docker compose run --rm server python manage.py test
+docker compose run --rm server python manage.py test agent
 ```
+
+Agent tests use a fake LLM provider (`agent/tests/fakes.py`) — no API key or
+network access required.
+
+## Conventions
+
+See [AGENTS.md](../AGENTS.md) and [docs/agents/backend.md](../docs/agents/backend.md).
