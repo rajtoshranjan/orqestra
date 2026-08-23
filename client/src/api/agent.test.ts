@@ -181,7 +181,12 @@ describe('agent api', () => {
   it('includes the live graph snapshot when provided to send', async () => {
     post.mockResolvedValue({
       data: {
-        data: { run_id: 'r1', status: 'completed', assistant_text: '', ops: [] },
+        data: {
+          run_id: 'r1',
+          status: 'completed',
+          assistant_text: '',
+          ops: [],
+        },
       },
     });
 
@@ -199,7 +204,12 @@ describe('agent api', () => {
   it('includes the live graph snapshot when provided to advance', async () => {
     post.mockResolvedValue({
       data: {
-        data: { run_id: 'r1', status: 'completed', assistant_text: '', ops: [] },
+        data: {
+          run_id: 'r1',
+          status: 'completed',
+          assistant_text: '',
+          ops: [],
+        },
       },
     });
 

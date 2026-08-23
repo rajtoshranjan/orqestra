@@ -7,14 +7,20 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('agent', '0002_agentconversation_catalog'),
-        ('annotations', '0002_remove_annotation_archived_and_more'),
+        ("agent", "0002_agentconversation_catalog"),
+        ("annotations", "0002_remove_annotation_archived_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='agentconversation',
-            name='annotation',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='agent_conversations', to='annotations.annotation'),
+            model_name="agentconversation",
+            name="annotation",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="agent_conversations",
+                to="annotations.annotation",
+            ),
         ),
     ]

@@ -62,6 +62,4 @@ class AgentModelTests(TestCase):
 
         annotation.delete()
 
-        self.assertFalse(
-            AgentConversation.objects.filter(id=conversation.id).exists()
-        )
+        self.assertFalse(AgentConversation.objects.filter(id=conversation.id).exists())

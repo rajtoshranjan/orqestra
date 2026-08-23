@@ -75,10 +75,7 @@ def _repair_history(history: list[LLMMessage]) -> list[LLMMessage]:
         for block in message.content:
             if isinstance(block, ToolCallBlock) and block.id not in matched:
                 continue
-            if (
-                isinstance(block, ToolResultBlock)
-                and block.tool_call_id not in matched
-            ):
+            if isinstance(block, ToolResultBlock) and block.tool_call_id not in matched:
                 continue
             blocks.append(block)
         if blocks:

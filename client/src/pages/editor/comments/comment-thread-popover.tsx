@@ -88,7 +88,11 @@ function ThreadComment({
               : 'bg-primary/15 text-primary',
           )}
         >
-          {isAgent ? <Sparkles size={12} /> : getInitials(comment.authorName || '?')}
+          {isAgent ? (
+            <Sparkles size={12} />
+          ) : (
+            getInitials(comment.authorName || '?')
+          )}
         </span>
         <span className="truncate text-xs font-medium text-foreground">
           {displayName}

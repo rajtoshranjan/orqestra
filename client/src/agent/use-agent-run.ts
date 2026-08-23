@@ -200,7 +200,8 @@ export function useAgentRun({
   // Once a run settles, re-tidy the canvas if it changed topology so the agent's
   // additions don't sit in the naive build-time grid.
   const finalizeLayout = useCallback(() => {
-    if (!layoutGraph || !structuralRef.current || !latestStateRef.current) return;
+    if (!layoutGraph || !structuralRef.current || !latestStateRef.current)
+      return;
     const laid = layoutGraph(latestStateRef.current);
     latestStateRef.current = laid;
     structuralRef.current = false;

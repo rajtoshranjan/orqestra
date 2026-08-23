@@ -17,10 +17,10 @@ import {
   X,
 } from 'lucide-react';
 
-import type { ClientAnnotation } from '@/api';
 import { type GraphState } from '@/agent/op-executor';
 import { describeOp, type AgentOpIcon } from '@/agent/op-label';
 import { useAgentRun, type AgentTimelineItem } from '@/agent/use-agent-run';
+import type { ClientAnnotation } from '@/api';
 import {
   Badge,
   Button,
@@ -289,7 +289,7 @@ export function AgentPanel({
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-border px-2 py-2">
+      <div className="border-b border-border p-2">
         <Tabs
           value={tab}
           onValueChange={(value) => setTab(value as AgentPanelTab)}
@@ -335,143 +335,146 @@ export function AgentPanel({
         <>
           {/* Body */}
           <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-3">
-        {isEmpty ? (
-          <div className="animate-fade-in flex h-full flex-col items-center justify-center gap-4 px-2 text-center">
-            <AgentAvatar className="size-12" iconSize={24} />
-            <div className="space-y-1">
-              <h3 className="text-sm font-semibold text-foreground">
-                Describe your app, watch it build
-              </h3>
-              <p className="text-xs leading-relaxed text-muted-foreground">
-                I&apos;ll design a validated AWS architecture on the canvas and
-                explain every choice.
-              </p>
-            </div>
-            <div className="w-full space-y-1.5">
-              {EXAMPLE_PROMPTS.map((prompt) => (
-                <button
-                  key={prompt}
-                  type="button"
-                  onClick={() => send(prompt)}
-                  disabled={busy}
-                  className="group flex w-full items-center gap-2 rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-left text-[11px] leading-snug text-muted-foreground transition-colors hover:border-primary/40 hover:bg-primary/5 hover:text-foreground disabled:opacity-50"
-                >
-                  <Sparkles size={12} className="shrink-0 text-primary/70" />
-                  <span>{prompt}</span>
-                </button>
-              ))}
-            </div>
-            <div className="flex flex-wrap justify-center gap-1.5">
-              {REQUIREMENT_HINTS.map((hint) => (
-                <span
-                  key={hint}
-                  className="rounded-full border border-border/60 px-2 py-0.5 text-[10px] text-muted-foreground"
-                >
-                  {hint}
-                </span>
-              ))}
-            </div>
-          </div>
-        ) : (
-          items.map((item) => <TimelineItem key={item.id} item={item} />)
-        )}
-
-        {status === 'thinking' && <ThinkingRow />}
-
-        {pendingOp &&
-          (() => {
-            const desc = describeOp(pendingOp);
-            const Icon = ACTIVITY_ICONS[desc.icon];
-            return (
-              <div className="border-warning/30 bg-warning/10 animate-scale-in space-y-2.5 rounded-xl border p-3">
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-warning">
-                  <ShieldAlert size={14} /> Review before applying
+            {isEmpty ? (
+              <div className="animate-fade-in flex h-full flex-col items-center justify-center gap-4 px-2 text-center">
+                <AgentAvatar className="size-12" iconSize={24} />
+                <div className="space-y-1">
+                  <h3 className="text-sm font-semibold text-foreground">
+                    Describe your app, watch it build
+                  </h3>
+                  <p className="text-xs leading-relaxed text-muted-foreground">
+                    I&apos;ll design a validated AWS architecture on the canvas
+                    and explain every choice.
+                  </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="border-warning/40 bg-warning/15 flex size-5 shrink-0 items-center justify-center rounded-md border text-warning">
-                    <Icon size={11} />
-                  </span>
-                  <span className="text-[11px] font-medium text-foreground">
-                    {desc.label}
-                  </span>
+                <div className="w-full space-y-1.5">
+                  {EXAMPLE_PROMPTS.map((prompt) => (
+                    <button
+                      key={prompt}
+                      type="button"
+                      onClick={() => send(prompt)}
+                      disabled={busy}
+                      className="group flex w-full items-center gap-2 rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-left text-[11px] leading-snug text-muted-foreground transition-colors hover:border-primary/40 hover:bg-primary/5 hover:text-foreground disabled:opacity-50"
+                    >
+                      <Sparkles
+                        size={12}
+                        className="shrink-0 text-primary/70"
+                      />
+                      <span>{prompt}</span>
+                    </button>
+                  ))}
                 </div>
-                <p className="text-[11px] leading-relaxed text-muted-foreground">
-                  This is a higher-impact change — apply it or skip for now.
-                </p>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    className="h-7 flex-1 text-xs"
-                    onClick={() => void confirm(true)}
-                  >
-                    Apply change
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-7 text-xs"
-                    onClick={() => void confirm(false)}
-                  >
-                    Skip
-                  </Button>
+                <div className="flex flex-wrap justify-center gap-1.5">
+                  {REQUIREMENT_HINTS.map((hint) => (
+                    <span
+                      key={hint}
+                      className="rounded-full border border-border/60 px-2 py-0.5 text-[10px] text-muted-foreground"
+                    >
+                      {hint}
+                    </span>
+                  ))}
                 </div>
               </div>
-            );
-          })()}
+            ) : (
+              items.map((item) => <TimelineItem key={item.id} item={item} />)
+            )}
 
-        {status === 'error' && (
-          <div className="animate-scale-in space-y-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-destructive">
-              <Info size={14} /> Orqestra hit an error
-            </div>
-            <p className="text-[11px] leading-relaxed text-muted-foreground">
-              {errorText || 'Something went wrong.'}
-            </p>
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-7 gap-1.5 text-xs"
-              onClick={() => void retry()}
-              disabled={busy}
-            >
-              <RotateCcw size={12} /> Try again
-            </Button>
+            {status === 'thinking' && <ThinkingRow />}
+
+            {pendingOp &&
+              (() => {
+                const desc = describeOp(pendingOp);
+                const Icon = ACTIVITY_ICONS[desc.icon];
+                return (
+                  <div className="border-warning/30 bg-warning/10 animate-scale-in space-y-2.5 rounded-xl border p-3">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-warning">
+                      <ShieldAlert size={14} /> Review before applying
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="border-warning/40 bg-warning/15 flex size-5 shrink-0 items-center justify-center rounded-md border text-warning">
+                        <Icon size={11} />
+                      </span>
+                      <span className="text-[11px] font-medium text-foreground">
+                        {desc.label}
+                      </span>
+                    </div>
+                    <p className="text-[11px] leading-relaxed text-muted-foreground">
+                      This is a higher-impact change — apply it or skip for now.
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        className="h-7 flex-1 text-xs"
+                        onClick={() => void confirm(true)}
+                      >
+                        Apply change
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 text-xs"
+                        onClick={() => void confirm(false)}
+                      >
+                        Skip
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })()}
+
+            {status === 'error' && (
+              <div className="animate-scale-in space-y-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-destructive">
+                  <Info size={14} /> Orqestra hit an error
+                </div>
+                <p className="text-[11px] leading-relaxed text-muted-foreground">
+                  {errorText || 'Something went wrong.'}
+                </p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 gap-1.5 text-xs"
+                  onClick={() => void retry()}
+                  disabled={busy}
+                >
+                  <RotateCcw size={12} /> Try again
+                </Button>
+              </div>
+            )}
           </div>
-        )}
-      </div>
 
-      {/* Composer */}
-      <div className="border-t border-border p-3">
-        <div className="relative">
-          <Textarea
-            value={input}
-            onChange={(event) => setInput(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' && !event.shiftKey) {
-                event.preventDefault();
-                send(input);
-              }
-            }}
-            placeholder="Describe what you want to build…"
-            rows={2}
-            className="resize-none rounded-xl pr-11 text-xs"
-            disabled={busy}
-          />
-          <Button
-            type="button"
-            size="sm"
-            className="absolute bottom-2 right-2 size-7 rounded-lg p-0"
-            onClick={() => send(input)}
-            disabled={busy || !input.trim()}
-            aria-label="Send"
-          >
-            <ArrowUp size={14} />
-          </Button>
-        </div>
-        <p className="mt-1.5 text-center text-[10px] text-muted-foreground">
-          Enter to send · Shift+Enter for a new line
-        </p>
-      </div>
+          {/* Composer */}
+          <div className="border-t border-border p-3">
+            <div className="relative">
+              <Textarea
+                value={input}
+                onChange={(event) => setInput(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault();
+                    send(input);
+                  }
+                }}
+                placeholder="Describe what you want to build…"
+                rows={2}
+                className="resize-none rounded-xl pr-11 text-xs"
+                disabled={busy}
+              />
+              <Button
+                type="button"
+                size="sm"
+                className="absolute bottom-2 right-2 size-7 rounded-lg p-0"
+                onClick={() => send(input)}
+                disabled={busy || !input.trim()}
+                aria-label="Send"
+              >
+                <ArrowUp size={14} />
+              </Button>
+            </div>
+            <p className="mt-1.5 text-center text-[10px] text-muted-foreground">
+              Enter to send · Shift+Enter for a new line
+            </p>
+          </div>
         </>
       )}
     </aside>

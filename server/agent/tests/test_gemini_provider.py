@@ -43,7 +43,9 @@ class _FakeCandidate:
 
 
 class _FakeChunk:
-    def __init__(self, text=None, function_calls=None, usage_metadata=None, candidates=None):
+    def __init__(
+        self, text=None, function_calls=None, usage_metadata=None, candidates=None
+    ):
         self._text = text
         self.function_calls = function_calls
         self.usage_metadata = usage_metadata
@@ -100,7 +102,9 @@ class GeminiProviderTests(SimpleTestCase):
         events = list(
             provider.stream(
                 system_prompt="system",
-                messages=[LLMMessage(role=Role.USER, content=[TextBlock(text="hello")])],
+                messages=[
+                    LLMMessage(role=Role.USER, content=[TextBlock(text="hello")])
+                ],
                 tools=[
                     ToolSpec(
                         name="add_resource",
@@ -144,10 +148,15 @@ class GeminiProviderTests(SimpleTestCase):
         decl = gemini_tools[0].function_declarations[0]
         self.assertEqual(decl.name, "add_resource")
         self.assertEqual(decl.description, "Add a resource node")
-        dumped = decl.parameters.model_dump(mode='json', exclude_none=True)
+        dumped = decl.parameters.model_dump(mode="json", exclude_none=True)
         self.assertEqual(dumped.get("type").upper(), "OBJECT")
-        self.assertEqual(dumped.get("properties", {}).get("type", {}).get("type").upper(), "STRING")
-        self.assertEqual(dumped.get("properties", {}).get("parent_id", {}).get("type").upper(), "STRING")
+        self.assertEqual(
+            dumped.get("properties", {}).get("type", {}).get("type").upper(), "STRING"
+        )
+        self.assertEqual(
+            dumped.get("properties", {}).get("parent_id", {}).get("type").upper(),
+            "STRING",
+        )
 
     def test_to_gemini_messages(self):
         messages = [
@@ -157,7 +166,11 @@ class GeminiProviderTests(SimpleTestCase):
             ),
             LLMMessage(
                 role=Role.ASSISTANT,
-                content=[ToolCallBlock(id="tc_1", name="add_resource", input={"type": "lambda"})],
+                content=[
+                    ToolCallBlock(
+                        id="tc_1", name="add_resource", input={"type": "lambda"}
+                    )
+                ],
             ),
             LLMMessage(
                 role=Role.TOOL,
@@ -178,12 +191,19 @@ class GeminiProviderTests(SimpleTestCase):
         self.assertEqual(gemini_messages[1].role, "model")
         self.assertEqual(len(gemini_messages[1].parts), 1)
         self.assertEqual(gemini_messages[1].parts[0].function_call.name, "add_resource")
-        self.assertEqual(gemini_messages[1].parts[0].function_call.args, {"type": "lambda"})
+        self.assertEqual(
+            gemini_messages[1].parts[0].function_call.args, {"type": "lambda"}
+        )
         self.assertEqual(gemini_messages[1].parts[0].function_call.id, "tc_1")
 
         # Verify tool response message.
         self.assertEqual(gemini_messages[2].role, "tool")
         self.assertEqual(len(gemini_messages[2].parts), 1)
-        self.assertEqual(gemini_messages[2].parts[0].function_response.name, "add_resource")
-        self.assertEqual(gemini_messages[2].parts[0].function_response.response, {"result": "success"})
+        self.assertEqual(
+            gemini_messages[2].parts[0].function_response.name, "add_resource"
+        )
+        self.assertEqual(
+            gemini_messages[2].parts[0].function_response.response,
+            {"result": "success"},
+        )
         self.assertEqual(gemini_messages[2].parts[0].function_response.id, "tc_1")

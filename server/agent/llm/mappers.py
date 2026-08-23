@@ -62,6 +62,7 @@ def _sanitize_gemini_schema(schema: Any) -> Any:
 
 def to_gemini_tools(tools: list[ToolSpec]) -> list[Any]:
     from google.genai import types
+
     declarations = [
         types.FunctionDeclaration(
             name=tool.name,
@@ -122,4 +123,3 @@ def to_gemini_messages(messages: list[LLMMessage]) -> list[Any]:
 
         result.append(types.Content(role=gemini_role, parts=parts))
     return result
-
