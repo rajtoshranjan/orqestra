@@ -286,7 +286,7 @@ Contributions are welcome. Before opening a pull request:
 
 ## License
 
-Orqestra is licensed under the [MIT License](./LICENSE)
+Orqestra is licensed under the [MIT License](./LICENSE).
 
 ## Vision
 
