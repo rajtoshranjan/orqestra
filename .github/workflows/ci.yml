@@ -10,15 +10,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.0.1
         with:
-          python-version: "3.12"
+          version: "0.11.21"
       - name: Install dependencies
         working-directory: ./server
-        run: pip install -r requirements-dev.txt
+        run: uv sync --frozen --group dev
       - name: Run pre-commit
-        run: pre-commit run --all-files
+        run: server/.venv/bin/pre-commit run --all-files
       - name: Run tests
         run: |
           cp .env.template .env

@@ -21,12 +21,12 @@ The server is a Django REST Framework API that converts saved diagrams into AWS 
 
 ```bash
 cd server
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-python manage.py migrate
-python manage.py runserver 0.0.0.0:3001
+uv sync
+uv run python manage.py migrate
+uv run python manage.py runserver 0.0.0.0:3001
 ```
+
+(Or `source .venv/bin/activate` after `uv sync` and drop the `uv run` prefix.)
 
 The default port is `3001`.
 
@@ -53,5 +53,5 @@ The server container:
 
 ```bash
 cd server
-python manage.py test
+uv run python manage.py test
 ```
