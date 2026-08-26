@@ -10,7 +10,9 @@ class AgentConfig(AppConfig):
         # import-time issues.
         from .llm.anthropic_provider import AnthropicProvider
         from .llm.gemini_provider import GeminiProvider
+        from .llm.ollama_provider import OllamaProvider
         from .llm.registry import llm_registry
 
         llm_registry.register(AnthropicProvider())
         llm_registry.register(GeminiProvider())
+        llm_registry.register(OllamaProvider())

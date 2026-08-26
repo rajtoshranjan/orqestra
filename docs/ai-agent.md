@@ -153,10 +153,13 @@ All LLM credentials live server-side only. Set them in `.env`:
 
 | Variable | Purpose |
 |----------|---------|
-| `AGENT_LLM_PROVIDER` | Which registered provider to use: `anthropic` or `gemini`. |
+| `AGENT_LLM_PROVIDER` | Which registered provider to use: `anthropic`, `gemini`, or `ollama`. |
 | `AGENT_LLM_MODEL` | Model id passed to that provider. |
 | `ANTHROPIC_API_KEY` | Required when the provider is `anthropic`. |
 | `GEMINI_API_KEY` | Required when the provider is `gemini`. |
+| `OLLAMA_BASE_URL` | Ollama endpoint. Defaults to `http://host.docker.internal:11434`. |
+| `OLLAMA_NUM_CTX` | Context window requested from Ollama. Defaults to `32768`. |
+| `OLLAMA_READ_TIMEOUT` | Seconds to wait on a local generation. Defaults to `300`. |
 
 `AGENT_MAX_TURNS` (in `server/orqestra/settings.py`) caps how many model turns a
 single run may take.
@@ -181,7 +184,40 @@ model is an adapter plus a registration:
 4. Select it with `AGENT_LLM_PROVIDER`.
 
 No engine, prompt, tool, or frontend changes are required.
-`AnthropicProvider` and `GeminiProvider` are the two worked examples.
+`AnthropicProvider`, `GeminiProvider`, and `OllamaProvider` are the worked
+examples.
+
+## Running the agent locally against Ollama
+
+`ollama` needs no API key, so it is the cheapest way to exercise a run
+end-to-end. Install Ollama on the host, then:
+
+```
+ollama pull qwen3:8b
+```
+
+```
+AGENT_LLM_PROVIDER=ollama
+AGENT_LLM_MODEL=qwen3:8b
+OLLAMA_BASE_URL=http://host.docker.internal:11434
+```
+
+Then `docker compose up -d --force-recreate server` to pick up `.env`.
+
+Three things matter when picking a model:
+
+- **It must support tool calling.** The agent acts only through its ten
+  grounded ops, so a model with no tool template (plain `llama3`, `gemma`,
+  most `*-text` variants) can chat but can never touch the canvas. `qwen3`,
+  `llama3.1`+, and `mistral-nemo` do support it.
+- **Context.** Ollama defaults to a 4096-token window, which silently drops
+  the service catalog out of the system prompt. `OllamaProvider` overrides it
+  with `OLLAMA_NUM_CTX` — do not lower it below the catalog size.
+- **Ollama issues no tool-call ids.** The provider mints them, because the
+  engine pairs a `tool_use` to its `tool_result` by id when replaying history.
+
+Small local models follow the multi-step tool protocol less reliably than the
+hosted ones. Treat Ollama as a wiring/plumbing check, not a quality bar.
 
 ## Data model
 

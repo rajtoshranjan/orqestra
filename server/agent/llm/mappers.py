@@ -123,3 +123,71 @@ def to_gemini_messages(messages: list[LLMMessage]) -> list[Any]:
 
         result.append(types.Content(role=gemini_role, parts=parts))
     return result
+
+
+def to_ollama_tools(tools: list[ToolSpec]) -> list[dict[str, Any]]:
+    return [
+        {
+            "type": "function",
+            "function": {
+                "name": tool.name,
+                "description": tool.description,
+                "parameters": tool.input_schema,
+            },
+        }
+        for tool in tools
+    ]
+
+
+def to_ollama_messages(messages: list[LLMMessage]) -> list[dict[str, Any]]:
+    """Flatten canonical messages into Ollama's /api/chat shape.
+
+    Ollama has no multi-block content: each message carries a single `content`
+    string, tool calls ride in `tool_calls`, and every tool result must be its
+    own `role: "tool"` message keyed by tool *name* rather than call id.
+    """
+    # Ollama identifies a tool result by name, so recover the name each call id
+    # was issued under (the same lookup to_gemini_messages needs).
+    tool_name_map = {
+        block.id: block.name
+        for message in messages
+        if message.role == Role.ASSISTANT
+        for block in message.content
+        if isinstance(block, ToolCallBlock)
+    }
+
+    result: list[dict[str, Any]] = []
+    for message in messages:
+        text_parts: list[str] = []
+        tool_calls: list[dict[str, Any]] = []
+
+        for block in message.content:
+            if isinstance(block, TextBlock):
+                text_parts.append(block.text)
+            elif isinstance(block, ToolCallBlock):
+                tool_calls.append(
+                    {"function": {"name": block.name, "arguments": block.input}}
+                )
+            elif isinstance(block, ToolResultBlock):
+                # Emitted immediately as its own message to preserve ordering.
+                result.append(
+                    {
+                        "role": "tool",
+                        "tool_name": tool_name_map.get(
+                            block.tool_call_id, "unknown_tool"
+                        ),
+                        "content": block.content,
+                    }
+                )
+
+        if not text_parts and not tool_calls:
+            continue
+
+        entry: dict[str, Any] = {
+            "role": "assistant" if message.role == Role.ASSISTANT else "user",
+            "content": "".join(text_parts),
+        }
+        if tool_calls:
+            entry["tool_calls"] = tool_calls
+        result.append(entry)
+    return result

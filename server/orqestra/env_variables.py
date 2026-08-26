@@ -42,3 +42,9 @@ class EnvVariable(Enum):
     AGENT_LLM_MODEL = os.environ.get("AGENT_LLM_MODEL", "claude-opus-4-8")
     ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
     GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+    # host.docker.internal: Ollama runs on the host, the server in a container.
+    OLLAMA_BASE_URL = os.environ.get(
+        "OLLAMA_BASE_URL", "http://host.docker.internal:11434"
+    )
+    OLLAMA_NUM_CTX = os.environ.get("OLLAMA_NUM_CTX", "32768")
+    OLLAMA_READ_TIMEOUT = os.environ.get("OLLAMA_READ_TIMEOUT", "300")
