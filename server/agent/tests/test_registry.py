@@ -1,9 +1,10 @@
 from collections.abc import Iterator
+from unittest import mock
 
 from agent.llm.base import BaseLLMProvider
 from agent.llm.registry import LLMProviderRegistry, get_active_provider, llm_registry
 from agent.llm.types import LLMCapabilities, LLMEvent, Stop
-from django.test import SimpleTestCase, override_settings
+from django.test import SimpleTestCase
 
 
 class _StubProvider(BaseLLMProvider):
@@ -31,8 +32,10 @@ class RegistryTests(SimpleTestCase):
         with self.assertRaises(ValueError):
             registry.get("missing")
 
-    @override_settings(AGENT_LLM_PROVIDER="stub")
-    def test_get_active_provider_reads_settings(self):
+    def test_get_active_provider_reads_env_variable(self):
         llm_registry.register(_StubProvider())
 
-        self.assertEqual(get_active_provider().name, "stub")
+        with mock.patch("agent.llm.registry.EnvVariable") as mock_env:
+            mock_env.AGENT_LLM_PROVIDER.value = "stub"
+
+            self.assertEqual(get_active_provider().name, "stub")

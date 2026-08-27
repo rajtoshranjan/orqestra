@@ -1,6 +1,6 @@
 from collections.abc import Iterator
 
-from django.conf import settings
+from orqestra.env_variables import EnvVariable
 
 from .base import BaseLLMProvider
 from .mappers import to_gemini_messages, to_gemini_tools
@@ -28,7 +28,7 @@ class GeminiProvider(BaseLLMProvider):
 
     def _get_client(self):
         if self._client is None:
-            api_key = getattr(settings, "GEMINI_API_KEY", "") or None
+            api_key = EnvVariable.GEMINI_API_KEY.value or None
             if not api_key:
                 raise RuntimeError(
                     "The agent is not configured: GEMINI_API_KEY is missing on the "
@@ -40,7 +40,7 @@ class GeminiProvider(BaseLLMProvider):
         return self._client
 
     def _get_model(self) -> str:
-        return self._model or settings.AGENT_LLM_MODEL
+        return self._model or EnvVariable.AGENT_LLM_MODEL.value
 
     def stream(
         self,

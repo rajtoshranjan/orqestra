@@ -48,3 +48,6 @@ class EnvVariable(Enum):
     )
     OLLAMA_NUM_CTX = os.environ.get("OLLAMA_NUM_CTX", "32768")
     OLLAMA_READ_TIMEOUT = os.environ.get("OLLAMA_READ_TIMEOUT", "300")
+    # Required for ollama.com cloud models; unused by a local endpoint.
+    OLLAMA_API_KEY = os.environ.get("OLLAMA_API_KEY", "")
+    AGENT_MAX_TURNS = os.environ.get("AGENT_MAX_TURNS", "20")

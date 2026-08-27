@@ -162,17 +162,6 @@ CHANNEL_LAYERS = {
 }
 
 
-# Agent / LLM
-AGENT_LLM_PROVIDER = EnvVariable.AGENT_LLM_PROVIDER.value
-AGENT_LLM_MODEL = EnvVariable.AGENT_LLM_MODEL.value
-ANTHROPIC_API_KEY = EnvVariable.ANTHROPIC_API_KEY.value
-GEMINI_API_KEY = EnvVariable.GEMINI_API_KEY.value
-OLLAMA_BASE_URL = EnvVariable.OLLAMA_BASE_URL.value
-OLLAMA_NUM_CTX = int(EnvVariable.OLLAMA_NUM_CTX.value)
-OLLAMA_READ_TIMEOUT = int(EnvVariable.OLLAMA_READ_TIMEOUT.value)
-AGENT_MAX_TURNS = 20
-
-
 # Logging
 LOGGING = {
     "version": 1,

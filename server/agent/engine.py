@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
-from django.conf import settings
+from orqestra.env_variables import EnvVariable
 
 from .constants import (
     AGENT_MESSAGE_DELTA,
@@ -108,7 +108,9 @@ class AgentEngine:
         self.provider = provider
         self.emit = event_sink or _noop_sink
         self.max_turns = (
-            max_turns if max_turns is not None else settings.AGENT_MAX_TURNS
+            max_turns
+            if max_turns is not None
+            else int(EnvVariable.AGENT_MAX_TURNS.value)
         )
 
     def advance(

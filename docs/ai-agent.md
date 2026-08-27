@@ -159,7 +159,8 @@ All LLM credentials live server-side only. Set them in `.env`:
 | `GEMINI_API_KEY` | Required when the provider is `gemini`. |
 | `OLLAMA_BASE_URL` | Ollama endpoint. Defaults to `http://host.docker.internal:11434`. |
 | `OLLAMA_NUM_CTX` | Context window requested from Ollama. Defaults to `32768`. |
-| `OLLAMA_READ_TIMEOUT` | Seconds to wait on a local generation. Defaults to `300`. |
+| `OLLAMA_READ_TIMEOUT` | Seconds to wait on a generation. Defaults to `300`. |
+| `OLLAMA_API_KEY` | Required for ollama.com cloud models. Unused by a local endpoint. |
 
 `AGENT_MAX_TURNS` (in `server/orqestra/settings.py`) caps how many model turns a
 single run may take.
@@ -187,7 +188,15 @@ No engine, prompt, tool, or frontend changes are required.
 `AnthropicProvider`, `GeminiProvider`, and `OllamaProvider` are the worked
 examples.
 
-## Running the agent locally against Ollama
+## Running the agent against Ollama Cloud
+```
+AGENT_LLM_PROVIDER=ollama
+AGENT_LLM_MODEL=gpt-oss:120b
+OLLAMA_BASE_URL=https://ollama.com
+OLLAMA_API_KEY=<your key>
+```
+
+## Running the agent against local Ollama
 
 `ollama` needs no API key, so it is the cheapest way to exercise a run
 end-to-end. Install Ollama on the host, then:

@@ -155,7 +155,9 @@ class OllamaProviderTests(SimpleTestCase):
         self.assertEqual(len({call.id for call in calls}), 2)
 
     def test_stream_sends_num_ctx_override(self):
-        provider = OllamaProvider(base_url="http://localhost:11434", model="qwen3:8b")
+        provider = OllamaProvider(
+            base_url="http://localhost:11434", model="qwen3:8b", api_key=""
+        )
 
         with _post_returning(_FakeResponse([{"done": True}])) as post:
             list(provider.stream(system_prompt="s", messages=[], tools=[]))
@@ -181,6 +183,46 @@ class OllamaProviderTests(SimpleTestCase):
         sent = post.call_args.kwargs["json"]["messages"]
         self.assertEqual(sent[0], {"role": "system", "content": "you are an agent"})
         self.assertEqual(sent[1], {"role": "user", "content": "hi"})
+
+    def test_sends_bearer_token_when_api_key_set(self):
+        provider = OllamaProvider(
+            base_url="https://ollama.com", model="gpt-oss:120b", api_key="secret"
+        )
+
+        with _post_returning(_FakeResponse([{"done": True}])) as post:
+            list(provider.stream(system_prompt="s", messages=[], tools=[]))
+
+        headers = post.call_args.kwargs["headers"]
+        self.assertEqual(headers["Authorization"], "Bearer secret")
+
+    def test_omits_auth_header_without_api_key(self):
+        provider = OllamaProvider(base_url="http://localhost:11434", api_key="")
+
+        with _post_returning(_FakeResponse([{"done": True}])) as post:
+            list(provider.stream(system_prompt="s", messages=[], tools=[]))
+
+        self.assertNotIn("Authorization", post.call_args.kwargs["headers"])
+
+    def test_omits_num_ctx_for_cloud(self):
+        """A locally-sized window would only shrink a hosted model's context."""
+        provider = OllamaProvider(
+            base_url="https://ollama.com", model="gpt-oss:120b", api_key="secret"
+        )
+
+        with _post_returning(_FakeResponse([{"done": True}])) as post:
+            list(provider.stream(system_prompt="s", messages=[], tools=[]))
+
+        self.assertNotIn("num_ctx", post.call_args.kwargs["json"]["options"])
+
+    def test_unauthorized_names_the_api_key_setting(self):
+        provider = OllamaProvider(base_url="https://ollama.com", api_key="bad")
+        response = _FakeResponse([], status_code=401, text="unauthorized")
+
+        with _post_returning(response):
+            with self.assertRaises(RuntimeError) as context:
+                list(provider.stream(system_prompt="s", messages=[], tools=[]))
+
+        self.assertIn("OLLAMA_API_KEY", str(context.exception))
 
     def test_error_status_raises(self):
         provider = OllamaProvider(base_url="http://localhost:11434", model="missing")

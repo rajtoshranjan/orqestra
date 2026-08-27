@@ -1,4 +1,4 @@
-from django.conf import settings
+from orqestra.env_variables import EnvVariable
 
 from .base import BaseLLMProvider
 
@@ -20,4 +20,4 @@ llm_registry = LLMProviderRegistry()
 
 
 def get_active_provider() -> BaseLLMProvider:
-    return llm_registry.get(settings.AGENT_LLM_PROVIDER)
+    return llm_registry.get(EnvVariable.AGENT_LLM_PROVIDER.value)

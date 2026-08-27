@@ -1,6 +1,6 @@
 from collections.abc import Iterator
 
-from django.conf import settings
+from orqestra.env_variables import EnvVariable
 
 from .base import BaseLLMProvider
 from .mappers import to_anthropic_messages, to_anthropic_tools
@@ -29,18 +29,19 @@ class AnthropicProvider(BaseLLMProvider):
 
     def _get_client(self):
         if self._client is None:
-            if not settings.ANTHROPIC_API_KEY:
+            api_key = EnvVariable.ANTHROPIC_API_KEY.value
+            if not api_key:
                 raise RuntimeError(
                     "The agent is not configured: ANTHROPIC_API_KEY is missing on "
                     "the server. Set it (or switch AGENT_LLM_PROVIDER) and retry."
                 )
             import anthropic
 
-            self._client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+            self._client = anthropic.Anthropic(api_key=api_key)
         return self._client
 
     def _get_model(self) -> str:
-        return self._model or settings.AGENT_LLM_MODEL
+        return self._model or EnvVariable.AGENT_LLM_MODEL.value
 
     def stream(
         self,
