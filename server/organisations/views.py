@@ -1,3 +1,5 @@
+from agent.llm.registry import provider_from_credentials
+from agent.llm.types import LLMMessage, Role, TextBlock
 from django.db.models import Prefetch, Q
 from orqestra.pagination import StandardResultsSetPagination
 from rest_framework.decorators import action
@@ -5,14 +7,23 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+from utils.encryption import decrypt_val
 
 from .constants import OrganisationMemberRole
 from .helpers import create_default_organisation, get_active_organisation, log_action
-from .models import AuditLog, AWSAccount, Organisation, OrganisationMember
+from .models import (
+    AuditLog,
+    AWSAccount,
+    LLMConfig,
+    Organisation,
+    OrganisationMember,
+)
 from .permissions import CanManageOrganisation, IsNonGuestMember, IsOrganisationMember
 from .serializers import (
     AuditLogSerializer,
     AWSAccountSerializer,
+    LLMConfigSerializer,
+    LLMConfigTestSerializer,
     OrganisationMemberSerializer,
     OrganisationSerializer,
 )
@@ -229,4 +240,117 @@ class AWSAccountViewSet(ModelViewSet):
                 "aws_account_id": aws_account_id,
                 "aws_account_name": aws_account_name,
             },
+        )
+
+
+class LLMConfigViewSet(ModelViewSet):
+    """Organisation-owned model credentials, managed like AWS accounts."""
+
+    serializer_class = LLMConfigSerializer
+
+    def get_permissions(self):
+        if self.action in ["list", "retrieve"]:
+            # Hidden from guests entirely, like AWS accounts.
+            self.permission_classes = [IsNonGuestMember]
+        else:
+            # Management is restricted to owners/admins: these are credentials.
+            self.permission_classes = [CanManageOrganisation]
+        return super().get_permissions()
+
+    def get_queryset(self):
+        org = get_active_organisation(self.request, raise_exception=False)
+        if org:
+            return LLMConfig.objects.filter(organisation_id=org.id)
+        return LLMConfig.objects.none()
+
+    def perform_create(self, serializer):
+        active_org = get_active_organisation(self.request)
+        config = serializer.save(organisation=active_org)
+        log_action(
+            organisation=active_org,
+            actor=self.request.user,
+            action="llm_config.create",
+            details={
+                "llm_config_id": str(config.id),
+                "llm_config_name": config.name,
+                "provider": config.provider,
+                "model": config.model,
+            },
+        )
+
+    def perform_update(self, serializer):
+        config = serializer.save()
+        log_action(
+            organisation=config.organisation,
+            actor=self.request.user,
+            action="llm_config.update",
+            details={
+                "llm_config_id": str(config.id),
+                "llm_config_name": config.name,
+                "provider": config.provider,
+                "model": config.model,
+            },
+        )
+
+    @action(detail=False, methods=["post"])
+    def test(self, request):
+        """Dial the provider once so a bad key or model id surfaces at setup.
+
+        Reports the failure in the response body rather than as an error
+        status: a refused credential is a valid answer to "does this work?",
+        not a broken request.
+        """
+        payload = LLMConfigTestSerializer(
+            data=request.data, configs=self.get_queryset()
+        )
+        payload.is_valid(raise_exception=True)
+        data = payload.validated_data
+
+        # The form never receives a stored key back, so re-testing a saved
+        # config has to fall back to the one on file.
+        saved = data.get("config")
+        api_key = data.get("api_key") or (
+            decrypt_val(saved.api_key) if saved and saved.api_key else ""
+        )
+
+        try:
+            provider = provider_from_credentials(
+                provider=data["provider"],
+                model=data["model"],
+                api_key=api_key,
+                base_url=data.get("base_url", ""),
+                context_window=data.get("context_window", 0),
+            )
+            for _ in provider.stream(
+                system_prompt="Reply with the single word: ok.",
+                messages=[LLMMessage(role=Role.USER, content=[TextBlock(text="ping")])],
+                tools=[],
+                max_tokens=16,
+            ):
+                pass
+        except Exception as error:  # noqa: BLE001 - the failure IS the answer
+            return Response({"ok": False, "error": str(error)})
+
+        return Response({"ok": True, "model": data["model"]})
+
+    def perform_destroy(self, instance):
+        organisation = instance.organisation
+        details = {
+            "llm_config_id": str(instance.id),
+            "llm_config_name": instance.name,
+        }
+        was_default = instance.is_default
+        instance.delete()
+        # Never leave an organisation with configs but no default, or the agent
+        # silently stops working for every project that didn't name one.
+        if was_default:
+            replacement = organisation.llm_configs.order_by("created_at").first()
+            if replacement:
+                replacement.is_default = True
+                replacement.save(update_fields=["is_default", "updated_at"])
+        log_action(
+            organisation=organisation,
+            actor=self.request.user,
+            action="llm_config.delete",
+            details=details,
         )

@@ -29,18 +29,9 @@ cp .env.template .env
 ```
 *(The default configuration in `.env.template` is optimized for local development and requires no immediate changes).*
 
-To use the AI agent, add an LLM provider and API key — this is the one value the
-template cannot fill in for you:
-
-```bash
-AGENT_LLM_PROVIDER=anthropic   # or: gemini
-AGENT_LLM_MODEL=<model-id>
-ANTHROPIC_API_KEY=<your-key>   # or GEMINI_API_KEY when using gemini
-```
-
-Everything else works without it; the agent simply reports that it is not
-configured until a key is present. Keys are read server-side only and never
-reach the browser.
+The AI agent needs a model, but that is **not** configured here — you add it in
+the app once the stack is running (Settings → AI Models), so no API key ever
+goes in `.env`. Everything else works without it.
 
 ### 3. Spin Up the Development Stack
 Start all components in the background using Docker Compose:
@@ -93,12 +84,23 @@ Orqestra requires AWS credentials linked to your organization to perform cloud d
 5. Save the account settings.
 
 ### 3. Design With the AI Agent
-If you set an LLM provider and key in your `.env`, you can let the agent draft the architecture instead of starting from a blank canvas:
+
+First, give the agent a model — once per organisation:
+
+1. Open **Settings → AI Models** and click **Add model** (owners and admins only).
+2. Pick a provider, enter the model id, and paste an API key. For a local
+   Ollama model use `http://host.docker.internal:11434` as the endpoint and
+   leave the key blank.
+3. Press **Test connection** to check it before saving. The first model you add
+   becomes the organisation default; a project can override it in
+   **Project settings → AI model**.
+
+Then let the agent draft the architecture instead of starting from a blank canvas:
 
 1. Create a project — on a new, empty project the agent panel opens automatically. You can toggle it any time with **Cmd/Ctrl + J**.
 2. Describe what you want to run in plain language, e.g. *"a REST API with a Postgres database and a background job queue"*. The agent asks about the requirements it still needs (workload, scale, data, regions, compliance, budget).
-3. Watch it build: nodes appear and get wired on the canvas while the panel narrates each step. Safe edits apply immediately and can be undone like any other canvas change; destructive ones pause and ask for confirmation.
-4. Refine in place by tagging the agent in a comment. Press **C** to enter comment mode, click a node, and start the comment with `@orqestra` — for example *"@orqestra put this Lambda in a private subnet"*. The agent makes the change and replies in that thread, and keeps following the thread until you resolve it.
+3. Watch it build: nodes appear and get wired on the canvas while the panel narrates each step. Safe edits apply immediately and can be undone like any other canvas change; high-impact ones — a deletion, a change to an exposure or cost setting — pause and ask, naming exactly what they affect. **Stop** in the panel header ends a run at any point, leaving whatever it has already applied.
+4. Refine in place by tagging the agent in a comment. Press **C** to enter comment mode, click a node, and start the comment with `@orqestra` — for example *"@orqestra put this Lambda in a private subnet"*. The agent makes the change and replies in that thread, and keeps following the thread until you resolve it. If it needs approval for something high-impact it asks in the thread; reply *"yes"* to apply it.
 
 > [!NOTE]
 > The agent is design-time only. It builds and edits the architecture graph; you decide when to deploy. See [ai-agent.md](./ai-agent.md) for the details.

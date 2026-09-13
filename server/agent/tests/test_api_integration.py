@@ -6,8 +6,23 @@ from agent.models import AgentConversation
 from agent.tests.fakes import FakeLLMProvider
 from django.test import override_settings
 from django.urls import reverse
+from organisations.constants import LLMProviderChoice
+from organisations.models import LLMConfig
 from orqestra.tests import BaseTestCase
 from projects.models import Project
+from utils.encryption import encrypt_val
+
+
+def make_llm_config(organisation):
+    """An organisation's default model config, so `build_engine` can resolve one."""
+    return LLMConfig.objects.create(
+        organisation=organisation,
+        name="Test model",
+        provider=LLMProviderChoice.ANTHROPIC.value,
+        model="claude-sonnet-5",
+        api_key=encrypt_val("sk-test"),
+        is_default=True,
+    )
 
 
 @override_settings(
@@ -19,8 +34,9 @@ class ApiLoopTests(BaseTestCase):
         self.project = Project.objects.create(
             organisation=self.organisation, name="P", nodes=[], edges=[]
         )
+        make_llm_config(self.organisation)
 
-    @patch("agent.views.get_active_provider")
+    @patch("agent.views.build_provider")
     def test_create_send_advance_completes(self, mock_get_provider):
         # One provider instance with two scripted turns: send consumes turn 1,
         # advance consumes turn 2.

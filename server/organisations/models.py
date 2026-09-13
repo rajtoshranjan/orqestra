@@ -3,7 +3,7 @@ from django.db import models
 from django.db.models import Q
 from orqestra.models import BaseModel
 
-from .constants import OrganisationMemberRole
+from .constants import LLMProviderChoice, OrganisationMemberRole
 
 
 class Organisation(BaseModel):
@@ -102,3 +102,51 @@ class AWSAccount(BaseModel):
 
     def __str__(self):
         return f"{self.name} ({self.organisation.name})"
+
+
+class LLMConfig(BaseModel):
+    """An organisation's connection to a model provider.
+
+    The agent's counterpart to AWSAccount: credentials belong to the
+    organisation, are encrypted at rest by the serializer, and are decrypted
+    only at the point the provider is built.
+    """
+
+    organisation = models.ForeignKey(
+        Organisation,
+        on_delete=models.CASCADE,
+        related_name="llm_configs",
+    )
+    name = models.CharField(max_length=255)
+    provider = models.CharField(max_length=32, choices=LLMProviderChoice.choices())
+    model = models.CharField(max_length=255)
+    # Encrypted. Blank for a local Ollama endpoint, which needs no key.
+    api_key = models.CharField(max_length=512, blank=True, default="")
+    # Operator-supplied endpoint, for providers that have one (Ollama).
+    base_url = models.CharField(max_length=512, blank=True, default="")
+    # Context window to request from a local endpoint. 0 = provider default.
+    context_window = models.PositiveIntegerField(default=0)
+    # The config the agent uses when a project names none. Exactly one per org.
+    is_default = models.BooleanField(default=False)
+
+    class Meta(BaseModel.Meta):
+        db_table = "llm_configs"
+        unique_together = ("organisation", "name")
+
+    def __str__(self):
+        return f"{self.name} ({self.provider})"
+
+    def save(self, *args, **kwargs):
+        # The first config an organisation adds becomes its default, so the
+        # agent works straight after setup rather than waiting on a toggle.
+        siblings = LLMConfig.objects.filter(organisation_id=self.organisation_id)
+        if self.pk:
+            siblings = siblings.exclude(pk=self.pk)
+        if not siblings.exists():
+            self.is_default = True
+
+        super().save(*args, **kwargs)
+
+        # Exactly one default per organisation.
+        if self.is_default:
+            siblings.filter(is_default=True).update(is_default=False)

@@ -23,6 +23,15 @@ class Project(BaseModel):
         blank=True,
         related_name="projects",
     )
+    # Optional override for the agent. Null means "use the organisation's
+    # default", so a project needs no setup of its own.
+    llm_config = models.ForeignKey(
+        "organisations.LLMConfig",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="projects",
+    )
 
     objects = ProjectQuerySet.as_manager()
 

@@ -3,13 +3,15 @@ import { describe, it, expect, vi } from 'vitest';
 vi.mock('@/services', () => ({
   registry: {
     find: (serviceId: string) => {
-      const tiers: Record<string, string> = {
-        redshift: 'high',
-        lambda: 'variable',
+      const services: Record<string, Record<string, unknown>> = {
+        redshift: { costProfile: { tier: 'high' } },
+        lambda: { costProfile: { tier: 'variable' } },
+        rds: {
+          costProfile: { tier: 'variable' },
+          sensitiveConfigKeys: ['instanceClass'],
+        },
       };
-      return tiers[serviceId]
-        ? { costProfile: { tier: tiers[serviceId] } }
-        : null;
+      return services[serviceId] ?? null;
     },
   },
 }));
@@ -37,5 +39,53 @@ describe('resolveOpRisk', () => {
 
   it('leaves read-only ops safe', () => {
     expect(resolveOpRisk('safe', 'query_graph', {})).toBe('safe');
+  });
+
+  it('escalates configure when the patch touches a security field', () => {
+    expect(
+      resolveOpRisk('safe', 'configure', {
+        node_id: 'n1',
+        service_id: 'lambda',
+        config_patch: { publiclyAccessible: true },
+      }),
+    ).toBe('confirm');
+  });
+
+  it('escalates configure when the patch disables encryption', () => {
+    expect(
+      resolveOpRisk('safe', 'configure', {
+        node_id: 'n1',
+        config_patch: { encryptionEnabled: false },
+      }),
+    ).toBe('confirm');
+  });
+
+  it('escalates configure on a field the service marks sensitive', () => {
+    expect(
+      resolveOpRisk('safe', 'configure', {
+        node_id: 'n1',
+        service_id: 'rds',
+        config_patch: { instanceClass: 'db.r6g.16xlarge' },
+      }),
+    ).toBe('confirm');
+  });
+
+  it('leaves an ordinary configure safe', () => {
+    expect(
+      resolveOpRisk('safe', 'configure', {
+        node_id: 'n1',
+        service_id: 'lambda',
+        config_patch: { memoryMb: 512 },
+      }),
+    ).toBe('safe');
+  });
+
+  it('matches sensitive keys regardless of casing', () => {
+    expect(
+      resolveOpRisk('safe', 'configure', {
+        node_id: 'n1',
+        config_patch: { public_access_block: false },
+      }),
+    ).toBe('confirm');
   });
 });

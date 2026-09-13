@@ -22,7 +22,9 @@ Cloud resources are plugins. The orchestration layer must remain provider-agnost
 
 ### Plugin-Based LLM Layer
 
-The AI agent follows the same rule for models. The engine depends on `BaseLLMProvider` and never imports a vendor SDK; vendor translation lives only in `server/agent/llm/mappers.py`. A new model is a new adapter plus a registration in `agent/apps.py` — never an engine change. The agent acts on the graph only through its grounded ops and the frontend service registry and canvas helpers; never give it a private mutation path.
+The AI agent follows the same rule for models. The engine depends on `BaseLLMProvider` and never imports a vendor SDK; vendor translation lives only in `server/agent/llm/mappers.py`. A new model is a new adapter plus a registration in `agent/apps.py` — never an engine change. The registry holds provider **classes**; credentials come from `organisations.LLMConfig` through the base constructor, never from the environment, because one process serves many organisations. Every adapter must yield a `Stop` event with the vendor's finish reason, mint ids through `ensure_tool_call_id()`, and report `capabilities.max_context_tokens` honestly; the engine relies on all three. Setup and the full contract: `docs/ai-agent.md`.
+
+The agent acts on the graph only through its grounded ops and the frontend service registry and canvas helpers; never give it a private mutation path. Mutating ops go through the same `checkConnection` / `checkParent` rules a human edit does (`client/src/utils/graph-rules.ts`) — one rule, two callers. Read-only ops (`list_services`, `get_service`, `query_graph`) are answered server-side from the stored catalog and the posted graph; never route a read back through the client.
 
 ### Reuse Before Creating
 

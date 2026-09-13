@@ -126,9 +126,7 @@ class OllamaProviderTests(SimpleTestCase):
         provider = OllamaProvider(base_url="http://localhost:11434", model="qwen3:8b")
 
         with _post_returning(_FakeResponse(chunks)):
-            events = list(
-                provider.stream(system_prompt="s", messages=[], tools=[])
-            )
+            events = list(provider.stream(system_prompt="s", messages=[], tools=[]))
 
         calls = [event for event in events if isinstance(event, ToolCallRequested)]
         self.assertEqual(calls[0].input, {"node_id": "n1"})
@@ -154,9 +152,12 @@ class OllamaProviderTests(SimpleTestCase):
         calls = [event for event in events if isinstance(event, ToolCallRequested)]
         self.assertEqual(len({call.id for call in calls}), 2)
 
-    def test_stream_sends_num_ctx_override(self):
+    def test_stream_sends_the_configured_context_window(self):
         provider = OllamaProvider(
-            base_url="http://localhost:11434", model="qwen3:8b", api_key=""
+            base_url="http://localhost:11434",
+            model="qwen3:8b",
+            api_key="",
+            context_window=32768,
         )
 
         with _post_returning(_FakeResponse([{"done": True}])) as post:
@@ -164,7 +165,25 @@ class OllamaProviderTests(SimpleTestCase):
 
         options = post.call_args.kwargs["json"]["options"]
         # Ollama's 4096 default would truncate the catalog out of the prompt.
-        self.assertGreater(options["num_ctx"], 4096)
+        self.assertEqual(options["num_ctx"], 32768)
+
+    def test_no_context_window_leaves_the_endpoint_default_alone(self):
+        provider = OllamaProvider(
+            base_url="http://localhost:11434", model="qwen3:8b", api_key=""
+        )
+
+        with _post_returning(_FakeResponse([{"done": True}])) as post:
+            list(provider.stream(system_prompt="s", messages=[], tools=[]))
+
+        self.assertNotIn("num_ctx", post.call_args.kwargs["json"]["options"])
+
+    def test_a_missing_base_url_is_reported_actionably(self):
+        provider = OllamaProvider(model="qwen3:8b")
+
+        with self.assertRaises(RuntimeError) as caught:
+            list(provider.stream(system_prompt="s", messages=[], tools=[]))
+
+        self.assertIn("Settings", str(caught.exception))
 
     def test_system_prompt_is_first_message(self):
         provider = OllamaProvider(base_url="http://localhost:11434", model="qwen3:8b")
@@ -222,11 +241,13 @@ class OllamaProviderTests(SimpleTestCase):
             with self.assertRaises(RuntimeError) as context:
                 list(provider.stream(system_prompt="s", messages=[], tools=[]))
 
-        self.assertIn("OLLAMA_API_KEY", str(context.exception))
+        self.assertIn("AI Models", str(context.exception))
 
     def test_error_status_raises(self):
         provider = OllamaProvider(base_url="http://localhost:11434", model="missing")
-        response = _FakeResponse([], status_code=404, text='{"error":"model not found"}')
+        response = _FakeResponse(
+            [], status_code=404, text='{"error":"model not found"}'
+        )
 
         with _post_returning(response):
             with self.assertRaises(RuntimeError) as context:
@@ -250,7 +271,7 @@ class OllamaProviderTests(SimpleTestCase):
         message = str(context.exception)
         self.assertIn("llama3", message)
         self.assertIn("tool-calling", message)
-        self.assertIn("AGENT_LLM_MODEL", message)
+        self.assertIn("AI Models", message)
 
     def test_connection_error_names_the_url(self):
         import requests

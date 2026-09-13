@@ -149,7 +149,9 @@ Two abstractions keep this decoupled:
 * **`BaseLLMProvider`** (`agent/llm/`) - a vendor-neutral streaming interface plus
   a registry, mirroring the cloud-service provider pattern. The engine never
   imports a vendor SDK; adapters translate in `agent/llm/mappers.py` and nowhere
-  else. Selected via `AGENT_LLM_PROVIDER` / `AGENT_LLM_MODEL`.
+  else. The registry holds provider classes and builds one per run from the
+  organisation's stored credentials (`organisations.LLMConfig`, managed in
+  Settings → AI Models), so one process serves many organisations and models.
 * **Graph ops** (`agent/tools.py`) - semantic, provider-agnostic operations
   (`add_resource`, `connect`, `configure`, `set_parent`, `remove`, `validate`,
   `estimate_cost`, plus catalog lookups). The model never emits raw IaC and

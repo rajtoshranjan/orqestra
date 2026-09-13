@@ -61,40 +61,56 @@ does.
 
 ```
 1. You send a message                    POST /agent/conversations/<id>/send/
-        │                                (starts an AgentRun)
+        │                                (starts an AgentRun; refused with 409
+        │                                 while one is already live)
         ▼
 2. Server runs one LLM turn              agent/engine.py → BaseLLMProvider.stream()
         │
         ▼
-3. Model emits graph ops (tool calls)    coarse risk classified server-side
-        │                                (agent/risk.py)
+3. Read-only ops resolve server-side     list_services / get_service /
+        │                                query_graph answered from the stored
+        │                                catalog and the posted graph, then the
+        │                                loop takes another turn immediately —
+        │                                no round trip, no turn spent
         ▼
-4. Client applies each op                client/src/agent/op-executor.ts
-        │                                → service registry + canvas helpers
+4. Mutating ops go to the client         coarse risk classified server-side
+        │                                (agent/risk.py), refined at apply time
+        ▼
+5. Client applies each op                client/src/agent/op-executor.ts
+        │                                → shared graph rules + service registry
         │                                → React Flow → normal project autosave
         ▼
-5. Client reports results back           POST /agent/runs/<id>/advance/
-        │                                (validation errors, cost deltas, …)
+6. Client reports results back           POST /agent/runs/<id>/advance/
+        │                                (only for outstanding tool calls; the
+        │                                 server drops duplicates and strays)
         ▼
-6. Model continues or self-corrects      loop back to 2
+7. Model continues or self-corrects      loop back to 2
 ```
 
-The loop ends when the model stops emitting ops and posts a summary, or when it
-hits `AGENT_MAX_TURNS` (default 20). Ops classified as risky pause the loop for
-confirmation; the remaining ops in that batch resume after you decide (see
-[Risk model](#risk-model)).
+The loop ends when the model stops emitting ops and posts a summary, when you
+press **Stop**, or when it hits `AGENT_MAX_TURNS` (default 20). Ops classified as
+risky pause the loop for confirmation; the remaining ops in that batch resume
+after you decide (see [Risk model](#risk-model)).
+
+A run is a state machine — `running` → `awaiting_client` → `completed` /
+`failed` / `cancelled` — and the API enforces it: only a run awaiting the client
+can be advanced, and results are accepted only for tool calls that are actually
+outstanding, so a retried request can't write a duplicate `tool_result` that
+poisons the replayed history. A run abandoned mid-flight (a closed tab) is
+retired after `AGENT_RUN_STALE_MINUTES` so it can never block the conversation.
 
 The build reads live because the client applies each turn's ops **one at a
 time**, with a short beat between them, narrating as it goes — the architecture
 visibly assembles instead of appearing in one lump.
 
 The engine also broadcasts run events to the project's Channels group
-(`agent.message.delta`, `agent.tool_call`, `agent.op_applied`,
-`agent.run.completed`, `agent.run.failed`) through the same real-time transport
-deployments use. The editor panel doesn't subscribe to them today — it renders
-from the REST turn loop above — but the transport is in place for surfaces that
-need to observe a run they didn't start (a second viewer on the project, or a
-future server-side executor).
+(`agent.message`, `agent.tool_call`, `agent.op_applied`, `agent.run.completed`,
+`agent.run.failed`) through the same real-time transport deployments use. One
+`agent.message` is emitted per completed turn rather than per token — a
+delta-rate broadcast put a channel-layer round trip on the hot path for every
+token, into a group nothing consumes. The editor panel renders from the REST
+turn loop above; the transport is in place for surfaces that need to observe a
+run they didn't start.
 
 ## The action space
 
@@ -114,11 +130,20 @@ operations declared in `server/agent/tools.py`:
 | `validate()` | Run validation — this is the self-correction signal. |
 | `estimate_cost()` | Current cost and delta. |
 
-The ops are grounded twice. The system prompt is built from the project's
-catalog snapshot and the live canvas, so the model only ever sees real service
-ids and real node ids; and the client executes each op through the frontend
-service registry, so an unknown service, an illegal parent, or a rejected wiring
-comes straight back as an error tool result the model has to correct.
+`list_services`, `get_service` and `query_graph` are answered **server-side**
+from the catalog snapshot stored on the conversation and the graph posted with
+the request, and the loop continues without returning to the browser. Only
+mutations, `validate` and `estimate_cost` reach the client — the latter two
+because they need the frontend registry's validators and cost estimators.
+
+The ops are grounded twice. The system prompt carries each service's
+capabilities, allowed parents, allowed relationships and summary — not just its
+id — so the model can select and wire by capability without spending turns
+looking things up. And the client executes each op through the same
+`checkConnection` / `checkParent` rules a human drag-and-drop goes through
+(`client/src/utils/graph-rules.ts`), so an unknown service, an illegal parent or
+a rejected wiring comes straight back as an error tool result the model has to
+correct.
 
 Services are chosen and wired by **capability and relationship** (e.g. "requires
 `execution-role`"), never by hardcoded service IDs — the same rule that applies
@@ -138,36 +163,112 @@ Autonomy is graded by blast radius:
 Coarse, op-type risk is decided server-side (`server/agent/risk.py`): `remove`
 always confirms. The client then merges in finer signal at apply time
 (`client/src/agent/risk.ts`), because the profiles it needs live on the frontend
-service definitions — today, adding a resource whose `costProfile.tier` is
-`high` is escalated to confirm. Security-rule-based grading is a natural
-extension of the same function.
+service definitions:
+
+- adding a resource whose `costProfile.tier` is `high`;
+- a `configure` whose patch touches a security- or cost-sensitive field
+  (exposure, encryption, retention, instance class, capacity …). A service can
+  name its own with `sensitiveConfigKeys`.
 
 A pending confirmation stops the run at that op and holds the rest of the
 batch; approving applies it and resumes, declining reports "the user declined
 this change" back to the model as the tool result so it can adjust rather than
-silently retry.
+silently retry. The confirmation card names the actual target and what else the
+change takes with it ("Remove Prod VPC · also affects 3 nested resources and 4
+connections") — approving a change you can't see is worse than no gate at all.
 
-## Configuration
+In an anchored thread the confirmation happens **in the thread**: the run pauses,
+the agent asks, and your next comment answers it ("yes" applies, anything else
+declines). Anchored threads can therefore do the full action space, deletions
+included.
 
-All LLM credentials live server-side only. Set them in `.env`:
+## Setup
 
-| Variable | Purpose |
-|----------|---------|
-| `AGENT_LLM_PROVIDER` | Which registered provider to use: `anthropic`, `gemini`, or `ollama`. |
-| `AGENT_LLM_MODEL` | Model id passed to that provider. |
-| `ANTHROPIC_API_KEY` | Required when the provider is `anthropic`. |
-| `GEMINI_API_KEY` | Required when the provider is `gemini`. |
-| `OLLAMA_BASE_URL` | Ollama endpoint. Defaults to `http://host.docker.internal:11434`. |
-| `OLLAMA_NUM_CTX` | Context window requested from Ollama. Defaults to `32768`. |
-| `OLLAMA_READ_TIMEOUT` | Seconds to wait on a generation. Defaults to `300`. |
-| `OLLAMA_API_KEY` | Required for ollama.com cloud models. Unused by a local endpoint. |
+The agent needs a model to talk to. That is configured **in the app**, not in
+the environment: credentials belong to an organisation, so one server can serve
+many of them, and an org admin can change models without a redeploy.
 
-`AGENT_MAX_TURNS` (in `server/orqestra/settings.py`) caps how many model turns a
-single run may take.
+> **Upgrading?** Model settings used to live in `.env`
+> (`AGENT_LLM_PROVIDER`, `AGENT_LLM_MODEL`, `ANTHROPIC_API_KEY`, …). Those
+> variables are gone and are no longer read. Each organisation must add its
+> model once through the UI below; nothing is imported automatically.
 
-Providers are resolved lazily, so the stack boots fine without a key — the agent
-just returns a clear "not configured" error the first time you talk to it.
-Restart the server container after changing `.env`.
+### 1. Add a model
+
+**Settings → AI Models → Add model.** Owners and admins only — these are
+credentials. Regular members can see which models exist; guests cannot.
+
+| Field | Notes |
+|-------|-------|
+| **Name** | How it appears in the list, e.g. "Claude Sonnet 5". |
+| **Provider** | `Anthropic`, `Google Gemini`, or `Ollama`. |
+| **Model id** | Passed to the provider verbatim — `claude-sonnet-5`, `gemini-2.5-flash`, `qwen3:8b`. |
+| **Endpoint URL** | Ollama only. `https://ollama.com` for cloud, or an address your **server container** can reach for local — usually `http://host.docker.internal:11434`, not `localhost`. |
+| **API key** | Required for Anthropic and Gemini. Optional for a local Ollama endpoint. Stored encrypted; never returned to the browser. |
+| **Context window** | Ollama local only. Its 4096 default truncates the service catalog out of the prompt, so set something like `32768`. |
+
+Press **Test connection** before saving. It makes one cheap call and reports
+back, so a wrong key or a model id the provider doesn't serve surfaces here
+rather than on someone's first message.
+
+The first model an organisation adds becomes its default automatically.
+
+### 2. Pick which model a project uses
+
+Every project uses the organisation default unless it says otherwise. To
+override it for one project, open **Project settings → AI model** and choose
+from the list; "Use organisation default" hands it back.
+
+Resolution order, per run:
+
+```
+project.llm_config  →  organisation default  →  error asking an admin to add one
+```
+
+### 3. Check it works
+
+Open a project, press **Cmd/Ctrl + J**, and send *"add a Lambda"*. A node should
+appear on the canvas within a few seconds.
+
+## Configuration reference
+
+Model choice and credentials are **not** environment variables. What remains in
+`.env` are operator-level safety limits, deliberately kept out of the UI so an
+organisation admin cannot raise a timeout that ties up a server worker.
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `AGENT_MAX_TURNS` | `20` | Model turns one request may take. Reads are answered server-side, so this budget is spent on decisions rather than lookups. |
+| `AGENT_MAX_OUTPUT_TOKENS` | `8192` | Cap on a single turn's output. A turn that hits this fails the run with a "truncated" error rather than looking like a clean finish. |
+| `AGENT_REQUEST_TIMEOUT` | `120` | Seconds to wait on a hosted provider before failing the run. The turn runs inside a request, so this bounds how long a worker is held. |
+| `OLLAMA_READ_TIMEOUT` | `300` | Seconds to wait on an Ollama generation. Local models are slow, so this is deliberately more generous. |
+| `AGENT_RUN_STALE_MINUTES` | `10` | How long before a run abandoned mid-flight (a closed tab) is retired, so it can't block its conversation. |
+
+## Troubleshooting
+
+| What you see | What it means |
+|--------------|---------------|
+| *"No AI model is configured for this organisation"* | Nobody has added one. Settings → AI Models → Add model. |
+| *"This … model has no API key"* | The stored config has no key. Edit it and add one. |
+| A 404 or "model not found" from the provider | The **Model id** isn't one that provider serves. Check it against the provider's current model list. |
+| *"has no tool-calling support"* (Ollama) | The model has no tool template, so it can chat but can never touch the canvas. Pick a tool-capable model — see below. |
+| *"Cannot reach Ollama at …"* | The **server container** can't see that endpoint. A host-local Ollama is `http://host.docker.internal:11434`, not `localhost`. |
+| *"The model's response was truncated"* | The turn hit `AGENT_MAX_OUTPUT_TOKENS`. Ask for a smaller change, or raise it. |
+| *"Exceeded the maximum of N steps"* | The run hit `AGENT_MAX_TURNS`. Usually means the model is looping; try a more specific request. |
+| *"This conversation already has a run in progress"* | A run is still live. Press **Stop**, or wait — an abandoned one is retired after `AGENT_RUN_STALE_MINUTES`. |
+| The agent replies but nothing appears on the canvas | You have read-only access to the project, or the canvas is locked. The agent respects both. |
+
+## Where credentials live
+
+`organisations.LLMConfig`, alongside `AWSAccount` and following the same rules:
+
+- Encrypted at rest with `encrypt_val` (Fernet, keyed off `SECRET_KEY`), and
+  decrypted only in `build_provider` — plaintext exists for the life of one
+  provider instance.
+- Never returned by the API. The serializer exposes `has_api_key`, not the key,
+  so an edit form cannot leak it and a blank key on update keeps the stored one.
+- Managed by owners and admins (`CanManageOrganisation`), readable by non-guest
+  members, and every change writes an `AuditLog` entry.
 
 ## Adding an LLM provider
 
@@ -178,55 +279,64 @@ model is an adapter plus a registration:
 
 1. Add `server/agent/llm/{name}_provider.py` with a class extending
    `BaseLLMProvider`: set `name` and `capabilities`, and implement `stream()` to
-   yield canonical `LLMEvent`s.
+   yield canonical `LLMEvent`s. Credentials arrive through the base
+   constructor (`model`, `api_key`, `base_url`, `context_window`) — never read
+   them from the environment.
 2. Translate to and from the vendor's shapes in `server/agent/llm/mappers.py` —
    nowhere else.
-3. Register it in `AgentConfig.ready()` (`server/agent/apps.py`).
-4. Select it with `AGENT_LLM_PROVIDER`.
+3. Register the **class** (not an instance) in `AgentConfig.ready()`
+   (`server/agent/apps.py`): one process serves many organisations, so a
+   provider is built per run.
+4. Add it to `LLMProviderChoice` (`server/organisations/constants.py`) and to
+   `LLM_PROVIDERS` in `client/src/api/llm-configs.ts` so admins can pick it in
+   Settings → AI Models. Declare whether it needs an API key or a base URL in
+   the same two places.
 
 No engine, prompt, tool, or frontend changes are required.
 `AnthropicProvider`, `GeminiProvider`, and `OllamaProvider` are the worked
 examples.
 
-## Running the agent against Ollama Cloud
-```
-AGENT_LLM_PROVIDER=ollama
-AGENT_LLM_MODEL=gpt-oss:120b
-OLLAMA_BASE_URL=https://ollama.com
-OLLAMA_API_KEY=<your key>
-```
+Three things every adapter owes the engine:
 
-## Running the agent against local Ollama
+- **Yield a `Stop` event** carrying the vendor's finish reason. The engine uses
+  it to tell a truncated turn from a finished one.
+- **Give every tool call an id**, via `ensure_tool_call_id()` in `mappers.py`.
+  The engine pairs a `tool_use` to its `tool_result` by id when replaying
+  history, so calls without ids collide and results get attributed to the wrong
+  call. Neither Ollama nor Gemini issues one.
+- **Report `capabilities.max_context_tokens` honestly.** The engine budgets
+  replayed history against it, keeping the opening request and the most recent
+  turns.
 
-`ollama` needs no API key, so it is the cheapest way to exercise a run
-end-to-end. Install Ollama on the host, then:
+`cacheable_prefix` is optional: it is the leading slice of the system prompt
+(the service catalog) that is byte-identical across a run. Adapters whose vendor
+supports prompt caching should mark it as a cache breakpoint; the rest ignore
+it, since it is already part of `system_prompt`.
 
-```
+## Choosing an Ollama model
+
+`ollama` needs no API key for a local endpoint, so it is the cheapest way to
+exercise a run end-to-end. Install Ollama on the host, then:
+
+```bash
 ollama pull qwen3:8b
 ```
 
-```
-AGENT_LLM_PROVIDER=ollama
-AGENT_LLM_MODEL=qwen3:8b
-OLLAMA_BASE_URL=http://host.docker.internal:11434
-```
-
-Then `docker compose up -d --force-recreate server` to pick up `.env`.
-
 Three things matter when picking a model:
 
-- **It must support tool calling.** The agent acts only through its ten
-  grounded ops, so a model with no tool template (plain `llama3`, `gemma`,
-  most `*-text` variants) can chat but can never touch the canvas. `qwen3`,
+- **It must support tool calling.** The agent acts only through its grounded
+  ops, so a model with no tool template (plain `llama3`, `gemma`, most
+  `*-text` variants) can chat but can never touch the canvas. `qwen3`,
   `llama3.1`+, and `mistral-nemo` do support it.
-- **Context.** Ollama defaults to a 4096-token window, which silently drops
-  the service catalog out of the system prompt. `OllamaProvider` overrides it
-  with `OLLAMA_NUM_CTX` — do not lower it below the catalog size.
-- **Ollama issues no tool-call ids.** The provider mints them, because the
-  engine pairs a `tool_use` to its `tool_result` by id when replaying history.
-
-Small local models follow the multi-step tool protocol less reliably than the
-hosted ones. Treat Ollama as a wiring/plumbing check, not a quality bar.
+- **Context.** Ollama defaults to a 4096-token window, which silently drops the
+  service catalog out of the system prompt. Set **Context window** on the model
+  config (32768 is a good starting point) — it applies to local endpoints only,
+  since hosted models manage their own. Don't set it below the catalog size:
+  the catalog carries each service's capabilities and relationships, so it is
+  the largest part of the prompt.
+- **Multi-step discipline.** Small local models follow the tool protocol less
+  reliably than the hosted ones. Treat Ollama as a wiring/plumbing check, not a
+  quality bar.
 
 ## Data model
 
@@ -236,10 +346,22 @@ hosted ones. Treat Ollama as a wiring/plumbing check, not a quality bar.
 | `AgentMessage` | One turn — `user`, `assistant`, or `tool` — stored as content blocks, with token accounting. |
 | `AgentRun` | One loop execution: `running` → `awaiting_client` → `completed` / `failed`, plus turn and token counts. |
 
+`AgentMessage.run` links each message to the run that produced it, which is what
+lets the annotation endpoint post exactly what a run said.
+
 An abandoned run can leave an assistant `tool_use` block with no matching
-`tool_result`, which most LLM APIs reject outright. The engine repairs history on
-load (`_repair_history`) by dropping unmatched pairs, so a closed panel or a
-dropped connection can't permanently poison a conversation.
+`tool_result`, which most LLM APIs reject outright, and a model turn that returns
+nothing at all would persist an empty content block — equally fatal, and not
+something any repair pass used to remove. The engine now refuses to write an
+empty assistant message, and repairs history on load (`_repair_history`) by
+dropping both unmatched pairs and empty messages, so neither a closed panel nor
+a silent turn can permanently poison a conversation.
+
+History is also budgeted against the provider's declared
+`max_context_tokens`: the opening request and the most recent turns are kept and
+the middle is dropped, so a long build chat degrades instead of failing. On
+Anthropic the catalog block is sent as a cached prefix, since it is
+byte-identical on every turn of a run.
 
 ## API
 
@@ -254,7 +376,8 @@ the standard organisation permissions (`IsOrganisationMember` to read,
 | `GET` | `/agent/conversations/<id>/` | Full transcript, for rehydrating the panel. |
 | `POST` | `/agent/conversations/<id>/send/` | Send a user message with the live graph snapshot; starts a run. |
 | `POST` | `/agent/runs/<id>/advance/` | Report op results and take the next turn. |
-| `POST` | `/agent/annotations/<id>/reply/` | Post the agent's reply into a comment thread. |
+| `POST` | `/agent/runs/<id>/cancel/` | Stop a run. The engine checks before each turn. |
+| `POST` | `/agent/annotations/<id>/reply/` | Post the agent's reply into a comment thread. Takes a `run`, not a body: the text is derived server-side from that run's own narration, error, or pending confirmation, so a comment carrying the agent's name is always something the agent actually said. |
 
 Requests carry the client's live canvas snapshot (`graph`) so the model reasons
 about exactly what you see; the persisted project graph is the fallback.

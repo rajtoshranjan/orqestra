@@ -16,6 +16,7 @@ export type OriginalProjectSnapshot = {
   projectName: string;
   projectDescription: string;
   awsAccountId: string | null;
+  llmConfigId: string | null;
 };
 
 type UseCanvasPersistenceOptions = {
@@ -23,6 +24,7 @@ type UseCanvasPersistenceOptions = {
   projectName: string;
   projectDescription: string;
   awsAccountId: string | null;
+  llmConfigId: string | null;
   nodes: DiagramNode[];
   edges: DiagramEdge[];
   deploymentSettings: DeploymentSettings;
@@ -36,6 +38,7 @@ export function useCanvasPersistence({
   projectName,
   projectDescription,
   awsAccountId,
+  llmConfigId,
   nodes,
   edges,
   deploymentSettings,
@@ -51,6 +54,7 @@ export function useCanvasPersistence({
       nextProjectName: string,
       nextProjectDescription: string,
       nextAwsAccountId: string | null,
+      nextLlmConfigId: string | null,
       nextNodes: DiagramNode[],
       nextEdges: DiagramEdge[],
       nextSettings: DeploymentSettings,
@@ -65,6 +69,7 @@ export function useCanvasPersistence({
         projectName: nextProjectName,
         projectDescription: nextProjectDescription,
         awsAccountId: nextAwsAccountId,
+        llmConfigId: nextLlmConfigId,
         nodes: nextNodes,
         edges: nextEdges,
         deploymentSettings: nextSettings,
@@ -85,6 +90,7 @@ export function useCanvasPersistence({
           projectName: nextProjectName,
           projectDescription: nextProjectDescription,
           awsAccountId: nextAwsAccountId,
+          llmConfigId: nextLlmConfigId,
         };
 
         if (!silent) {
@@ -129,6 +135,7 @@ export function useCanvasPersistence({
         projectName,
         projectDescription,
         awsAccountId,
+        llmConfigId,
         nodes,
         edges,
         deploymentSettings,
@@ -140,6 +147,7 @@ export function useCanvasPersistence({
   }, [
     nodes,
     edges,
+    llmConfigId,
     deploymentSettings,
     projectName,
     projectDescription,

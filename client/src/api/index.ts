@@ -4,5 +4,6 @@ export * from './projects';
 export * from './deployments';
 export * from './auth';
 export * from './aws-accounts';
+export * from './llm-configs';
 export * from './annotations';
 export * from './notifications';

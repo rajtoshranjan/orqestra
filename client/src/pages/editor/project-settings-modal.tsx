@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 
-import { useAWSAccounts } from '@/api';
+import { useAWSAccounts, useLLMConfigs } from '@/api';
 import {
   Dialog,
   DialogContent,
@@ -18,6 +18,7 @@ import {
   setProjectName,
   setProjectDescription,
   setAwsAccountId,
+  setLlmConfigId,
 } from '@/store/editor-slice';
 
 type ProjectSettingsModalProps = {
@@ -30,16 +31,20 @@ export function ProjectSettingsModal({
   onOpenChange,
 }: ProjectSettingsModalProps) {
   const dispatch = useAppDispatch();
-  const { projectName, projectDescription, awsAccountId } = useAppSelector(
-    (state) => state.editor,
-  );
+  const { projectName, projectDescription, awsAccountId, llmConfigId } =
+    useAppSelector((state) => state.editor);
   const { canWrite } = usePermissions();
   // AWS accounts are not visible to read-only roles; skip the request for them.
   const { data: awsAccounts = [] } = useAWSAccounts(canWrite);
+  // Same visibility rule: model configs are hidden from read-only roles.
+  const { data: llmConfigs = [] } = useLLMConfigs(canWrite);
 
   const [editName, setEditName] = React.useState('');
   const [editDesc, setEditDesc] = React.useState('');
   const [editAwsAccountId, setEditAwsAccountId] = React.useState<string | null>(
+    null,
+  );
+  const [editLlmConfigId, setEditLlmConfigId] = React.useState<string | null>(
     null,
   );
 
@@ -48,13 +53,17 @@ export function ProjectSettingsModal({
       setEditName(projectName);
       setEditDesc(projectDescription || '');
       setEditAwsAccountId(awsAccountId || '');
+      setEditLlmConfigId(llmConfigId || '');
     }
-  }, [open, projectName, projectDescription, awsAccountId]);
+  }, [open, projectName, projectDescription, awsAccountId, llmConfigId]);
+
+  const defaultModelName = llmConfigs.find((config) => config.isDefault)?.name;
 
   const saveSettings = () => {
     dispatch(setProjectName(editName));
     dispatch(setProjectDescription(editDesc));
     dispatch(setAwsAccountId(editAwsAccountId || null));
+    dispatch(setLlmConfigId(editLlmConfigId || null));
     onOpenChange(false);
   };
 
@@ -114,6 +123,44 @@ export function ProjectSettingsModal({
                   </option>
                 ))}
               </Select>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <label
+              className="text-xs font-medium text-foreground"
+              htmlFor="llmConfig"
+            >
+              AI model
+            </label>
+            {llmConfigs.length === 0 ? (
+              <div className="bg-warning/10 rounded-md p-3 text-sm text-warning">
+                No AI models configured. An owner or admin can add one in
+                organisation settings.
+              </div>
+            ) : (
+              <>
+                <Select
+                  id="llmConfig"
+                  value={editLlmConfigId || ''}
+                  onChange={(event) =>
+                    setEditLlmConfigId(event.target.value || null)
+                  }
+                >
+                  <option value="">
+                    Use organisation default
+                    {defaultModelName ? ` (${defaultModelName})` : ''}
+                  </option>
+                  {llmConfigs.map((config) => (
+                    <option key={config.id} value={config.id}>
+                      {config.name}
+                    </option>
+                  ))}
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Which model the agent uses on this project.
+                </p>
+              </>
             )}
           </div>
         </div>

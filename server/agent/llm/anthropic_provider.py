@@ -3,7 +3,11 @@ from collections.abc import Iterator
 from orqestra.env_variables import EnvVariable
 
 from .base import BaseLLMProvider
-from .mappers import to_anthropic_messages, to_anthropic_tools
+from .mappers import (
+    to_anthropic_messages,
+    to_anthropic_system,
+    to_anthropic_tools,
+)
 from .types import (
     LLMCapabilities,
     LLMEvent,
@@ -22,26 +26,27 @@ class AnthropicProvider(BaseLLMProvider):
         supports_streaming=True, supports_tools=True, max_context_tokens=200000
     )
 
-    def __init__(self, client=None, model: str | None = None):
-        # Client/model resolved lazily so registration never requires an API key.
+    def __init__(self, client=None, **kwargs):
+        super().__init__(**kwargs)
+        # An injected client is for tests; production builds one from the key.
         self._client = client
-        self._model = model
 
     def _get_client(self):
         if self._client is None:
-            api_key = EnvVariable.ANTHROPIC_API_KEY.value
-            if not api_key:
+            if not self._api_key:
                 raise RuntimeError(
-                    "The agent is not configured: ANTHROPIC_API_KEY is missing on "
-                    "the server. Set it (or switch AGENT_LLM_PROVIDER) and retry."
+                    "This Anthropic model has no API key. Add one in "
+                    "Settings → AI Models."
                 )
             import anthropic
 
-            self._client = anthropic.Anthropic(api_key=api_key)
+            # An explicit timeout: the turn runs inside a request, so an
+            # unbounded wait holds a worker until the client gives up.
+            self._client = anthropic.Anthropic(
+                api_key=self._api_key,
+                timeout=float(EnvVariable.AGENT_REQUEST_TIMEOUT.value),
+            )
         return self._client
-
-    def _get_model(self) -> str:
-        return self._model or EnvVariable.AGENT_LLM_MODEL.value
 
     def stream(
         self,
@@ -51,11 +56,12 @@ class AnthropicProvider(BaseLLMProvider):
         tools: list[ToolSpec],
         temperature: float = 0.0,
         max_tokens: int = 4096,
+        cacheable_prefix: str = "",
     ) -> Iterator[LLMEvent]:
         client = self._get_client()
         with client.messages.stream(
             model=self._get_model(),
-            system=system_prompt,
+            system=to_anthropic_system(system_prompt, cacheable_prefix),
             max_tokens=max_tokens,
             temperature=temperature,
             tools=to_anthropic_tools(tools),

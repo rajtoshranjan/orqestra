@@ -1,35 +1,164 @@
 import { describe, it, expect } from 'vitest';
 
+import '@/services';
+import { executeOp } from './op-executor';
 import { describeOp } from './op-label';
 
-describe('describeOp', () => {
-  it('describes add_resource with the service id', () => {
-    expect(
-      describeOp({ name: 'add_resource', input: { service_id: 'lambda' } }),
-    ).toEqual({
-      icon: 'add',
-      label: 'Added lambda',
+import type { GraphState } from './op-executor';
+
+const empty = (): GraphState => ({ nodes: [], edges: [] });
+
+function vpcWithChildren(): { state: GraphState; vpcId: string } {
+  let state = executeOp('add_resource', { service_id: 'vpc' }, empty()).state;
+  const vpcId = state.nodes[0].id;
+  state = executeOp(
+    'add_resource',
+    { service_id: 'subnet', parent_id: vpcId },
+    state,
+  ).state;
+  const subnetId = state.nodes[1].id;
+  state = executeOp(
+    'add_resource',
+    { service_id: 'lambda', parent_id: subnetId, label: 'API' },
+    state,
+  ).state;
+  return { state, vpcId };
+}
+
+describe('describeOp — tense', () => {
+  it('describes a pending op in the imperative and a done op in the past', () => {
+    const described = describeOp({
+      name: 'add_resource',
+      input: { service_id: 'lambda', label: 'API' },
     });
+
+    expect(described.pending).toMatch(/^Add /);
+    expect(described.past).toMatch(/^Added /);
   });
 
-  it('includes an explicit label when provided', () => {
-    expect(
-      describeOp({
-        name: 'add_resource',
-        input: { service_id: 'lambda', label: 'API' },
-      }).label,
-    ).toBe('Added lambda "API"');
+  it('names the removal target rather than saying "a resource"', () => {
+    const { state, vpcId } = vpcWithChildren();
+    const label = state.nodes.find((n) => n.id === vpcId)!.data.label;
+
+    const described = describeOp(
+      { name: 'remove', input: { target_id: vpcId } },
+      state,
+    );
+
+    expect(described.pending).toBe(`Remove ${label}`);
+    expect(described.pending).not.toBe('Remove a resource');
+  });
+});
+
+describe('describeOp — blast radius', () => {
+  it('reports the descendants a removal takes with it', () => {
+    const { state, vpcId } = vpcWithChildren();
+
+    const described = describeOp(
+      { name: 'remove', input: { target_id: vpcId } },
+      state,
+    );
+
+    expect(described.impact.join(' ')).toMatch(/2 nested resources?/);
   });
 
-  it('maps remove and validate to their icons', () => {
-    expect(describeOp({ name: 'remove', input: {} }).icon).toBe('remove');
-    expect(describeOp({ name: 'validate', input: {} }).icon).toBe('check');
+  it('reports connections a removal severs', () => {
+    let state = executeOp(
+      'add_resource',
+      { service_id: 'lambda' },
+      empty(),
+    ).state;
+    state = executeOp('add_resource', { service_id: 'sqs' }, state).state;
+    const [fn, queue] = state.nodes;
+    state = executeOp(
+      'connect',
+      { source_id: fn.id, target_id: queue.id, relationship_kind: 'invokes' },
+      state,
+    ).state;
+
+    const described = describeOp(
+      { name: 'remove', input: { target_id: queue.id } },
+      state,
+    );
+
+    expect(described.impact.join(' ')).toMatch(/1 connection/);
   });
 
-  it('falls back to the raw op name', () => {
-    expect(describeOp({ name: 'frobnicate', input: {} })).toEqual({
-      icon: 'info',
-      label: 'frobnicate',
+  it('has no impact list for a leaf removal with no edges', () => {
+    const state = executeOp(
+      'add_resource',
+      { service_id: 'lambda' },
+      empty(),
+    ).state;
+
+    const described = describeOp(
+      { name: 'remove', input: { target_id: state.nodes[0].id } },
+      state,
+    );
+
+    expect(described.impact).toEqual([]);
+  });
+
+  it('names the node and fields a configure touches', () => {
+    const state = executeOp(
+      'add_resource',
+      { service_id: 'lambda', label: 'API' },
+      empty(),
+    ).state;
+
+    const described = describeOp(
+      {
+        name: 'configure',
+        input: {
+          node_id: state.nodes[0].id,
+          config_patch: { memoryMb: 1024, timeout: 30 },
+        },
+      },
+      state,
+    );
+
+    expect(described.pending).toContain('API');
+    expect(described.impact.join(' ')).toContain('memoryMb');
+  });
+
+  it('names both ends of a connection', () => {
+    let state = executeOp(
+      'add_resource',
+      { service_id: 'lambda', label: 'API' },
+      empty(),
+    ).state;
+    state = executeOp(
+      'add_resource',
+      { service_id: 'sqs', label: 'Jobs' },
+      state,
+    ).state;
+    const [fn, queue] = state.nodes;
+
+    const described = describeOp(
+      {
+        name: 'connect',
+        input: {
+          source_id: fn.id,
+          target_id: queue.id,
+          relationship_kind: 'invokes',
+        },
+      },
+      state,
+    );
+
+    expect(described.pending).toContain('API');
+    expect(described.pending).toContain('Jobs');
+  });
+});
+
+describe('describeOp — without a graph', () => {
+  it('still produces a usable label when no graph is supplied', () => {
+    const described = describeOp({
+      name: 'remove',
+      input: { target_id: 'n1' },
     });
+
+    expect(described.pending).toBeTruthy();
+    expect(described.impact).toEqual([]);
   });
 });

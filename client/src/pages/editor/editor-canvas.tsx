@@ -76,6 +76,7 @@ import {
   adjustParentSizes,
 } from '@/utils';
 import { autoLayoutDiagram } from '@/utils/auto-layout';
+import { checkConnection } from '@/utils/graph-rules';
 
 import { AgentPanel } from './agent-panel';
 import { CanvasEmptyState } from './canvas-empty-state';
@@ -120,6 +121,7 @@ export function CanvasEditor({
     projectName,
     projectDescription,
     awsAccountId,
+    llmConfigId,
     snapToGrid,
     isLocked: reduxIsLocked,
     clipboard,
@@ -181,13 +183,29 @@ export function CanvasEditor({
   // The agent reads/writes the live canvas graph through these. graphRef always
   // points at the latest nodes/edges so sequential ops seed from current state.
   const graphRef = React.useRef<GraphState>({ nodes, edges });
-  graphRef.current = { nodes, edges };
+  React.useEffect(() => {
+    graphRef.current = { nodes, edges };
+  }, [nodes, edges]);
+
   const applyAgentGraph = React.useCallback(
     (next: GraphState) => {
+      // The agent respects the canvas lock exactly like every other mutation
+      // path — a locked or read-only canvas is not the agent's to edit.
+      if (isLockedRef.current) return;
       setNodes(next.nodes);
       setEdges(next.edges);
     },
     [setNodes, setEdges],
+  );
+
+  // Re-tidy after a run changes topology, so the agent's additions don't sit in
+  // the naive build-time grid. Same pass the toolbar's tidy action runs.
+  const layoutAgentGraph = React.useCallback(
+    (graph: GraphState): GraphState => ({
+      ...graph,
+      nodes: autoLayoutDiagram(graph.nodes, graph.edges),
+    }),
+    [],
   );
 
   useKeyboardShortcuts(
@@ -206,9 +224,11 @@ export function CanvasEditor({
   const nodesRef = React.useRef(nodes);
   const edgesRef = React.useRef(edges);
   const deploymentResultRef = React.useRef(deploymentResult);
+  const isLockedRef = React.useRef(isLocked);
   nodesRef.current = nodes;
   edgesRef.current = edges;
   deploymentResultRef.current = deploymentResult;
+  isLockedRef.current = isLocked;
 
   const originalProjectRef = React.useRef<OriginalProjectSnapshot>({
     nodes: initialProject.nodes,
@@ -217,6 +237,7 @@ export function CanvasEditor({
     projectName: initialProject.projectName,
     projectDescription: initialProject.projectDescription,
     awsAccountId: initialProject.awsAccountId,
+    llmConfigId: initialProject.llmConfigId,
   });
 
   const mouseRef = React.useRef({
@@ -253,6 +274,7 @@ export function CanvasEditor({
     edges,
     reactFlowInstance,
     onAgentRequest: (req) => {
+      if (readOnly) return;
       toast({
         title: 'Orqestra is working…',
         description: 'Updating your architecture from your comment.',
@@ -263,13 +285,24 @@ export function CanvasEditor({
         message: buildAnnotationAgentMessage(req),
         getGraph: () => graphRef.current,
         applyGraph: applyAgentGraph,
-      }).catch(() => {
-        toast({
-          title: 'Agent error',
-          description: 'Could not complete the request from your comment.',
-          variant: 'destructive',
+        layoutGraph: layoutAgentGraph,
+      })
+        .then((result) => {
+          if (result.skipped) {
+            toast({
+              title: 'Orqestra is still working',
+              description:
+                'It is already handling an earlier comment on this thread.',
+            });
+          }
+        })
+        .catch(() => {
+          toast({
+            title: 'Agent error',
+            description: 'Could not complete the request from your comment.',
+            variant: 'destructive',
+          });
         });
-      });
     },
   });
 
@@ -280,16 +313,30 @@ export function CanvasEditor({
   );
 
   // Onboarding: open the agent panel once for a brand-new (empty) project so the
-  // user lands straight in the guided requirements chat. One-shot per project —
-  // we never fight the user reopening it after they close it.
-  const autoOpenedAgentForRef = React.useRef<string | null>(null);
+  // user lands straight in the guided requirements chat. Persisted, so a reload
+  // of a still-empty project doesn't reopen a panel the user already closed.
+  const [autoOpenedProjects, setAutoOpenedProjects] = useLocalStorage<string[]>(
+    'agentPanelAutoOpened',
+    [],
+  );
   React.useEffect(() => {
     if (readOnly) return;
-    if (autoOpenedAgentForRef.current === currentProjectId) return;
     if (nodes.length > 0) return;
-    autoOpenedAgentForRef.current = currentProjectId;
+    if (autoOpenedProjects.includes(currentProjectId)) return;
+    setAutoOpenedProjects((current) =>
+      current.includes(currentProjectId)
+        ? current
+        : [...current, currentProjectId],
+    );
     dispatch(setAgentPanelOpen(true));
-  }, [currentProjectId, nodes.length, readOnly, dispatch]);
+  }, [
+    currentProjectId,
+    nodes.length,
+    readOnly,
+    dispatch,
+    autoOpenedProjects,
+    setAutoOpenedProjects,
+  ]);
 
   const toggleCommentMode = React.useCallback(() => {
     dispatch(setCommentMode(!commentMode));
@@ -345,6 +392,7 @@ export function CanvasEditor({
     projectName,
     projectDescription,
     awsAccountId,
+    llmConfigId,
     nodes,
     edges,
     deploymentSettings,
@@ -447,6 +495,7 @@ export function CanvasEditor({
       projectName,
       projectDescription,
       awsAccountId,
+      llmConfigId,
       nodes,
       edges,
       deploymentSettings,
@@ -550,71 +599,24 @@ export function CanvasEditor({
     (connection) => {
       if (!connection.source || !connection.target) return;
 
-      const currentNodes = nodesRef.current;
-      const sourceNode = currentNodes.find(
-        (node) => node.id === connection.source,
+      // The same rule the agent's `connect` op goes through, so a wiring the
+      // platform rejects is rejected identically however it was made.
+      const problem = checkConnection(
+        connection.source,
+        connection.target,
+        nodesRef.current,
       );
-      const targetNode = currentNodes.find(
-        (node) => node.id === connection.target,
-      );
-
-      const isAncestor = (
-        ancestorId: string,
-        descendantId: string,
-      ): boolean => {
-        let current = currentNodes.find((n) => n.id === descendantId);
-        while (current && current.parentNode) {
-          if (current.parentNode === ancestorId) return true;
-          current = currentNodes.find((n) => n.id === current!.parentNode);
-        }
-        return false;
-      };
-
-      if (
-        isAncestor(connection.source, connection.target) ||
-        isAncestor(connection.target, connection.source)
-      ) {
+      if (problem) {
+        const redundant = problem.includes('Nesting');
         toast({
-          title: 'Redundant connection',
-          description:
-            'Nesting already defines containment, so a direct connection isn’t needed.',
-          variant: 'default',
-          icon: <AlertTriangle className="size-4 text-warning" />,
+          title: redundant ? 'Redundant connection' : 'Invalid connection',
+          description: problem,
+          variant: redundant ? 'default' : 'destructive',
+          ...(redundant
+            ? { icon: <AlertTriangle className="size-4 text-warning" /> }
+            : {}),
         });
         return;
-      }
-
-      if (
-        sourceNode?.data.serviceId === 'lambda' &&
-        targetNode?.data.serviceId === 'lambda'
-      ) {
-        toast({
-          title: 'Invalid connection',
-          description:
-            'Two Lambda functions can’t connect directly. Use EventBridge, Step Functions, SNS, or SQS instead.',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      if (sourceNode) {
-        const sourceService = registry.find(sourceNode.data.serviceId);
-        if (sourceService) {
-          const targetServiceId = targetNode?.data.serviceId || '';
-          const isForbidden =
-            sourceService.forbiddenRelationships?.includes(targetServiceId);
-          const isAllowed =
-            !sourceService.allowedRelationships ||
-            sourceService.allowedRelationships.includes(targetServiceId);
-          if (isForbidden || !isAllowed) {
-            toast({
-              title: 'Invalid connection',
-              description: `${sourceService.shortName} can’t connect to ${targetNode?.data.label || 'this resource'}.`,
-              variant: 'destructive',
-            });
-            return;
-          }
-        }
       }
 
       setEdges((current) =>
@@ -846,6 +848,7 @@ export function CanvasEditor({
       projectName,
       projectDescription,
       awsAccountId,
+      llmConfigId,
       validatedNodes,
       edges,
       deploymentSettings,
@@ -1236,6 +1239,8 @@ export function CanvasEditor({
           projectId={currentProjectId}
           getGraph={() => graphRef.current}
           applyGraph={applyAgentGraph}
+          layoutGraph={layoutAgentGraph}
+          readOnly={readOnly}
           open={agentPanelOpen}
           anchoredThreads={anchoredThreads}
           activeThreadId={comments.activeAnnotation?.id ?? null}

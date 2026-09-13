@@ -81,6 +81,8 @@ export type PersistedDiagram = {
   projectName: string;
   projectDescription: string;
   awsAccountId: string | null;
+  /** Optional per-project model override; null uses the org default. */
+  llmConfigId: string | null;
   nodes: DiagramNode[];
   edges: DiagramEdge[];
   deploymentSettings: DeploymentSettings;

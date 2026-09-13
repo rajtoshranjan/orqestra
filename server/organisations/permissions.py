@@ -1,7 +1,7 @@
 from rest_framework.permissions import IsAuthenticated
 
 from .helpers import get_active_organisation, is_non_guest_member, is_org_manager
-from .models import Organisation, OrganisationMember
+from .models import Organisation
 
 
 class IsOrganisationMember(IsAuthenticated):
@@ -46,9 +46,13 @@ class CanManageOrganisation(IsAuthenticated):
         return is_org_manager(org, request.user)
 
     def has_object_permission(self, request, view, obj):
+        # Anything hanging off an organisation is managed by that
+        # organisation's managers. Matching only Organisation and
+        # OrganisationMember silently 403'd every detail route on an
+        # org-scoped model — AWS accounts and LLM configs included.
         if isinstance(obj, Organisation):
             organisation = obj
-        elif isinstance(obj, OrganisationMember):
+        elif hasattr(obj, "organisation"):
             organisation = obj.organisation
         else:
             return False

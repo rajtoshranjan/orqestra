@@ -359,9 +359,15 @@ export const useComments = ({
   /* Thread actions */
 
   const reply = useCallback(
-    (body: string) => {
+    async (body: string) => {
       if (!activeAnnotationId) return;
-      addCommentMutation.mutate({ annotationId: activeAnnotationId, body });
+      // Await before handing off: the agent's own reply is posted as soon as
+      // its run finishes, and on a slow POST it would otherwise land above the
+      // comment it is answering. `submitDraft` awaits for the same reason.
+      await addCommentMutation.mutateAsync({
+        annotationId: activeAnnotationId,
+        body,
+      });
 
       if (
         onAgentRequest &&

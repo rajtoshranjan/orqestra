@@ -4,6 +4,7 @@ vi.mock('./client', () => ({ api: { post: vi.fn(), get: vi.fn() } }));
 
 import {
   advanceAgentRun,
+  cancelAgentRun,
   createAgentConversation,
   fetchConversationForAnnotation,
   fetchLatestConversation,
@@ -51,6 +52,7 @@ describe('agent api', () => {
     expect(result).toEqual({
       id: 'new',
       messages: [{ id: 'm1', role: 'user', content: [] }],
+      activeRun: null,
     });
   });
 
@@ -140,9 +142,11 @@ describe('agent api', () => {
 
     const result = await sendAgentMessage('c1', 'build api');
 
-    expect(post).toHaveBeenCalledWith('/agent/conversations/c1/send/', {
-      message: 'build api',
-    });
+    expect(post).toHaveBeenCalledWith(
+      '/agent/conversations/c1/send/',
+      { message: 'build api' },
+      { signal: undefined },
+    );
     expect(result.runId).toBe('r1');
     expect(result.assistantText).toBe('Adding a Lambda.');
     expect(result.ops[0]).toEqual({
@@ -169,11 +173,15 @@ describe('agent api', () => {
       { toolCallId: 'tc_1', content: 'node added', isError: false },
     ]);
 
-    expect(post).toHaveBeenCalledWith('/agent/runs/r1/advance/', {
-      op_results: [
-        { tool_call_id: 'tc_1', content: 'node added', is_error: false },
-      ],
-    });
+    expect(post).toHaveBeenCalledWith(
+      '/agent/runs/r1/advance/',
+      {
+        op_results: [
+          { tool_call_id: 'tc_1', content: 'node added', is_error: false },
+        ],
+      },
+      { signal: undefined },
+    );
     expect(result.status).toBe('completed');
     expect(result.ops).toEqual([]);
   });
@@ -195,10 +203,14 @@ describe('agent api', () => {
       edges: [],
     });
 
-    expect(post).toHaveBeenCalledWith('/agent/conversations/c1/send/', {
-      message: 'update the bucket',
-      graph: { nodes: [{ id: 'n1', data: { service_id: 's3' } }], edges: [] },
-    });
+    expect(post).toHaveBeenCalledWith(
+      '/agent/conversations/c1/send/',
+      {
+        message: 'update the bucket',
+        graph: { nodes: [{ id: 'n1', data: { service_id: 's3' } }], edges: [] },
+      },
+      { signal: undefined },
+    );
   });
 
   it('includes the live graph snapshot when provided to advance', async () => {
@@ -219,19 +231,61 @@ describe('agent api', () => {
       { nodes: [], edges: [] },
     );
 
-    expect(post).toHaveBeenCalledWith('/agent/runs/r1/advance/', {
-      op_results: [{ tool_call_id: 'tc_1', content: 'ok', is_error: false }],
-      graph: { nodes: [], edges: [] },
+    expect(post).toHaveBeenCalledWith(
+      '/agent/runs/r1/advance/',
+      {
+        op_results: [{ tool_call_id: 'tc_1', content: 'ok', is_error: false }],
+        graph: { nodes: [], edges: [] },
+      },
+      { signal: undefined },
+    );
+  });
+
+  it('posts an agent reply keyed to the run that produced it', async () => {
+    post.mockResolvedValue({ data: { data: {} } });
+
+    await replyToAnnotation('a1', 'run-1');
+
+    // The body is derived server-side from the run: a caller must not be able
+    // to publish arbitrary text under the agent's name.
+    expect(post).toHaveBeenCalledWith('/agent/annotations/a1/reply/', {
+      run: 'run-1',
     });
   });
 
-  it('posts an agent reply to an annotation', async () => {
+  it('cancels a run', async () => {
     post.mockResolvedValue({ data: { data: {} } });
 
-    await replyToAnnotation('a1', 'Added a cache.');
+    await cancelAgentRun('r1');
 
-    expect(post).toHaveBeenCalledWith('/agent/annotations/a1/reply/', {
-      body: 'Added a cache.',
+    expect(post).toHaveBeenCalledWith('/agent/runs/r1/cancel/', {});
+  });
+
+  it('surfaces a run left in flight by a previous session', async () => {
+    get.mockResolvedValueOnce({
+      data: {
+        data: { results: [{ id: 'c1', created_at: '2026-06-10T00:00:00Z' }] },
+      },
     });
+    get.mockResolvedValueOnce({
+      data: {
+        data: {
+          id: 'c1',
+          messages: [],
+          active_run: {
+            id: 'r9',
+            status: 'awaiting_client',
+            turn_count: 3,
+            input_tokens: 10,
+            output_tokens: 5,
+          },
+        },
+      },
+    });
+
+    const result = await fetchLatestConversation('p1');
+
+    expect(result?.activeRun?.id).toBe('r9');
+    expect(result?.activeRun?.turnCount).toBe(3);
   });
 });

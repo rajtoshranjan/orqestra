@@ -60,7 +60,8 @@ class PromptTests(TestCase):
         prompt = build_system_prompt(CATALOG, NODES, EDGES)
 
         # The agent must modify existing resources rather than recreating them.
-        self.assertIn("query_graph", prompt)
+        self.assertIn("MODIFY those existing resources", prompt)
+        self.assertIn("never recreate something already on the canvas", prompt)
         self.assertIn("in place", prompt.lower())
 
     def test_prompt_marks_empty_canvas(self):

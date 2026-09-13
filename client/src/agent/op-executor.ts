@@ -8,6 +8,7 @@ import {
   makeId,
   withValidatedData,
 } from '@/utils/diagram';
+import { checkConnection, checkParent } from '@/utils/graph-rules';
 
 export type GraphState = { nodes: DiagramNode[]; edges: DiagramEdge[] };
 
@@ -37,6 +38,12 @@ const COLUMNS = 4;
 const GAP_X = 280;
 const GAP_Y = 160;
 
+// Layout inside a container: children fan out on a grid rather than stacking.
+const CHILD_COLUMNS = 2;
+const CHILD_ORIGIN = { x: 24, y: 56 };
+const CHILD_GAP_X = 240;
+const CHILD_GAP_Y = 100;
+
 function errorOutcome(state: GraphState, content: string): OpOutcome {
   return { state, content, isError: true, mutated: false };
 }
@@ -50,6 +57,34 @@ function nextTopLevelPosition(state: GraphState): { x: number; y: number } {
   return {
     x: 40 + (count % COLUMNS) * GAP_X,
     y: 40 + Math.floor(count / COLUMNS) * GAP_Y,
+  };
+}
+
+/** Place a new child beside its siblings, not on top of them. */
+function nextChildPosition(
+  parentId: string,
+  state: GraphState,
+): { x: number; y: number } {
+  const count = state.nodes.filter(
+    (node) => node.parentNode === parentId,
+  ).length;
+  return {
+    x: CHILD_ORIGIN.x + (count % CHILD_COLUMNS) * CHILD_GAP_X,
+    y: CHILD_ORIGIN.y + Math.floor(count / CHILD_COLUMNS) * CHILD_GAP_Y,
+  };
+}
+
+/**
+ * Recompute validation for every node. Any structural change can invalidate a
+ * node other than the one edited — removing a role breaks whatever required it
+ * — so the whole graph is refreshed rather than just the touched nodes.
+ */
+function revalidateAll(state: GraphState): GraphState {
+  return {
+    nodes: state.nodes.map((node) =>
+      withValidatedData(node, state.nodes, state.edges),
+    ),
+    edges: state.edges,
   };
 }
 
@@ -68,11 +103,12 @@ function addResource(input: Record<string, any>, state: GraphState): OpOutcome {
 
   const parentId =
     input.parent_id != null ? String(input.parent_id) : undefined;
-  if (parentId && !state.nodes.some((node) => node.id === parentId)) {
-    return errorOutcome(state, `Parent node "${parentId}" not found.`);
-  }
+  const parentProblem = checkParent(serviceId, parentId, state.nodes);
+  if (parentProblem) return errorOutcome(state, parentProblem);
 
-  const position = parentId ? { x: 24, y: 56 } : nextTopLevelPosition(state);
+  const position = parentId
+    ? nextChildPosition(parentId, state)
+    : nextTopLevelPosition(state);
   let node = createServiceNode(serviceId, position, state.nodes.length + 1);
 
   if (input.config && typeof input.config === 'object') {
@@ -119,14 +155,14 @@ function connect(input: Record<string, any>, state: GraphState): OpOutcome {
     ? String(input.relationship_kind)
     : undefined;
 
-  if (
-    !state.nodes.some((n) => n.id === source) ||
-    !state.nodes.some((n) => n.id === target)
-  ) {
-    return errorOutcome(
-      state,
-      'connect requires existing source_id and target_id.',
-    );
+  const problem = checkConnection(source, target, state.nodes);
+  if (problem) return errorOutcome(state, problem);
+
+  const duplicate = state.edges.some(
+    (edge) => edge.source === source && edge.target === target,
+  );
+  if (duplicate) {
+    return errorOutcome(state, `${source} is already connected to ${target}.`);
   }
 
   const edge: DiagramEdge = {
@@ -137,16 +173,15 @@ function connect(input: Record<string, any>, state: GraphState): OpOutcome {
       ? { relationshipKind: kind as DiagramEdgeData['relationshipKind'] }
       : {},
   };
-  const edges = [...state.edges, edge];
-  const nodes = state.nodes.map((node) =>
-    node.id === source || node.id === target
-      ? withValidatedData(node, state.nodes, edges)
-      : node,
-  );
+  const next = revalidateAll({
+    nodes: state.nodes,
+    edges: [...state.edges, edge],
+  });
+  const sourceNode = next.nodes.find((node) => node.id === source)!;
 
   return {
-    state: { nodes, edges },
-    content: `Connected ${source} -> ${target}${kind ? ` (${kind})` : ''}.`,
+    state: next,
+    content: `Connected ${source} -> ${target}${kind ? ` (${kind})` : ''}.${summarizeErrors(sourceNode)}`,
     isError: false,
     mutated: true,
   };
@@ -192,9 +227,12 @@ function setParent(input: Record<string, any>, state: GraphState): OpOutcome {
 
   if (!target)
     return errorOutcome(state, `set_parent: node "${nodeId}" not found.`);
-  if (parentId && !state.nodes.some((node) => node.id === parentId)) {
-    return errorOutcome(state, `set_parent: parent "${parentId}" not found.`);
-  }
+  const parentProblem = checkParent(
+    target.data.serviceId,
+    parentId,
+    state.nodes,
+  );
+  if (parentProblem) return errorOutcome(state, parentProblem);
 
   let updated: DiagramNode;
   if (parentId) {
@@ -235,10 +273,10 @@ function remove(input: Record<string, any>, state: GraphState): OpOutcome {
 
   if (isEdge) {
     return {
-      state: {
+      state: revalidateAll({
         nodes: state.nodes,
         edges: state.edges.filter((edge) => edge.id !== targetId),
-      },
+      }),
       content: `Removed edge ${targetId}.`,
       isError: false,
       mutated: true,
@@ -249,13 +287,20 @@ function remove(input: Record<string, any>, state: GraphState): OpOutcome {
     targetId,
     ...getDescendants(targetId, state.nodes),
   ]);
-  const nodes = state.nodes.filter((node) => !removed.has(node.id));
   const edges = state.edges.filter(
     (edge) => !removed.has(edge.source) && !removed.has(edge.target),
   );
+  // Removing a node can invalidate whatever depended on it, and empties the
+  // container it sat in, so revalidate and re-fit rather than leaving both stale.
+  const next = revalidateAll({
+    nodes: adjustParentSizes(
+      state.nodes.filter((node) => !removed.has(node.id)),
+    ),
+    edges,
+  });
 
   return {
-    state: { nodes, edges },
+    state: next,
     content: `Removed node ${targetId} and ${removed.size - 1} descendant(s).`,
     isError: false,
     mutated: true,
@@ -281,17 +326,19 @@ function queryGraph(state: GraphState): OpOutcome {
 }
 
 function validateGraph(state: GraphState): OpOutcome {
+  // Write the fresh validation back onto the nodes: the model is told about
+  // the errors, and so is the user looking at the canvas.
+  const next = revalidateAll(state);
   const problems: string[] = [];
-  for (const node of state.nodes) {
-    const validated = withValidatedData(node, state.nodes, state.edges);
-    for (const message of Object.values(validated.data.validationErrors)) {
+  for (const node of next.nodes) {
+    for (const message of Object.values(node.data.validationErrors)) {
       if (message) problems.push(`${node.data.label} (${node.id}): ${message}`);
     }
   }
   const content = problems.length
     ? `Validation errors:\n- ${problems.join('\n- ')}`
     : 'Validation passed: no errors.';
-  return readOutcome(state, content);
+  return { state: next, content, isError: false, mutated: true };
 }
 
 function estimateCost(state: GraphState): OpOutcome {
@@ -327,6 +374,15 @@ function listServices(
       (service) =>
         `${service.id} (${service.category}): ${service.aiHints?.summary ?? service.description}`,
     );
+  if (lines.length === 0) {
+    // An empty tool result is rejected outright by every provider.
+    return readOutcome(
+      state,
+      category
+        ? `No services in category "${category}". Call list_services with no category to see them all.`
+        : 'The service catalog is empty.',
+    );
+  }
   return readOutcome(state, lines.join('\n'));
 }
 

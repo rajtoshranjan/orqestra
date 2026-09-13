@@ -25,6 +25,7 @@ class RunStatus(Enum):
     AWAITING_CLIENT = "awaiting_client"
     COMPLETED = "completed"
     FAILED = "failed"
+    CANCELLED = "cancelled"
 
     @classmethod
     def choices(cls):
@@ -40,8 +41,24 @@ class RiskLevel(Enum):
         return [(key.value, key.name) for key in cls]
 
 
+# A run in one of these states is finished: nothing further may advance it.
+TERMINAL_RUN_STATUSES = frozenset(
+    {
+        RunStatus.COMPLETED.value,
+        RunStatus.FAILED.value,
+        RunStatus.CANCELLED.value,
+    }
+)
+
+# Provider stop reasons meaning the turn was cut off rather than finished. The
+# model's plan is incomplete, so the run must fail loudly instead of looking
+# like a clean finish.
+TRUNCATION_STOP_REASONS = frozenset({"max_tokens", "length", "max_output_tokens"})
+
 # Realtime event types (Plan B maps these onto send_agent_event).
-AGENT_MESSAGE_DELTA = "agent.message.delta"
+# One event per completed model turn. Emitting per token put a channel-layer
+# round trip on the hot path for every delta, into a group nothing consumes.
+AGENT_MESSAGE = "agent.message"
 AGENT_TOOL_CALL = "agent.tool_call"
 AGENT_OP_APPLIED = "agent.op_applied"
 AGENT_RUN_COMPLETED = "agent.run.completed"

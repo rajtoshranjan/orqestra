@@ -1,5 +1,7 @@
 from accounts.models import User
-from agent.constants import AGENT_ID
+from agent.constants import AGENT_ID, MessageRole, RunStatus
+from agent.llm.types import TextBlock, content_blocks_to_json
+from agent.models import AgentConversation, AgentMessage, AgentRun
 from annotations.models import Annotation, Comment, Notification
 from django.test import override_settings
 from django.urls import reverse
@@ -8,6 +10,25 @@ from organisations.models import Organisation, OrganisationMember
 from orqestra.tests import BaseTestCase
 from projects.models import Project
 from rest_framework import status
+
+
+def anchor_run(
+    project, annotation, user, text="Added a cache in front of the database."
+):
+    """A completed agent run anchored to `annotation`, with narration to post."""
+    conversation = AgentConversation.objects.create(
+        project=project, annotation=annotation, created_by=user
+    )
+    run = AgentRun.objects.create(
+        conversation=conversation, status=RunStatus.COMPLETED.value
+    )
+    AgentMessage.objects.create(
+        conversation=conversation,
+        run=run,
+        role=MessageRole.ASSISTANT.value,
+        content=content_blocks_to_json([TextBlock(text=text)]),
+    )
+    return run
 
 
 @override_settings(
@@ -26,10 +47,12 @@ class AgentAnnotationReplyTests(BaseTestCase):
             target_id="node-1",
         )
 
-    def test_reply_creates_agent_authored_comment(self):
+    def test_reply_creates_agent_authored_comment_from_the_run(self):
+        run = anchor_run(self.project, self.annotation, self.user)
+
         response = self.client.post(
             reverse("agent-annotation-reply", args=[self.annotation.id]),
-            {"body": "Added a cache in front of the database."},
+            {"run": str(run.id)},
             format="json",
         )
 
@@ -43,10 +66,26 @@ class AgentAnnotationReplyTests(BaseTestCase):
             self.annotation.events.filter(event_type="comment_added").count(), 1
         )
 
-    def test_reply_requires_a_body(self):
+    def test_reply_requires_a_run(self):
         response = self.client.post(
             reverse("agent-annotation-reply", args=[self.annotation.id]),
-            {"body": "   "},
+            {},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_reply_is_rejected_when_the_run_said_nothing(self):
+        conversation = AgentConversation.objects.create(
+            project=self.project, annotation=self.annotation, created_by=self.user
+        )
+        run = AgentRun.objects.create(
+            conversation=conversation, status=RunStatus.COMPLETED.value
+        )
+
+        response = self.client.post(
+            reverse("agent-annotation-reply", args=[self.annotation.id]),
+            {"run": str(run.id)},
             format="json",
         )
 
@@ -61,10 +100,11 @@ class AgentAnnotationReplyTests(BaseTestCase):
         other_annotation = Annotation.objects.create(
             project=other_project, author=other_user, target_type="node", target_id="n"
         )
+        run = anchor_run(other_project, other_annotation, other_user)
 
         response = self.client.post(
             reverse("agent-annotation-reply", args=[other_annotation.id]),
-            {"body": "hi"},
+            {"run": str(run.id)},
             format="json",
         )
 
@@ -93,10 +133,11 @@ class AgentReplyNotificationTests(BaseTestCase):
         annotation = Annotation.objects.create(
             project=self.project, author=author, target_type="node", target_id="n"
         )
+        run = anchor_run(self.project, annotation, author, text="done")
 
         self.client.post(
             reverse("agent-annotation-reply", args=[annotation.id]),
-            {"body": "done"},
+            {"run": str(run.id)},
             format="json",
         )
 
@@ -108,10 +149,11 @@ class AgentReplyNotificationTests(BaseTestCase):
         annotation = Annotation.objects.create(
             project=self.project, author=self.user, target_type="node", target_id="n"
         )
+        run = anchor_run(self.project, annotation, self.user, text="done")
 
         self.client.post(
             reverse("agent-annotation-reply", args=[annotation.id]),
-            {"body": "done"},
+            {"run": str(run.id)},
             format="json",
         )
 

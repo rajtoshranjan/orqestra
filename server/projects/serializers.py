@@ -16,6 +16,7 @@ class ProjectSerializer(serializers.ModelSerializer):
             "edges",
             "deployment_settings",
             "aws_account",
+            "llm_config",
             "created_at",
             "updated_at",
         ]
@@ -23,6 +24,14 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         request = self.context.get("request")
+        llm_config = attrs.get("llm_config")
+        if llm_config:
+            active_org = get_active_organisation(self.context["request"])
+            if llm_config.organisation != active_org:
+                raise serializers.ValidationError(
+                    {"llm_config": "AI model must belong to the active organisation."}
+                )
+
         aws_account = attrs.get("aws_account")
         if aws_account:
             active_org = get_active_organisation(request)
@@ -47,6 +56,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "aws_account",
+            "llm_config",
             "node_count",
             "created_at",
             "updated_at",

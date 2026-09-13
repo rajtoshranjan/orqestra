@@ -37,17 +37,17 @@ class EnvVariable(Enum):
     REDIS_HOST = os.environ.get("REDIS_HOST", "redis")
     REDIS_PORT = os.environ.get("REDIS_PORT", "6379")
 
-    # Agent / LLM Variables.
-    AGENT_LLM_PROVIDER = os.environ.get("AGENT_LLM_PROVIDER", "anthropic")
-    AGENT_LLM_MODEL = os.environ.get("AGENT_LLM_MODEL", "claude-opus-4-8")
-    ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
-    GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-    # host.docker.internal: Ollama runs on the host, the server in a container.
-    OLLAMA_BASE_URL = os.environ.get(
-        "OLLAMA_BASE_URL", "http://host.docker.internal:11434"
-    )
-    OLLAMA_NUM_CTX = os.environ.get("OLLAMA_NUM_CTX", "32768")
+    # Agent Variables.
+    #
+    # Model choice and credentials are NOT here: they belong to an
+    # organisation (organisations.LLMConfig) and are managed in the app under
+    # Settings -> AI Models. What remains are operator-level safety limits an
+    # org admin should not be able to raise.
     OLLAMA_READ_TIMEOUT = os.environ.get("OLLAMA_READ_TIMEOUT", "300")
-    # Required for ollama.com cloud models; unused by a local endpoint.
-    OLLAMA_API_KEY = os.environ.get("OLLAMA_API_KEY", "")
     AGENT_MAX_TURNS = os.environ.get("AGENT_MAX_TURNS", "20")
+    AGENT_MAX_OUTPUT_TOKENS = os.environ.get("AGENT_MAX_OUTPUT_TOKENS", "8192")
+    # Seconds to wait on a hosted provider before failing the run cleanly.
+    AGENT_REQUEST_TIMEOUT = os.environ.get("AGENT_REQUEST_TIMEOUT", "120")
+    # A run left mid-flight by a closed tab is abandoned after this long, so
+    # it can never block the conversation permanently.
+    AGENT_RUN_STALE_MINUTES = os.environ.get("AGENT_RUN_STALE_MINUTES", "10")

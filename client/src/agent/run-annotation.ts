@@ -1,15 +1,16 @@
 import {
   advanceAgentRun,
   createAgentConversation,
+  fetchActiveRunForAnnotation,
   fetchConversationForAnnotation,
   replyToAnnotation,
   sendAgentMessage,
+  type AgentAdvanceResponse,
 } from '@/api/agent';
 
 import { buildAgentCatalog } from './catalog';
-import { describeAgentError } from './errors';
 import { toServerGraph, type GraphState } from './op-executor';
-import { processOpsAutoDecline } from './run-loop';
+import { applyConfirmedOp, processOps } from './run-loop';
 
 export type RunAnnotationAgentOptions = {
   projectId: string;
@@ -21,10 +22,34 @@ export type RunAnnotationAgentOptions = {
   layoutGraph?: (graph: GraphState) => GraphState;
 };
 
+export type RunAnnotationResult = {
+  /** A run was already working this thread, so this comment was not acted on. */
+  skipped: boolean;
+  /** The run paused on a high-impact op and asked for approval in the thread. */
+  awaitingConfirmation: boolean;
+};
+
 /**
- * Run one annotation-anchored agent request: drive the loop, apply safe ops
- * to the canvas (auto-declining high-impact ones), then post the summary as an
- * agent reply in the thread.
+ * Whether a thread reply approves a pending change.
+ *
+ * Deliberately a small deterministic matcher rather than another model call:
+ * the decision gates a destructive operation, so it has to be predictable, and
+ * anything it does not recognise is treated as "no" — the safe direction.
+ */
+const AFFIRMATIVE =
+  /^\s*(yes|yep|yeah|ok|okay|sure|confirm(ed)?|approve[d]?|apply|do it|go ahead|proceed)\b/i;
+
+export function isAffirmative(text: string): boolean {
+  return AFFIRMATIVE.test(text);
+}
+
+/**
+ * Run one annotation-anchored agent request.
+ *
+ * Confirmation happens in the thread rather than in a panel that cannot show
+ * this conversation: a high-impact op pauses the run and posts a question, and
+ * the next comment resolves it. That keeps the whole exchange in one place and
+ * means anchored threads can do the full action space, deletions included.
  */
 export async function runAnnotationAgent({
   projectId,
@@ -33,8 +58,8 @@ export async function runAnnotationAgent({
   getGraph,
   applyGraph,
   layoutGraph,
-}: RunAnnotationAgentOptions): Promise<void> {
-  let declinedCount = 0;
+}: RunAnnotationAgentOptions): Promise<RunAnnotationResult> {
+  let runId: string | null = null;
   try {
     // Reuse the conversation already anchored to this thread (persisted on the
     // server) so the agent keeps its memory across reloads; create one only the
@@ -54,26 +79,71 @@ export async function runAnnotationAgent({
     // (React state may not have flushed between awaits).
     let latestState = getGraph();
     let structural = false;
-    let response = await sendAgentMessage(
-      activeConversationId,
-      message,
-      toServerGraph(latestState),
-    );
+
+    const paused = await fetchActiveRunForAnnotation(annotationId);
+    let response: AgentAdvanceResponse;
+
+    if (paused && paused.ops.length > 0) {
+      // This comment is the answer to a confirmation we asked for.
+      const approved = isAffirmative(message);
+      const [op, ...rest] = paused.ops;
+      const applied = applyConfirmedOp(op, latestState, approved);
+      latestState = applied.state;
+      structural = structural || applied.structural;
+      applyGraph(latestState);
+
+      const outcome = await processOps(rest, latestState, {
+        confirmPolicy: 'pause',
+      });
+      latestState = outcome.state;
+      structural = structural || outcome.structural;
+      applyGraph(latestState);
+
+      runId = paused.id;
+      response = await advanceAgentRun(
+        paused.id,
+        [applied.result, ...outcome.results],
+        toServerGraph(latestState),
+      );
+    } else if (paused) {
+      // A run is mid-flight on this thread with nothing to report; a second one
+      // would interleave its history.
+      return { skipped: true, awaitingConfirmation: false };
+    } else {
+      response = await sendAgentMessage(
+        activeConversationId,
+        message,
+        toServerGraph(latestState),
+      );
+    }
 
     for (;;) {
-      // A failed run carries the provider error and no usable output — surface it
-      // in the thread instead of silently posting the "Done." fallback below.
+      runId = response.runId;
       if (response.status === 'failed') {
+        // The catch below posts the reply, derived server-side from the run's
+        // own error — posting here too would double up.
         throw new Error(response.error || 'The agent run failed.');
       }
       if (response.status !== 'awaiting_client' || response.ops.length === 0) {
         break;
       }
-      const outcome = processOpsAutoDecline(response.ops, latestState);
+
+      const outcome = await processOps(response.ops, latestState, {
+        confirmPolicy: 'pause',
+      });
       latestState = outcome.state;
       structural = structural || outcome.structural;
       applyGraph(latestState);
-      declinedCount += outcome.declined.length;
+
+      if (outcome.pending) {
+        // Leave the run paused and let it ask its own question in the thread —
+        // the server builds that text from the run's outstanding ops. The next
+        // comment resumes it via the `paused` branch above.
+        if (structural && layoutGraph) applyGraph(layoutGraph(latestState));
+        await replyToAnnotation(annotationId, response.runId);
+        return { skipped: false, awaitingConfirmation: true };
+      }
+
       response = await advanceAgentRun(
         response.runId,
         outcome.results,
@@ -85,19 +155,14 @@ export async function runAnnotationAgent({
       applyGraph(layoutGraph(latestState));
     }
 
-    const note =
-      declinedCount > 0
-        ? `\n\nI held off on ${declinedCount} higher-impact change(s) — open the agent panel (⌘J) to review them.`
-        : '';
-    await replyToAnnotation(
-      annotationId,
-      (response.assistantText || 'Done.') + note,
-    );
+    await replyToAnnotation(annotationId, response.runId);
+    return { skipped: false, awaitingConfirmation: false };
   } catch (error) {
-    await replyToAnnotation(
-      annotationId,
-      `I couldn't complete that request: ${describeAgentError(error)}`,
-    ).catch(() => undefined);
+    // Only a real run can speak as the agent: without one there is nothing to
+    // attribute a reply to, so the caller surfaces the failure instead.
+    if (runId) {
+      await replyToAnnotation(annotationId, runId).catch(() => undefined);
+    }
     throw error;
   }
 }

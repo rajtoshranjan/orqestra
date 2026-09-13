@@ -83,6 +83,7 @@ export function createInitialDiagram(): PersistedDiagram {
     projectName: createProjectName(1),
     projectDescription: 'Visual architecture project',
     awsAccountId: null,
+    llmConfigId: null,
     nodes: [],
     edges: [],
     deploymentSettings: DEFAULT_DEPLOYMENT_SETTINGS,

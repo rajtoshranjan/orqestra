@@ -3,7 +3,7 @@ from collections.abc import Iterator
 from orqestra.env_variables import EnvVariable
 
 from .base import BaseLLMProvider
-from .mappers import to_gemini_messages, to_gemini_tools
+from .mappers import ensure_tool_call_id, to_gemini_messages, to_gemini_tools
 from .types import (
     LLMCapabilities,
     LLMEvent,
@@ -22,25 +22,29 @@ class GeminiProvider(BaseLLMProvider):
         supports_streaming=True, supports_tools=True, max_context_tokens=1000000
     )
 
-    def __init__(self, client=None, model: str | None = None):
+    def __init__(self, client=None, **kwargs):
+        super().__init__(**kwargs)
+        # An injected client is for tests; production builds one from the key.
         self._client = client
-        self._model = model
 
     def _get_client(self):
         if self._client is None:
-            api_key = EnvVariable.GEMINI_API_KEY.value or None
-            if not api_key:
+            if not self._api_key:
                 raise RuntimeError(
-                    "The agent is not configured: GEMINI_API_KEY is missing on the "
-                    "server. Set it (or switch AGENT_LLM_PROVIDER) and retry."
+                    "This Gemini model has no API key. Add one in "
+                    "Settings → AI Models."
                 )
             from google import genai
+            from google.genai import types
 
-            self._client = genai.Client(api_key=api_key)
+            # Bounded like the other adapters: the turn runs inside a request.
+            self._client = genai.Client(
+                api_key=self._api_key,
+                http_options=types.HttpOptions(
+                    timeout=int(EnvVariable.AGENT_REQUEST_TIMEOUT.value) * 1000
+                ),
+            )
         return self._client
-
-    def _get_model(self) -> str:
-        return self._model or EnvVariable.AGENT_LLM_MODEL.value
 
     def stream(
         self,
@@ -50,6 +54,7 @@ class GeminiProvider(BaseLLMProvider):
         tools: list[ToolSpec],
         temperature: float = 0.0,
         max_tokens: int = 4096,
+        cacheable_prefix: str = "",  # noqa: ARG002 - no vendor equivalent yet
     ) -> Iterator[LLMEvent]:
         client = self._get_client()
         from google.genai import types
@@ -83,7 +88,7 @@ class GeminiProvider(BaseLLMProvider):
                 for call in chunk.function_calls:
                     tool_calls.append(
                         ToolCallRequested(
-                            id=call.id or "",
+                            id=ensure_tool_call_id(call.id),
                             name=call.name,
                             input=call.args or {},
                         )

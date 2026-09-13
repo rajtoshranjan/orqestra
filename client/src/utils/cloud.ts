@@ -151,6 +151,7 @@ export function normalizePersistedDiagram(
     projectDescription:
       parsed.projectDescription ?? 'Visual architecture project',
     awsAccountId: parsed.awsAccountId ?? null,
+    llmConfigId: parsed.llmConfigId ?? null,
     nodes: nodes.map((node) =>
       withValidatedData({ ...node, selected: false }, nodes, edges),
     ),

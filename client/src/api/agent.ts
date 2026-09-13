@@ -1,8 +1,20 @@
 import { api } from './client';
+import {
+  camelToSnakeRecursive,
+  snakeToCamelRecursive,
+  unwrapListPayload,
+} from './types';
 
 import type { ServerResponse } from './types';
 
 export type AgentRiskLevel = 'safe' | 'confirm';
+
+export type AgentRunStatusValue =
+  | 'running'
+  | 'awaiting_client'
+  | 'completed'
+  | 'failed'
+  | 'cancelled';
 
 export type AgentCatalogEntry = {
   id: string;
@@ -36,28 +48,23 @@ export type AgentOpResult = {
 
 export type AgentAdvanceResponse = {
   runId: string;
-  status: string;
+  status: AgentRunStatusValue;
   assistantText: string;
   ops: AgentOp[];
   error?: string;
 };
 
-type RawOp = {
-  tool_call_id: string;
-  name: string;
-  input: Record<string, unknown>;
-  risk: AgentRiskLevel;
+export type AgentRun = {
+  id: string;
+  conversation: string;
+  status: AgentRunStatusValue;
+  turnCount: number;
+  inputTokens: number;
+  outputTokens: number;
+  error: string;
+  /** Tool calls still waiting on this client, so another surface can resume. */
+  ops: AgentOp[];
 };
-
-type RawAdvance = {
-  run_id: string;
-  status: string;
-  assistant_text: string;
-  ops: RawOp[];
-  error?: string;
-};
-
-type RawConversation = { id: string; project: string; status: string };
 
 export type AgentMessageBlock =
   | { type: 'text'; text: string }
@@ -80,25 +87,45 @@ export type AgentConversationMessage = {
   content: AgentMessageBlock[];
 };
 
-type RawConversationSummary = { id: string; created_at: string };
-type RawConversationDetail = {
-  id: string;
-  messages: AgentConversationMessage[];
-};
+/** Live canvas snapshot (persisted snake_case shape) sent so the agent's prompt
+ * reflects exactly what's on the user's canvas right now. */
+export type AgentGraphSnapshot = { nodes: unknown[]; edges: unknown[] };
 
-function mapAdvance(data: RawAdvance): AgentAdvanceResponse {
+/**
+ * Map the response envelope with the shared mapper, but leave each op's `input`
+ * exactly as the model produced it: those keys are the tool schema's
+ * (`service_id`, `config_patch`) and the config values inside are the service's
+ * own, so translating either would break the executor that reads them.
+ */
+/** Runs carry ops too, whose `input` must survive casing untouched. */
+function mapRun(raw: Record<string, unknown>): AgentRun {
+  const mapped = snakeToCamelRecursive(raw) as AgentRun;
+  const rawOps = (raw.ops ?? []) as { input?: Record<string, unknown> }[];
   return {
-    runId: data.run_id,
-    status: data.status,
-    assistantText: data.assistant_text,
-    ops: (data.ops ?? []).map((op) => ({
-      toolCallId: op.tool_call_id,
-      name: op.name,
-      input: op.input,
-      risk: op.risk,
+    ...mapped,
+    ops: (mapped.ops ?? []).map((op, index) => ({
+      ...op,
+      input: rawOps[index]?.input ?? {},
     })),
-    error: data.error,
   };
+}
+
+function mapAdvance(data: unknown): AgentAdvanceResponse {
+  const raw = (data ?? {}) as {
+    ops?: { input?: Record<string, unknown> }[];
+  };
+  const mapped = snakeToCamelRecursive(data) as {
+    runId: string;
+    status: AgentRunStatusValue;
+    assistantText: string;
+    ops?: AgentOp[];
+    error?: string;
+  };
+  const ops = (mapped.ops ?? []).map((op, index) => ({
+    ...op,
+    input: raw.ops?.[index]?.input ?? {},
+  }));
+  return { ...mapped, ops };
 }
 
 export async function createAgentConversation(params: {
@@ -107,7 +134,7 @@ export async function createAgentConversation(params: {
   /** Anchor the conversation to a canvas comment thread. Omit for build chats. */
   annotationId?: string;
 }): Promise<{ id: string; projectId: string; status: string }> {
-  const response = await api.post<ServerResponse<RawConversation>>(
+  const response = await api.post<ServerResponse<Record<string, unknown>>>(
     '/agent/conversations/',
     {
       project: params.projectId,
@@ -115,8 +142,31 @@ export async function createAgentConversation(params: {
       ...(params.annotationId ? { annotation: params.annotationId } : {}),
     },
   );
-  const data = response.data.data;
+  const data = snakeToCamelRecursive(response.data.data) as {
+    id: string;
+    project: string;
+    status: string;
+  };
   return { id: data.id, projectId: data.project, status: data.status };
+}
+
+type ConversationSummary = { id: string; createdAt: string };
+
+async function listConversations(
+  query: string,
+): Promise<ConversationSummary[]> {
+  const response = await api.get<ServerResponse<unknown>>(
+    `/agent/conversations/?${query}`,
+  );
+  return snakeToCamelRecursive(
+    unwrapListPayload(response.data.data),
+  ) as ConversationSummary[];
+}
+
+/** Newest conversation in a listing, or null when there is none. */
+function newest(results: ConversationSummary[]): ConversationSummary | null {
+  if (results.length === 0) return null;
+  return [...results].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0];
 }
 
 /**
@@ -127,85 +177,109 @@ export async function createAgentConversation(params: {
 export async function fetchConversationForAnnotation(
   annotationId: string,
 ): Promise<string | null> {
-  const list = await api.get<
-    ServerResponse<
-      RawConversationSummary[] | { results: RawConversationSummary[] }
-    >
-  >(`/agent/conversations/?annotation=${annotationId}`);
-  const payload = list.data.data;
-  const results = Array.isArray(payload) ? payload : (payload?.results ?? []);
-  if (results.length === 0) return null;
-
-  const latest = [...results].sort((a, b) =>
-    a.created_at < b.created_at ? 1 : -1,
-  )[0];
-  return latest.id;
+  const latest = newest(await listConversations(`annotation=${annotationId}`));
+  return latest?.id ?? null;
 }
 
-/** Live canvas snapshot (persisted snake_case shape) sent so the agent's prompt
- * reflects exactly what's on the user's canvas right now. */
-export type AgentGraphSnapshot = { nodes: unknown[]; edges: unknown[] };
+export type RehydratedConversation = {
+  id: string;
+  messages: AgentConversationMessage[];
+  /** A run still waiting on this client, if the last session left one behind. */
+  activeRun: AgentRun | null;
+};
 
 /**
- * Load the most recent conversation for a project (with its full message
- * history) so the panel can rehydrate after a reload or a close/reopen.
- * Returns null when the project has no agent conversation yet.
+ * Load the most recent conversation for a project — its message history and any
+ * run still in flight — so the panel can rehydrate after a reload or a
+ * close/reopen. Returns null when the project has no agent conversation yet.
  */
 export async function fetchLatestConversation(
   projectId: string,
-): Promise<{ id: string; messages: AgentConversationMessage[] } | null> {
-  const list = await api.get<
-    ServerResponse<
-      RawConversationSummary[] | { results: RawConversationSummary[] }
-    >
-  >(`/agent/conversations/?project=${projectId}&standalone=true`);
-  const payload = list.data.data;
-  const results = Array.isArray(payload) ? payload : (payload?.results ?? []);
-  if (results.length === 0) return null;
+): Promise<RehydratedConversation | null> {
+  const latest = newest(
+    await listConversations(`project=${projectId}&standalone=true`),
+  );
+  if (!latest) return null;
 
-  const latest = [...results].sort((a, b) =>
-    a.created_at < b.created_at ? 1 : -1,
-  )[0];
-  const detail = await api.get<ServerResponse<RawConversationDetail>>(
+  const detail = await api.get<ServerResponse<Record<string, unknown>>>(
     `/agent/conversations/${latest.id}/`,
   );
-  return { id: detail.data.data.id, messages: detail.data.data.messages ?? [] };
+  const raw = detail.data.data as {
+    id: string;
+    messages?: AgentConversationMessage[];
+    active_run?: Record<string, unknown> | null;
+  };
+  return {
+    id: raw.id,
+    // Content blocks keep their wire shape; only the envelope is mapped.
+    messages: raw.messages ?? [],
+    activeRun: raw.active_run ? mapRun(raw.active_run) : null,
+  };
 }
 
 export async function sendAgentMessage(
   conversationId: string,
   message: string,
   graph?: AgentGraphSnapshot,
+  signal?: AbortSignal,
 ): Promise<AgentAdvanceResponse> {
-  const response = await api.post<ServerResponse<RawAdvance>>(
+  const response = await api.post<ServerResponse<unknown>>(
     `/agent/conversations/${conversationId}/send/`,
     { message, ...(graph ? { graph } : {}) },
+    { signal },
   );
   return mapAdvance(response.data.data);
 }
 
+/**
+ * Post the agent's reply into a comment thread. The body is derived server-side
+ * from the run that produced it — a comment carrying the agent's name has to be
+ * something the agent actually said.
+ */
 export async function replyToAnnotation(
   annotationId: string,
-  body: string,
+  runId: string,
 ): Promise<void> {
-  await api.post(`/agent/annotations/${annotationId}/reply/`, { body });
+  await api.post(`/agent/annotations/${annotationId}/reply/`, { run: runId });
 }
 
 export async function advanceAgentRun(
   runId: string,
   opResults: AgentOpResult[],
   graph?: AgentGraphSnapshot,
+  signal?: AbortSignal,
 ): Promise<AgentAdvanceResponse> {
-  const response = await api.post<ServerResponse<RawAdvance>>(
+  const response = await api.post<ServerResponse<unknown>>(
     `/agent/runs/${runId}/advance/`,
     {
-      op_results: opResults.map((result) => ({
-        tool_call_id: result.toolCallId,
-        content: result.content,
-        is_error: result.isError,
-      })),
+      op_results: camelToSnakeRecursive(opResults),
       ...(graph ? { graph } : {}),
     },
+    { signal },
   );
   return mapAdvance(response.data.data);
+}
+
+/**
+ * The run still in flight on an annotation thread, if any — so a follow-up
+ * comment can answer a pending confirmation instead of starting a second run.
+ */
+export async function fetchActiveRunForAnnotation(
+  annotationId: string,
+): Promise<AgentRun | null> {
+  const conversationId = await fetchConversationForAnnotation(annotationId);
+  if (!conversationId) return null;
+
+  const detail = await api.get<ServerResponse<Record<string, unknown>>>(
+    `/agent/conversations/${conversationId}/`,
+  );
+  const raw = (
+    detail.data.data as { active_run?: Record<string, unknown> | null }
+  ).active_run;
+  return raw ? mapRun(raw) : null;
+}
+
+/** Stop a run the user no longer wants. The engine checks before each turn. */
+export async function cancelAgentRun(runId: string): Promise<void> {
+  await api.post(`/agent/runs/${runId}/cancel/`, {});
 }

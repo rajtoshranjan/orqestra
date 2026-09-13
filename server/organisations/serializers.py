@@ -2,8 +2,19 @@ from accounts.models import User
 from rest_framework import serializers
 from utils.encryption import decrypt_val, encrypt_val
 
+from .constants import (
+    LLM_PROVIDERS_REQUIRING_BASE_URL,
+    LLM_PROVIDERS_REQUIRING_KEY,
+    LLMProviderChoice,
+)
 from .helpers import get_active_organisation
-from .models import AuditLog, AWSAccount, Organisation, OrganisationMember
+from .models import (
+    AuditLog,
+    AWSAccount,
+    LLMConfig,
+    Organisation,
+    OrganisationMember,
+)
 
 
 class OrganisationSerializer(serializers.ModelSerializer):
@@ -157,3 +168,94 @@ class AWSAccountSerializer(serializers.ModelSerializer):
                 validated_data["secret_access_key"]
             )
         return super().update(instance, validated_data)
+
+
+class LLMConfigSerializer(serializers.ModelSerializer):
+    """Encrypts the key on write and never returns it on read.
+
+    Unlike an AWS access key id, there is nothing useful to show from a model
+    API key — a masked prefix would only invite people to compare it — so the
+    read side reports whether one is stored and nothing more.
+    """
+
+    api_key = serializers.CharField(
+        write_only=True, required=False, allow_blank=True, trim_whitespace=True
+    )
+    has_api_key = serializers.SerializerMethodField()
+
+    class Meta:
+        model = LLMConfig
+        fields = [
+            "id",
+            "organisation",
+            "name",
+            "provider",
+            "model",
+            "api_key",
+            "has_api_key",
+            "base_url",
+            "context_window",
+            "is_default",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "organisation", "created_at", "updated_at"]
+
+    def get_has_api_key(self, config) -> bool:
+        return bool(config.api_key)
+
+    def validate(self, attrs):
+        provider = attrs.get("provider") or getattr(self.instance, "provider", None)
+
+        # On update an absent key means "leave the stored one alone", so only
+        # demand one when there is nothing on file.
+        stored_key = getattr(self.instance, "api_key", "")
+        key = attrs.get("api_key", stored_key)
+        if provider in LLM_PROVIDERS_REQUIRING_KEY and not key:
+            raise serializers.ValidationError(
+                {"api_key": f"An API key is required for {provider}."}
+            )
+
+        base_url = attrs.get("base_url", getattr(self.instance, "base_url", ""))
+        if provider in LLM_PROVIDERS_REQUIRING_BASE_URL and not base_url:
+            raise serializers.ValidationError(
+                {
+                    "base_url": (
+                        f"A base URL is required for {provider} — for example "
+                        "http://host.docker.internal:11434 for a local endpoint."
+                    )
+                }
+            )
+        return attrs
+
+    def create(self, validated_data):
+        validated_data["api_key"] = encrypt_val(validated_data.get("api_key", ""))
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        # A blank or absent key keeps the stored credential rather than wiping
+        # it, so editing the model id doesn't cost you the key.
+        if validated_data.get("api_key"):
+            validated_data["api_key"] = encrypt_val(validated_data["api_key"])
+        else:
+            validated_data.pop("api_key", None)
+        return super().update(instance, validated_data)
+
+
+class LLMConfigTestSerializer(serializers.Serializer):
+    """An unsaved config to dial, so the form can be checked before saving."""
+
+    provider = serializers.ChoiceField(choices=LLMProviderChoice.choices())
+    model = serializers.CharField(max_length=255)
+    api_key = serializers.CharField(required=False, allow_blank=True, default="")
+    base_url = serializers.CharField(required=False, allow_blank=True, default="")
+    context_window = serializers.IntegerField(required=False, default=0, min_value=0)
+    # Set when re-testing a saved config whose key the form never received.
+    config = serializers.PrimaryKeyRelatedField(
+        queryset=LLMConfig.objects.none(), required=False
+    )
+
+    def __init__(self, *args, configs=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if configs is not None:
+            self.fields["config"].queryset = configs

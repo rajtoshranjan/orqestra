@@ -8,6 +8,7 @@ import {
   Cloud,
   Copy,
   History,
+  Sparkles,
   Loader2,
   Lock,
   Search,
@@ -61,6 +62,7 @@ import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 import { AWSAccountsTab } from './aws-accounts-tab';
+import { LLMConfigsTab } from './llm-configs-tab';
 
 interface CopyButtonProps {
   value: string;
@@ -371,7 +373,7 @@ export function OrgSettings() {
       maxWidthClass="max-w-6xl"
     >
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full max-w-2xl grid-cols-3 rounded-lg border border-border bg-card p-1">
+        <TabsList className="grid w-full max-w-3xl grid-cols-4 rounded-lg border border-border bg-card p-1">
           <TabsTrigger
             value="general"
             className="flex items-center gap-1.5 rounded-md py-1.5 text-xs"
@@ -385,6 +387,13 @@ export function OrgSettings() {
           >
             <Cloud className="size-3.5" />
             AWS accounts
+          </TabsTrigger>
+          <TabsTrigger
+            value="ai-models"
+            className="flex items-center gap-1.5 rounded-md py-1.5 text-xs"
+          >
+            <Sparkles className="size-3.5" />
+            AI models
           </TabsTrigger>
           <TabsTrigger
             value="logs"
@@ -482,6 +491,11 @@ export function OrgSettings() {
         {/* AWS Accounts Tab */}
         <TabsContent value="aws-accounts" className="space-y-6">
           <AWSAccountsTab canManage={canManage} />
+        </TabsContent>
+
+        {/* AI Models Tab */}
+        <TabsContent value="ai-models" className="space-y-6">
+          <LLMConfigsTab canManage={canManage} />
         </TabsContent>
 
         {/* Audit Logs Tab */}

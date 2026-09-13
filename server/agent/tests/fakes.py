@@ -16,10 +16,23 @@ class FakeLLMProvider(BaseLLMProvider):
         self.calls: list[dict] = []
 
     def stream(
-        self, *, system_prompt, messages, tools, temperature=0.0, max_tokens=4096
+        self,
+        *,
+        system_prompt,
+        messages,
+        tools,
+        temperature=0.0,
+        max_tokens=4096,
+        cacheable_prefix="",
     ) -> Iterator[LLMEvent]:
         self.calls.append(
-            {"system_prompt": system_prompt, "messages": messages, "tools": tools}
+            {
+                "system_prompt": system_prompt,
+                "messages": messages,
+                "tools": tools,
+                "max_tokens": max_tokens,
+                "cacheable_prefix": cacheable_prefix,
+            }
         )
         turn = self._turns[self._index]
         self._index += 1

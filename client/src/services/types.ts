@@ -153,6 +153,13 @@ export type ServiceDefinition<TConfig = Record<string, unknown>> = {
     requires?: string[];
     optional?: string[];
   };
+  /**
+   * Config fields whose change is high-impact for this service specifically.
+   * The agent escalates a `configure` touching one of these to a confirmation.
+   * Generic security/cost fields are matched by name already — declare only
+   * what is service-specific.
+   */
+  sensitiveConfigKeys?: string[];
   allowedParents?: string[];
   requiredParents?: string[];
   forbiddenParents?: string[];

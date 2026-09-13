@@ -1,3 +1,5 @@
+import json
+
 from .llm.types import ToolSpec
 
 GRAPH_OP_NAMES = [
@@ -132,3 +134,127 @@ def graph_tool_specs() -> list[ToolSpec]:
             input_schema={"type": "object", "properties": {}},
         ),
     ]
+
+
+# --- Server-resolved reads -------------------------------------------------
+#
+# These ops have no side effects and read data the server already holds: the
+# catalog snapshot on the conversation, and the graph posted with the request.
+# Resolving them here keeps a lookup from costing an HTTP round trip plus a
+# whole extra model turn against AGENT_MAX_TURNS.
+#
+# `validate` and `estimate_cost` stay on the client: they need the frontend
+# service registry's validators and cost estimators, which have no server twin.
+
+SERVER_RESOLVED_OPS = frozenset({"list_services", "get_service", "query_graph"})
+
+CLIENT_OP_NAMES = [name for name in GRAPH_OP_NAMES if name not in SERVER_RESOLVED_OPS]
+
+
+def _service_line(service: dict) -> str:
+    """One compact line carrying everything needed to choose and wire a service."""
+    capabilities = service.get("capabilities") or {}
+    name = service.get("name")
+    head = f"{service.get('id')} ({service.get('category', 'general')})"
+    if name and name != service.get("id"):
+        head = f'{head} "{name}"'
+    parts = [head]
+
+    provides = capabilities.get("provides")
+    requires = capabilities.get("requires")
+    parents = service.get("allowedParents") or service.get("allowed_parents")
+    relationships = service.get("allowedRelationships") or service.get(
+        "allowed_relationships"
+    )
+
+    if requires:
+        parts.append(f"needs={','.join(requires)}")
+    if provides:
+        parts.append(f"provides={','.join(provides)}")
+    if parents:
+        parts.append(f"parents={','.join(parents)}")
+    if relationships:
+        parts.append(f"connects={','.join(relationships)}")
+    if service.get("isContainer") or service.get("is_container"):
+        parts.append("container")
+
+    summary = service.get("summary") or service.get("role")
+    line = " | ".join(parts)
+    return f"{line} — {summary}" if summary else line
+
+
+def service_catalog_lines(catalog: list[dict]) -> list[str]:
+    """One line per service, carrying everything needed to choose and wire it."""
+    return [_service_line(service) for service in catalog]
+
+
+def _list_services(op_input: dict, catalog: list[dict]) -> str:
+    category = op_input.get("category")
+    services = [
+        service
+        for service in catalog
+        if not category or service.get("category") == category
+    ]
+    if not services:
+        if category:
+            return (
+                f"No services in category '{category}'. "
+                "Call list_services with no category to see every category."
+            )
+        return "The service catalog is empty."
+    return "\n".join(_service_line(service) for service in services)
+
+
+def _get_service(op_input: dict, catalog: list[dict]) -> tuple[str, bool]:
+    service_id = str(op_input.get("service_id") or "")
+    for service in catalog:
+        if service.get("id") == service_id:
+            return json.dumps(service), False
+    known = ", ".join(str(service.get("id")) for service in catalog[:20])
+    return (f'Unknown service_id "{service_id}". Known ids include: {known}.', True)
+
+
+def _query_graph(nodes: list[dict], edges: list[dict]) -> str:
+    return json.dumps(
+        {
+            "nodes": [
+                {
+                    "id": node.get("id"),
+                    "service_id": (node.get("data") or {}).get("service_id")
+                    or (node.get("data") or {}).get("serviceId"),
+                    "label": (node.get("data") or {}).get("label"),
+                    "parent": node.get("parent_node") or node.get("parentNode"),
+                }
+                for node in nodes
+            ],
+            "edges": [
+                {
+                    "id": edge.get("id"),
+                    "source": edge.get("source"),
+                    "target": edge.get("target"),
+                    "relationship_kind": (edge.get("data") or {}).get(
+                        "relationship_kind"
+                    )
+                    or (edge.get("data") or {}).get("relationshipKind"),
+                }
+                for edge in edges
+            ],
+        }
+    )
+
+
+def resolve_read_op(
+    op_name: str,
+    op_input: dict,
+    catalog: list[dict],
+    nodes: list[dict],
+    edges: list[dict],
+) -> tuple[str, bool]:
+    """Answer a read-only op server-side. Returns (content, is_error)."""
+    if op_name == "list_services":
+        return _list_services(op_input or {}, catalog), False
+    if op_name == "get_service":
+        return _get_service(op_input or {}, catalog)
+    if op_name == "query_graph":
+        return _query_graph(nodes, edges), False
+    raise ValueError(f"{op_name} is not server-resolvable.")

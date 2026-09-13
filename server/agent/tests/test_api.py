@@ -8,10 +8,24 @@ from agent.tests.fakes import FakeLLMProvider
 from annotations.models import Annotation
 from django.test import override_settings
 from django.urls import reverse
-from organisations.models import Organisation
+from organisations.constants import LLMProviderChoice
+from organisations.models import LLMConfig, Organisation
 from orqestra.tests import BaseTestCase
 from projects.models import Project
 from rest_framework import status
+from utils.encryption import encrypt_val
+
+
+def make_llm_config(organisation):
+    """An organisation's default model config, so `build_engine` can resolve one."""
+    return LLMConfig.objects.create(
+        organisation=organisation,
+        name="Test model",
+        provider=LLMProviderChoice.ANTHROPIC.value,
+        model="claude-sonnet-5",
+        api_key=encrypt_val("sk-test"),
+        is_default=True,
+    )
 
 
 @override_settings(
@@ -23,6 +37,7 @@ class ConversationApiTests(BaseTestCase):
         self.project = Project.objects.create(
             organisation=self.organisation, name="P", nodes=[], edges=[]
         )
+        make_llm_config(self.organisation)
 
     def test_create_conversation_stores_catalog_and_creator(self):
         response = self.client.post(
@@ -91,6 +106,7 @@ class ConversationAnnotationFilterTests(BaseTestCase):
         self.project = Project.objects.create(
             organisation=self.organisation, name="P", nodes=[], edges=[]
         )
+        make_llm_config(self.organisation)
         self.annotation = Annotation.objects.create(
             project=self.project, author=self.user, target_type="canvas"
         )
@@ -167,13 +183,14 @@ class SendActionTests(BaseTestCase):
         self.project = Project.objects.create(
             organisation=self.organisation, name="P", nodes=[], edges=[]
         )
+        make_llm_config(self.organisation)
         self.conversation = AgentConversation.objects.create(
             project=self.project,
             created_by=self.user,
             catalog=[{"id": "lambda", "name": "AWS Lambda", "category": "compute"}],
         )
 
-    @patch("agent.views.get_active_provider")
+    @patch("agent.views.build_provider")
     def test_send_runs_first_turn_and_returns_ops(self, mock_get_provider):
         mock_get_provider.return_value = FakeLLMProvider(
             [
@@ -221,6 +238,7 @@ class AdvanceActionTests(BaseTestCase):
         self.project = Project.objects.create(
             organisation=self.organisation, name="P", nodes=[], edges=[]
         )
+        make_llm_config(self.organisation)
         self.conversation = AgentConversation.objects.create(
             project=self.project, created_by=self.user, catalog=[]
         )
@@ -229,9 +247,26 @@ class AdvanceActionTests(BaseTestCase):
             role=MessageRole.USER.value,
             content=[{"type": "text", "text": "Add a lambda."}],
         )
-        self.run = AgentRun.objects.create(conversation=self.conversation)
+        self.run = AgentRun.objects.create(
+            conversation=self.conversation, status=RunStatus.AWAITING_CLIENT.value
+        )
+        # The run is waiting on tc_1: advance only accepts results for calls
+        # that are actually outstanding.
+        AgentMessage.objects.create(
+            conversation=self.conversation,
+            run=self.run,
+            role=MessageRole.ASSISTANT.value,
+            content=[
+                {
+                    "type": "tool_call",
+                    "id": "tc_1",
+                    "name": "add_resource",
+                    "input": {"service_id": "lambda"},
+                }
+            ],
+        )
 
-    @patch("agent.views.get_active_provider")
+    @patch("agent.views.build_provider")
     def test_advance_with_op_results_completes_run(self, mock_get_provider):
         mock_get_provider.return_value = FakeLLMProvider(
             [

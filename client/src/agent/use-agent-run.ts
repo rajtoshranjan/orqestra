@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
   advanceAgentRun,
+  cancelAgentRun,
   createAgentConversation,
   fetchLatestConversation,
   sendAgentMessage,
@@ -14,12 +15,16 @@ import { makeId } from '@/utils/diagram';
 
 import { buildAgentCatalog } from './catalog';
 import { describeAgentError } from './errors';
-import { executeOp, toServerGraph, type GraphState } from './op-executor';
+import { toServerGraph, type GraphState } from './op-executor';
 import { describeOp, type AgentOpIcon } from './op-label';
-import { resolveOpRisk } from './risk';
-import { applyConfirmedOp, STRUCTURAL_OPS } from './run-loop';
+import { applyConfirmedOp, processOps } from './run-loop';
 
-export type AgentRunStatus = 'idle' | 'thinking' | 'awaiting_confirm' | 'error';
+export type AgentRunStatus =
+  | 'idle'
+  | 'thinking'
+  | 'awaiting_confirm'
+  | 'cancelling'
+  | 'error';
 
 /** A chat turn or a single graph action — rendered as one chronological feed. */
 export type AgentTimelineItem =
@@ -30,7 +35,8 @@ export type AgentTimelineItem =
       icon: AgentOpIcon;
       label: string;
       isError: boolean;
-    };
+    }
+  | { id: string; kind: 'notice'; text: string };
 
 export type UseAgentRunOptions = {
   projectId: string;
@@ -40,12 +46,26 @@ export type UseAgentRunOptions = {
   enabled?: boolean;
   /** Re-tidy the canvas after a run makes structural changes. */
   layoutGraph?: (graph: GraphState) => GraphState;
+  /** Read-only viewers can watch a run but never start one. */
+  readOnly?: boolean;
 };
 
 /** Rebuild the visible transcript from persisted conversation messages. */
 export function messagesToTimeline(
   messages: AgentConversationMessage[],
 ): AgentTimelineItem[] {
+  // Op failures are recorded as tool_result blocks on the following message, so
+  // collect them first — otherwise a reloaded transcript renders every op as a
+  // success and misrepresents what actually happened.
+  const failed = new Set<string>();
+  for (const message of messages) {
+    for (const block of message.content) {
+      if (block.type === 'tool_result' && block.is_error) {
+        failed.add(block.tool_call_id);
+      }
+    }
+  }
+
   const items: AgentTimelineItem[] = [];
   for (const message of messages) {
     for (const block of message.content) {
@@ -57,7 +77,7 @@ export function messagesToTimeline(
           text: block.text,
         });
       } else if (block.type === 'tool_call') {
-        const { icon, label } = describeOp({
+        const { icon, past } = describeOp({
           name: block.name,
           input: block.input,
         });
@@ -65,8 +85,8 @@ export function messagesToTimeline(
           id: makeId(),
           kind: 'activity',
           icon,
-          label,
-          isError: false,
+          label: past,
+          isError: failed.has(block.id),
         });
       }
       // tool_result blocks are internal plumbing — not shown in the transcript.
@@ -80,18 +100,13 @@ const STEP_DELAY_MS = 200;
 const delay = (ms: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-type StepOutcome = {
-  state: GraphState;
-  results: AgentOpResult[];
-  pending?: { op: AgentOp; remaining: AgentOp[] };
-};
-
 export function useAgentRun({
   projectId,
   getGraph,
   applyGraph,
   enabled = true,
   layoutGraph,
+  readOnly = false,
 }: UseAgentRunOptions) {
   const [items, setItems] = useState<AgentTimelineItem[]>([]);
   const [status, setStatus] = useState<AgentRunStatus>('idle');
@@ -104,10 +119,31 @@ export function useAgentRun({
   const pendingResultsRef = useRef<AgentOpResult[]>([]);
   const remainingRef = useRef<AgentOp[]>([]);
   const hydratedRef = useRef(false);
+  const abortRef = useRef<AbortController | null>(null);
   // Track whether the run changed topology, and the last applied state, so we
   // can re-tidy the layout once the run settles.
   const structuralRef = useRef(false);
   const latestStateRef = useRef<GraphState | null>(null);
+
+  const pushNotice = useCallback((text: string) => {
+    setItems((prev) => [...prev, { id: makeId(), kind: 'notice', text }]);
+  }, []);
+
+  /**
+   * Drop everything belonging to the previous run. Without this a stale
+   * `pendingOp` or half-collected results can be spliced into a *different*
+   * run's advance, writing tool results against calls that run never made.
+   */
+  const clearRunState = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    runIdRef.current = null;
+    pendingResultsRef.current = [];
+    remainingRef.current = [];
+    structuralRef.current = false;
+    latestStateRef.current = null;
+    setPendingOp(null);
+  }, []);
 
   // Rehydrate the latest persisted conversation the first time the panel opens
   // for this project, so closing/reopening (or reloading) keeps the thread.
@@ -121,6 +157,15 @@ export function useAgentRun({
         if (cancelled || !convo || conversationIdRef.current) return;
         conversationIdRef.current = convo.id;
         setItems(messagesToTimeline(convo.messages));
+        if (convo.activeRun) {
+          // A run the previous session left mid-flight. Its ops are already on
+          // the canvas and autosaved; re-applying them would duplicate, so
+          // retire it and say so rather than silently resuming.
+          await cancelAgentRun(convo.activeRun.id).catch(() => undefined);
+          pushNotice(
+            'The previous run was interrupted before it finished. Send a message to pick up where it left off.',
+          );
+        }
       } catch {
         // Non-fatal: a failed rehydrate just starts a fresh thread.
       }
@@ -128,7 +173,7 @@ export function useAgentRun({
     return () => {
       cancelled = true;
     };
-  }, [enabled, projectId]);
+  }, [enabled, projectId, pushNotice]);
 
   const appendAssistant = useCallback((text: string) => {
     if (!text.trim()) return;
@@ -139,61 +184,41 @@ export function useAgentRun({
   }, []);
 
   const pushActivity = useCallback((op: AgentOp, isError: boolean) => {
-    const { icon, label } = describeOp(op);
+    const { icon, past } = describeOp(op, latestStateRef.current ?? undefined);
     setItems((prev) => [
       ...prev,
-      { id: makeId(), kind: 'activity', icon, label, isError },
+      { id: makeId(), kind: 'activity', icon, label: past, isError },
     ]);
   }, []);
 
   const pushSkipped = useCallback((op: AgentOp) => {
-    const { label } = describeOp(op);
+    const { pending } = describeOp(op, latestStateRef.current ?? undefined);
     setItems((prev) => [
       ...prev,
       {
         id: makeId(),
         kind: 'activity',
         icon: 'info',
-        label: `Skipped — ${label}`,
+        label: `Skipped — ${pending.toLowerCase()}`,
         isError: false,
       },
     ]);
   }, []);
 
   // Apply a turn's ops one at a time (with a beat) so the build is visible.
-  // Stops at the first op that needs confirmation.
+  // Stops at the first op that needs confirmation, or when the user cancels.
   const applyOpsStepwise = useCallback(
-    async (ops: AgentOp[], startState: GraphState): Promise<StepOutcome> => {
-      let state = startState;
-      const results: AgentOpResult[] = [];
-
-      for (let index = 0; index < ops.length; index += 1) {
-        const op = ops[index];
-        if (resolveOpRisk(op.risk, op.name, op.input) === 'confirm') {
-          return {
-            state,
-            results,
-            pending: { op, remaining: ops.slice(index + 1) },
-          };
-        }
-        const outcome = executeOp(op.name, op.input, state);
-        state = outcome.state;
-        latestStateRef.current = state;
-        if (outcome.mutated && STRUCTURAL_OPS.has(op.name)) {
-          structuralRef.current = true;
-        }
-        applyGraph(state);
-        pushActivity(op, outcome.isError);
-        results.push({
-          toolCallId: op.toolCallId,
-          content: outcome.content,
-          isError: outcome.isError,
-        });
-        if (index < ops.length - 1) await delay(STEP_DELAY_MS);
-      }
-
-      return { state, results };
-    },
+    (ops: AgentOp[], startState: GraphState) =>
+      processOps(ops, startState, {
+        confirmPolicy: 'pause',
+        signal: abortRef.current?.signal,
+        beat: () => delay(STEP_DELAY_MS),
+        onApplied: (op, outcome) => {
+          latestStateRef.current = outcome.state;
+          applyGraph(outcome.state);
+          pushActivity(op, outcome.isError);
+        },
+      }),
     [applyGraph, pushActivity],
   );
 
@@ -213,6 +238,10 @@ export function useAgentRun({
   const drive = useCallback(
     async (initial: AgentAdvanceResponse) => {
       let response = initial;
+      // Thread the applied state forward rather than re-reading getGraph()
+      // between turns: React state may not have flushed across the awaits.
+      let state = latestStateRef.current ?? getGraph();
+
       for (;;) {
         runIdRef.current = response.runId;
         appendAssistant(response.assistantText);
@@ -222,7 +251,12 @@ export function useAgentRun({
           setErrorText(response.error || 'The agent run failed unexpectedly.');
           return;
         }
-
+        if (response.status === 'cancelled') {
+          finalizeLayout();
+          pushNotice('Stopped. The changes so far are on the canvas.');
+          setStatus('idle');
+          return;
+        }
         if (
           response.status !== 'awaiting_client' ||
           response.ops.length === 0
@@ -232,7 +266,17 @@ export function useAgentRun({
           return;
         }
 
-        const outcome = await applyOpsStepwise(response.ops, getGraph());
+        const outcome = await applyOpsStepwise(response.ops, state);
+        state = outcome.state;
+        latestStateRef.current = state;
+        if (outcome.structural) structuralRef.current = true;
+
+        if (outcome.aborted) {
+          finalizeLayout();
+          pushNotice('Stopped. The changes so far are on the canvas.');
+          setStatus('idle');
+          return;
+        }
         if (outcome.pending) {
           pendingResultsRef.current = outcome.results;
           remainingRef.current = outcome.pending.remaining;
@@ -244,28 +288,31 @@ export function useAgentRun({
         response = await advanceAgentRun(
           response.runId,
           outcome.results,
-          toServerGraph(outcome.state),
+          toServerGraph(state),
+          abortRef.current?.signal,
         );
       }
     },
-    [appendAssistant, applyOpsStepwise, getGraph, finalizeLayout],
+    [appendAssistant, applyOpsStepwise, getGraph, finalizeLayout, pushNotice],
   );
 
-  const sendMessage = useCallback(
-    async (text: string) => {
-      const trimmed = text.trim();
-      if (!trimmed || status === 'thinking') return;
-
+  /** Start a turn from a user message, reusing or creating the conversation. */
+  const startRun = useCallback(
+    async (text: string, echo: boolean) => {
+      clearRunState();
       setErrorText(null);
-      lastMessageRef.current = trimmed;
-      structuralRef.current = false;
-      latestStateRef.current = null;
+      lastMessageRef.current = text;
+      latestStateRef.current = getGraph();
+      abortRef.current = new AbortController();
 
-      setItems((prev) => [
-        ...prev,
-        { id: makeId(), kind: 'message', role: 'user', text: trimmed },
-      ]);
+      if (echo) {
+        setItems((prev) => [
+          ...prev,
+          { id: makeId(), kind: 'message', role: 'user', text },
+        ]);
+      }
       setStatus('thinking');
+
       try {
         if (!conversationIdRef.current) {
           const conversation = await createAgentConversation({
@@ -276,17 +323,59 @@ export function useAgentRun({
         }
         const response = await sendAgentMessage(
           conversationIdRef.current,
-          trimmed,
+          text,
           toServerGraph(getGraph()),
+          abortRef.current.signal,
         );
         await drive(response);
       } catch (error) {
+        if (abortRef.current?.signal.aborted) {
+          setStatus('idle');
+          return;
+        }
         setStatus('error');
         setErrorText(describeAgentError(error));
       }
     },
-    [projectId, status, drive, appendAssistant, getGraph],
+    [clearRunState, projectId, drive, getGraph],
   );
+
+  const sendMessage = useCallback(
+    async (text: string) => {
+      const trimmed = text.trim();
+      if (!trimmed || readOnly) return;
+      // A message sent mid-run would start a second run on the same
+      // conversation and interleave its history.
+      if (status !== 'idle' && status !== 'error') return;
+      await startRun(trimmed, true);
+    },
+    [readOnly, status, startRun],
+  );
+
+  const retry = useCallback(async () => {
+    const last = lastMessageRef.current;
+    if (!last || readOnly) return;
+    if (status !== 'idle' && status !== 'error') return;
+    await startRun(last, false);
+  }, [readOnly, status, startRun]);
+
+  /** Stop a run in flight. Ops already applied stay on the canvas. */
+  const cancel = useCallback(async () => {
+    const runId = runIdRef.current;
+    abortRef.current?.abort();
+    setStatus('cancelling');
+    setPendingOp(null);
+    try {
+      if (runId) await cancelAgentRun(runId);
+    } catch {
+      // The local abort already stopped the loop; a failed cancel just leaves
+      // the server run to be swept as stale.
+    }
+    finalizeLayout();
+    pushNotice('Stopped. The changes so far are on the canvas.');
+    clearRunState();
+    setStatus('idle');
+  }, [clearRunState, finalizeLayout, pushNotice]);
 
   const confirm = useCallback(
     async (approved: boolean) => {
@@ -295,11 +384,12 @@ export function useAgentRun({
       setPendingOp(null);
       setStatus('thinking');
       try {
-        const applied = applyConfirmedOp(op, getGraph(), approved);
+        const base = latestStateRef.current ?? getGraph();
+        const applied = applyConfirmedOp(op, base, approved);
         applyGraph(applied.state);
         latestStateRef.current = applied.state;
         if (approved) {
-          if (STRUCTURAL_OPS.has(op.name)) structuralRef.current = true;
+          if (applied.structural) structuralRef.current = true;
           pushActivity(op, applied.result.isError);
         } else {
           pushSkipped(op);
@@ -309,6 +399,8 @@ export function useAgentRun({
           remainingRef.current,
           applied.state,
         );
+        latestStateRef.current = outcome.state;
+        if (outcome.structural) structuralRef.current = true;
         const results = [
           ...pendingResultsRef.current,
           applied.result,
@@ -324,17 +416,24 @@ export function useAgentRun({
         }
 
         const runId = runIdRef.current;
-        if (!runId) {
+        if (!runId || outcome.aborted) {
           setStatus('idle');
           return;
         }
+        pendingResultsRef.current = [];
+        remainingRef.current = [];
         const next = await advanceAgentRun(
           runId,
           results,
           toServerGraph(outcome.state),
+          abortRef.current?.signal,
         );
         await drive(next);
       } catch (error) {
+        if (abortRef.current?.signal.aborted) {
+          setStatus('idle');
+          return;
+        }
         setStatus('error');
         setErrorText(describeAgentError(error));
       }
@@ -347,60 +446,20 @@ export function useAgentRun({
       pushSkipped,
       applyOpsStepwise,
       drive,
-      appendAssistant,
     ],
   );
 
   const reset = useCallback(() => {
+    clearRunState();
     conversationIdRef.current = null;
-    runIdRef.current = null;
-    pendingResultsRef.current = [];
-    remainingRef.current = [];
+    lastMessageRef.current = null;
     setItems([]);
-    setPendingOp(null);
     setStatus('idle');
     setErrorText(null);
-    lastMessageRef.current = null;
-  }, []);
+  }, [clearRunState]);
 
-  const retry = useCallback(async () => {
-    if (!lastMessageRef.current || status === 'thinking') return;
-    const trimmed = lastMessageRef.current;
-
-    setErrorText(null);
-    setStatus('thinking');
-    structuralRef.current = false;
-    latestStateRef.current = null;
-
-    setItems((prev) => [
-      ...prev,
-      {
-        id: makeId(),
-        kind: 'message',
-        role: 'user',
-        text: `Retry: ${trimmed}`,
-      },
-    ]);
-
-    try {
-      if (!conversationIdRef.current) {
-        const conversation = await createAgentConversation({
-          projectId,
-          catalog: buildAgentCatalog(),
-        });
-        conversationIdRef.current = conversation.id;
-      }
-      const response = await sendAgentMessage(
-        conversationIdRef.current,
-        trimmed,
-        toServerGraph(getGraph()),
-      );
-      await drive(response);
-    } catch (error) {
-      setStatus('error');
-      setErrorText(describeAgentError(error));
-    }
-  }, [projectId, status, drive, getGraph]);
+  // Abandon an in-flight run if the editor unmounts mid-build.
+  useEffect(() => () => abortRef.current?.abort(), []);
 
   return {
     items,
@@ -409,7 +468,10 @@ export function useAgentRun({
     errorText,
     sendMessage,
     confirm,
+    cancel,
     retry,
     reset,
+    /** The graph the confirmation card describes its op against. */
+    pendingGraph: latestStateRef.current,
   };
 }

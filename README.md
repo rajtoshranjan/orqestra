@@ -181,7 +181,7 @@ Orqestra ships with an AI agent that designs and edits infrastructure on the can
 * **Self-correcting** - validation and cost results are fed back to the model as tool results, so the platform's own engines are its guardrails.
 * **Design-time only** - the agent never deploys. A human triggers deployment through the existing pipeline.
 
-**Bring your own model.** The engine depends on a vendor-neutral `BaseLLMProvider` interface, mirroring the cloud-provider plugin pattern. Anthropic and Gemini adapters ship today; adding another is a new adapter plus a registration, with no engine changes. Configure with `AGENT_LLM_PROVIDER`, `AGENT_LLM_MODEL`, and the matching API key in `.env`. API keys stay server-side.
+**Bring your own model.** The engine depends on a vendor-neutral `BaseLLMProvider` interface, mirroring the cloud-provider plugin pattern. Anthropic, Gemini, and Ollama adapters ship today — Ollama covering both local models and ollama.com — and adding another is a new adapter plus a registration, with no engine changes. Models are configured per organisation in **Settings → AI Models**, the same way AWS accounts are: keys are encrypted at rest, never returned to the browser, and a project can override the organisation default with its own model.
 
 Full reference: [docs/ai-agent.md](./docs/ai-agent.md).
 
@@ -218,16 +218,18 @@ For a comprehensive, step-by-step onboarding guide, refer to the [Getting Starte
    cp .env.template .env
    ```
 
-3. To use the AI agent, set an LLM provider and API key in `.env`:
+3. Start the local stack, then add a model for the AI agent in the app:
+   **Settings → AI Models → Add model**. Anthropic, Gemini, and Ollama are
+   supported; Ollama runs against a model on your own machine and needs no API
+   key, which makes it the cheapest way to try the agent. Keys are stored
+   encrypted server-side and never reach the browser.
 
-   ```bash
-   AGENT_LLM_PROVIDER=anthropic   # or: gemini
-   AGENT_LLM_MODEL=<model-id>
-   ANTHROPIC_API_KEY=<your-key>   # or GEMINI_API_KEY for gemini
-   ```
+   No agent configuration goes in `.env`. See
+   [docs/ai-agent.md](./docs/ai-agent.md#setup) for the fields, the per-project
+   override, and troubleshooting.
 
-   The rest of the platform runs fine without this; the agent reports that it is
-   not configured until a key is set.
+   The rest of the platform runs fine without a model; the agent reports that
+   none is configured until one is added.
 
 4. Start the local stack:
 

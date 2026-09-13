@@ -1,6 +1,19 @@
+import uuid
 from typing import Any
 
 from .types import LLMMessage, Role, TextBlock, ToolCallBlock, ToolResultBlock, ToolSpec
+
+
+def ensure_tool_call_id(candidate: str | None) -> str:
+    """Return a usable tool-call id, minting one when the vendor issues none.
+
+    The engine pairs a tool_use to its tool_result by id when replaying history,
+    so an empty id makes parallel calls in one turn indistinguishable and
+    attributes results to the wrong call. Ollama issues no ids at all and Gemini
+    leaves them unset for ordinary function calls, so normalising here means the
+    next adapter inherits the fix instead of rediscovering it.
+    """
+    return candidate or f"call_{uuid.uuid4().hex[:12]}"
 
 
 def to_anthropic_tools(tools: list[ToolSpec]) -> list[dict[str, Any]]:
@@ -12,6 +25,31 @@ def to_anthropic_tools(tools: list[ToolSpec]) -> list[dict[str, Any]]:
         }
         for tool in tools
     ]
+
+
+def to_anthropic_system(
+    system_prompt: str, cacheable_prefix: str = ""
+) -> str | list[dict[str, Any]]:
+    """Split the system prompt so its stable half can be cached.
+
+    The catalog block is identical on every turn of a run and is by far the
+    largest part of the prompt, so marking it as a cache breakpoint avoids
+    re-paying for it each turn. Without a usable prefix the plain string is
+    returned unchanged.
+    """
+    if not cacheable_prefix or not system_prompt.startswith(cacheable_prefix):
+        return system_prompt
+    remainder = system_prompt[len(cacheable_prefix) :]
+    blocks: list[dict[str, Any]] = [
+        {
+            "type": "text",
+            "text": cacheable_prefix,
+            "cache_control": {"type": "ephemeral"},
+        }
+    ]
+    if remainder.strip():
+        blocks.append({"type": "text", "text": remainder})
+    return blocks
 
 
 def to_anthropic_messages(messages: list[LLMMessage]) -> list[dict[str, Any]]:
