@@ -2,7 +2,7 @@ import type { AgentRiskLevel } from '@/api/agent';
 import { registry } from '@/services';
 
 /**
- * Merge the server's coarse op-type risk with fine-grained, client-only signal.
+ * Merge the server's coarse operation-type risk with fine-grained, client-only signal.
  * The cost and security profiles live on the frontend service definitions, so
  * the final risk grade is resolved here, at apply time.
  */
@@ -63,7 +63,7 @@ function isSensitiveKey(key: string, serviceKeys: string[]): boolean {
   ].some((fragment) => flat.includes(fragment));
 }
 
-export function resolveOpRisk(
+export function resolveOperationRisk(
   serverRisk: AgentRiskLevel,
   opName: string,
   input: Record<string, unknown>,

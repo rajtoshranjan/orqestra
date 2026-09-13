@@ -76,12 +76,12 @@ class ApiLoopTests(BaseTestCase):
         )
         self.assertEqual(send.data["status"], RunStatus.AWAITING_CLIENT.value)
         run_id = send.data["run_id"]
-        self.assertEqual(send.data["ops"][0]["name"], "add_resource")
+        self.assertEqual(send.data["operations"][0]["name"], "add_resource")
 
         advance = self.client.post(
             reverse("agent-run-advance", args=[run_id]),
             {
-                "op_results": [
+                "operation_results": [
                     {
                         "tool_call_id": "tc_1",
                         "content": "node n1 added; validate ok",

@@ -1,19 +1,19 @@
 import { describe, it, expect, vi } from 'vitest';
 
-import '@/services'; // real registry for executeOp
+import '@/services'; // real registry for executeOperation
 
-import type { AgentOp } from '@/api/agent';
+import type { AgentOperation } from '@/api/agent';
 
-import { type GraphState } from './op-executor';
-import { applyConfirmedOp, processOps } from './run-loop';
+import { type GraphState } from './operation-executor';
+import { applyConfirmedOperation, processOperations } from './run-loop';
 
 const empty = (): GraphState => ({ nodes: [], edges: [] });
 
-function op(
+function operation(
   name: string,
   input: Record<string, unknown>,
   risk: 'safe' | 'confirm' = 'safe',
-): AgentOp {
+): AgentOperation {
   return {
     toolCallId: `tc-${name}-${Math.random().toString(16).slice(2)}`,
     name,
@@ -22,14 +22,14 @@ function op(
   };
 }
 
-describe('processOps — pause policy', () => {
-  it('applies safe ops in sequence and returns one result each', async () => {
-    const ops = [
-      op('add_resource', { service_id: 'lambda' }),
-      op('add_resource', { service_id: 'dynamodb' }),
+describe('processOperations — pause policy', () => {
+  it('applies safe operations in sequence and returns one result each', async () => {
+    const operations = [
+      operation('add_resource', { service_id: 'lambda' }),
+      operation('add_resource', { service_id: 'dynamodb' }),
     ];
 
-    const result = await processOps(ops, empty());
+    const result = await processOperations(operations, empty());
 
     expect(result.pending).toBeNull();
     expect(result.state.nodes).toHaveLength(2);
@@ -38,39 +38,43 @@ describe('processOps — pause policy', () => {
     expect(result.structural).toBe(true);
   });
 
-  it('stops at a confirm-risk op and returns it plus the remaining ops', async () => {
-    const ops = [
-      op('add_resource', { service_id: 'lambda' }),
-      op('remove', { target_id: 'whatever' }, 'confirm'),
-      op('add_resource', { service_id: 'dynamodb' }),
+  it('stops at a confirm-risk operation and returns it plus the remaining operations', async () => {
+    const operations = [
+      operation('add_resource', { service_id: 'lambda' }),
+      operation('remove', { target_id: 'whatever' }, 'confirm'),
+      operation('add_resource', { service_id: 'dynamodb' }),
     ];
 
-    const result = await processOps(ops, empty());
+    const result = await processOperations(operations, empty());
 
-    expect(result.state.nodes).toHaveLength(1); // only the first op applied
+    expect(result.state.nodes).toHaveLength(1); // only the first operation applied
     expect(result.results).toHaveLength(1);
-    expect(result.pending?.op.name).toBe('remove');
+    expect(result.pending?.operation.name).toBe('remove');
     expect(result.pending?.remaining).toHaveLength(1);
   });
 
-  it('narrates each applied op through onApplied', async () => {
+  it('narrates each applied operation through onApplied', async () => {
     const onApplied = vi.fn();
 
-    await processOps([op('add_resource', { service_id: 'lambda' })], empty(), {
-      onApplied,
-    });
+    await processOperations(
+      [operation('add_resource', { service_id: 'lambda' })],
+      empty(),
+      {
+        onApplied,
+      },
+    );
 
     expect(onApplied).toHaveBeenCalledTimes(1);
     expect(onApplied.mock.calls[0][1].mutated).toBe(true);
   });
 
-  it('waits a beat between ops so the build reads as it assembles', async () => {
+  it('waits a beat between operations so the build reads as it assembles', async () => {
     const beat = vi.fn().mockResolvedValue(undefined);
 
-    await processOps(
+    await processOperations(
       [
-        op('add_resource', { service_id: 'lambda' }),
-        op('add_resource', { service_id: 'dynamodb' }),
+        operation('add_resource', { service_id: 'lambda' }),
+        operation('add_resource', { service_id: 'dynamodb' }),
       ],
       empty(),
       { beat },
@@ -80,16 +84,16 @@ describe('processOps — pause policy', () => {
   });
 });
 
-describe('processOps — cancellation', () => {
-  it('abandons the remaining ops once the signal aborts', async () => {
+describe('processOperations — cancellation', () => {
+  it('abandons the remaining operations once the signal aborts', async () => {
     const controller = new AbortController();
-    const ops = [
-      op('add_resource', { service_id: 'lambda' }),
-      op('add_resource', { service_id: 'dynamodb' }),
-      op('add_resource', { service_id: 's3' }),
+    const operations = [
+      operation('add_resource', { service_id: 'lambda' }),
+      operation('add_resource', { service_id: 'dynamodb' }),
+      operation('add_resource', { service_id: 's3' }),
     ];
 
-    const result = await processOps(ops, empty(), {
+    const result = await processOperations(operations, empty(), {
       signal: controller.signal,
       onApplied: () => controller.abort(),
     });
@@ -103,8 +107,8 @@ describe('processOps — cancellation', () => {
     const controller = new AbortController();
     controller.abort();
 
-    const result = await processOps(
-      [op('add_resource', { service_id: 'lambda' })],
+    const result = await processOperations(
+      [operation('add_resource', { service_id: 'lambda' })],
       empty(),
       { signal: controller.signal },
     );
@@ -114,15 +118,15 @@ describe('processOps — cancellation', () => {
   });
 });
 
-describe('processOps — decline policy', () => {
-  it('applies safe ops and declines risky ones without stopping', async () => {
-    const ops = [
-      op('add_resource', { service_id: 'lambda' }),
-      op('remove', { target_id: 'x' }, 'confirm'),
-      op('add_resource', { service_id: 'dynamodb' }),
+describe('processOperations — decline policy', () => {
+  it('applies safe operations and declines risky ones without stopping', async () => {
+    const operations = [
+      operation('add_resource', { service_id: 'lambda' }),
+      operation('remove', { target_id: 'x' }, 'confirm'),
+      operation('add_resource', { service_id: 'dynamodb' }),
     ];
 
-    const result = await processOps(ops, empty(), {
+    const result = await processOperations(operations, empty(), {
       confirmPolicy: 'decline',
     });
 
@@ -130,20 +134,20 @@ describe('processOps — decline policy', () => {
     expect(result.pending).toBeNull();
     expect(result.declined).toHaveLength(1);
     expect(result.declined[0].name).toBe('remove');
-    expect(result.results).toHaveLength(3); // a result per op (incl. the decline)
+    expect(result.results).toHaveLength(3); // a result per operation (incl. the decline)
   });
 });
 
-describe('applyConfirmedOp', () => {
-  it('executes the op when approved', async () => {
-    const added = await processOps(
-      [op('add_resource', { service_id: 'lambda' })],
+describe('applyConfirmedOperation', () => {
+  it('executes the operation when approved', async () => {
+    const added = await processOperations(
+      [operation('add_resource', { service_id: 'lambda' })],
       empty(),
     );
     const node = added.state.nodes[0];
 
-    const { state, result, structural } = applyConfirmedOp(
-      op('remove', { target_id: node.id }),
+    const { state, result, structural } = applyConfirmedOperation(
+      operation('remove', { target_id: node.id }),
       added.state,
       true,
     );
@@ -154,13 +158,13 @@ describe('applyConfirmedOp', () => {
   });
 
   it('leaves the graph unchanged when declined', async () => {
-    const added = await processOps(
-      [op('add_resource', { service_id: 'lambda' })],
+    const added = await processOperations(
+      [operation('add_resource', { service_id: 'lambda' })],
       empty(),
     );
 
-    const { state, result } = applyConfirmedOp(
-      op('remove', { target_id: added.state.nodes[0].id }),
+    const { state, result } = applyConfirmedOperation(
+      operation('remove', { target_id: added.state.nodes[0].id }),
       added.state,
       false,
     );

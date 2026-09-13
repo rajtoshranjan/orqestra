@@ -115,7 +115,7 @@ class AgentRun(BaseModel):
     input_tokens = models.PositiveIntegerField(default=0)
     output_tokens = models.PositiveIntegerField(default=0)
     error = models.TextField(blank=True, default="")
-    # Tool results the server already resolved for this turn (read-only ops it
+    # Tool results the server already resolved for this turn (read-only operations it
     # answered itself). Merged with the client's results on the next advance so
     # the TOOL message carries a result for every outstanding tool call.
     resolved_results = models.JSONField(default=list, blank=True)
@@ -152,38 +152,38 @@ class AgentRun(BaseModel):
                     parts.append(block["text"].strip())
         return "\n\n".join(parts)
 
-    def outstanding_ops(self) -> list[dict]:
+    def outstanding_operations(self) -> list[dict]:
         """The tool calls still awaiting a result, with their risk grade.
 
         Lets a surface that did not start the run — a reloaded panel, or a
         comment thread picking a paused run back up — say exactly what it is
         being asked to approve.
         """
-        from .risk import classify_op_risk
+        from .risk import classify_operation_risk
 
         outstanding = self.outstanding_tool_call_ids()
-        ops: list[dict] = []
+        operations: list[dict] = []
         for message in self.conversation.messages.all():
             for block in message.content:
                 if block.get("type") != "tool_call":
                     continue
                 if block.get("id") not in outstanding:
                     continue
-                op_input = block.get("input") or {}
-                ops.append(
+                operation_input = block.get("input") or {}
+                operations.append(
                     {
                         "tool_call_id": block["id"],
                         "name": block.get("name"),
-                        "input": op_input,
-                        "risk": classify_op_risk(block.get("name"), op_input).value,
+                        "input": operation_input,
+                        "risk": classify_operation_risk(block.get("name"), operation_input).value,
                     }
                 )
-        return ops
+        return operations
 
     def outstanding_tool_call_ids(self) -> set[str]:
         """Tool calls in this conversation that have no result yet.
 
-        The client is the source of truth for op results, so `advance` filters
+        The client is the source of truth for operation results, so `advance` filters
         what it reports against this set: a duplicate or invented tool_call_id
         would otherwise be replayed as an unmatched tool_result and rejected by
         the provider on every later turn.

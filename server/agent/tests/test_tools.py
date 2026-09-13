@@ -1,5 +1,5 @@
 from agent.llm.types import ToolSpec
-from agent.tools import GRAPH_OP_NAMES, graph_tool_specs
+from agent.tools import GRAPH_OPERATION_NAMES, graph_tool_specs
 from django.test import SimpleTestCase
 
 
@@ -14,7 +14,7 @@ class ToolSpecTests(SimpleTestCase):
     def test_covers_the_expected_operations(self):
         names = {spec.name for spec in graph_tool_specs()}
 
-        self.assertEqual(names, set(GRAPH_OP_NAMES))
+        self.assertEqual(names, set(GRAPH_OPERATION_NAMES))
 
     def test_each_schema_is_a_json_object(self):
         for spec in graph_tool_specs():

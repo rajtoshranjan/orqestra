@@ -16,34 +16,34 @@ vi.mock('@/services', () => ({
   },
 }));
 
-import { resolveOpRisk } from './risk';
+import { resolveOperationRisk } from './risk';
 
-describe('resolveOpRisk', () => {
+describe('resolveOperationRisk', () => {
   it('keeps server-flagged confirm risk', () => {
     expect(
-      resolveOpRisk('confirm', 'add_resource', { service_id: 'lambda' }),
+      resolveOperationRisk('confirm', 'add_resource', { service_id: 'lambda' }),
     ).toBe('confirm');
   });
 
   it('escalates add_resource for high-cost services', () => {
     expect(
-      resolveOpRisk('safe', 'add_resource', { service_id: 'redshift' }),
+      resolveOperationRisk('safe', 'add_resource', { service_id: 'redshift' }),
     ).toBe('confirm');
   });
 
   it('leaves low-cost additions safe', () => {
     expect(
-      resolveOpRisk('safe', 'add_resource', { service_id: 'lambda' }),
+      resolveOperationRisk('safe', 'add_resource', { service_id: 'lambda' }),
     ).toBe('safe');
   });
 
-  it('leaves read-only ops safe', () => {
-    expect(resolveOpRisk('safe', 'query_graph', {})).toBe('safe');
+  it('leaves read-only operations safe', () => {
+    expect(resolveOperationRisk('safe', 'query_graph', {})).toBe('safe');
   });
 
   it('escalates configure when the patch touches a security field', () => {
     expect(
-      resolveOpRisk('safe', 'configure', {
+      resolveOperationRisk('safe', 'configure', {
         node_id: 'n1',
         service_id: 'lambda',
         config_patch: { publiclyAccessible: true },
@@ -53,7 +53,7 @@ describe('resolveOpRisk', () => {
 
   it('escalates configure when the patch disables encryption', () => {
     expect(
-      resolveOpRisk('safe', 'configure', {
+      resolveOperationRisk('safe', 'configure', {
         node_id: 'n1',
         config_patch: { encryptionEnabled: false },
       }),
@@ -62,7 +62,7 @@ describe('resolveOpRisk', () => {
 
   it('escalates configure on a field the service marks sensitive', () => {
     expect(
-      resolveOpRisk('safe', 'configure', {
+      resolveOperationRisk('safe', 'configure', {
         node_id: 'n1',
         service_id: 'rds',
         config_patch: { instanceClass: 'db.r6g.16xlarge' },
@@ -72,7 +72,7 @@ describe('resolveOpRisk', () => {
 
   it('leaves an ordinary configure safe', () => {
     expect(
-      resolveOpRisk('safe', 'configure', {
+      resolveOperationRisk('safe', 'configure', {
         node_id: 'n1',
         service_id: 'lambda',
         config_patch: { memoryMb: 512 },
@@ -82,7 +82,7 @@ describe('resolveOpRisk', () => {
 
   it('matches sensitive keys regardless of casing', () => {
     expect(
-      resolveOpRisk('safe', 'configure', {
+      resolveOperationRisk('safe', 'configure', {
         node_id: 'n1',
         config_patch: { public_access_block: false },
       }),

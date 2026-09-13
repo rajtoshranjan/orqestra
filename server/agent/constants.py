@@ -60,7 +60,7 @@ TRUNCATION_STOP_REASONS = frozenset({"max_tokens", "length", "max_output_tokens"
 # round trip on the hot path for every delta, into a group nothing consumes.
 AGENT_MESSAGE = "agent.message"
 AGENT_TOOL_CALL = "agent.tool_call"
-AGENT_OP_APPLIED = "agent.op_applied"
+AGENT_OPERATION_APPLIED = "agent.operation_applied"
 AGENT_RUN_COMPLETED = "agent.run.completed"
 AGENT_RUN_FAILED = "agent.run.failed"
 

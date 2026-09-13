@@ -15,7 +15,7 @@ from .engine import AgentEngine
 from .llm.registry import build_provider, resolve_llm_config
 from .llm.types import TextBlock, content_blocks_to_json
 from .models import AgentConversation, AgentMessage, AgentRun
-from .ops import describe_pending_confirmation
+from .operations import describe_pending_confirmation
 from .serializers import (
     AdvanceRequestSerializer,
     AgentConversationDetailSerializer,
@@ -154,7 +154,7 @@ class AgentConversationViewSet(
 
         result = build_engine(conversation).advance(
             run,
-            op_results=[],
+            operation_results=[],
             catalog=conversation.catalog or [],
             graph=payload.validated_data.get("graph"),
         )
@@ -188,25 +188,25 @@ class AgentRunViewSet(mixins.RetrieveModelMixin, viewsets.GenericViewSet):
                         "work to report."
                     }
                 )
-            # The client is the source of truth for op results, but only for the
+            # The client is the source of truth for operation results, but only for the
             # calls actually outstanding: a retry or a stale confirmation would
             # otherwise write a duplicate or orphan tool_result that no repair
             # pass can distinguish from a real one.
             outstanding = run.outstanding_tool_call_ids()
             seen: set[str] = set()
-            op_results = []
-            for item in payload.validated_data["op_results"]:
+            operation_results = []
+            for item in payload.validated_data["operation_results"]:
                 call_id = item["tool_call_id"]
                 if call_id in outstanding and call_id not in seen:
                     seen.add(call_id)
-                    op_results.append(item)
+                    operation_results.append(item)
             run.status = RunStatus.RUNNING.value
             run.save(update_fields=["status", "updated_at"])
 
         conversation = run.conversation
         result = build_engine(conversation).advance(
             run,
-            op_results=op_results,
+            operation_results=operation_results,
             catalog=conversation.catalog or [],
             graph=payload.validated_data.get("graph"),
         )
@@ -287,7 +287,7 @@ class AgentAnnotationViewSet(viewsets.GenericViewSet):
             return "I stopped working on this request."
         if run.status == RunStatus.AWAITING_CLIENT.value:
             # A paused run asks its question in the thread. The text is built
-            # from the run's own outstanding ops so it is still the agent
+            # from the run's own outstanding operations so it is still the agent
             # speaking, not the caller.
             return describe_pending_confirmation(run)
         return run.narration()

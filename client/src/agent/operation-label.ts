@@ -1,11 +1,11 @@
-import type { AgentOp } from '@/api/agent';
+import type { AgentOperation } from '@/api/agent';
 import type { DiagramNode } from '@/types';
 import { getDescendants } from '@/utils/diagram';
 
-import type { GraphState } from './op-executor';
+import type { GraphState } from './operation-executor';
 
 /** Icon kinds for agent activity rows (mapped to lucide icons in the panel). */
-export type AgentOpIcon =
+export type AgentOperationIcon =
   | 'add'
   | 'connect'
   | 'configure'
@@ -15,13 +15,13 @@ export type AgentOpIcon =
   | 'cost'
   | 'info';
 
-export type OpDescription = {
-  icon: AgentOpIcon;
+export type OperationDescription = {
+  icon: AgentOperationIcon;
   /** Imperative — for a confirmation, before anything has happened. */
   pending: string;
   /** Past tense — for the activity feed, after it has. */
   past: string;
-  /** What else this op touches. Empty when it touches nothing but its target. */
+  /** What else this operation touches. Empty when it touches nothing but its target. */
   impact: string[];
 };
 
@@ -60,21 +60,21 @@ function removalImpact(targetId: string, graph?: GraphState): string[] {
 }
 
 /**
- * Turn a raw agent op into something a human can act on.
+ * Turn a raw agent operation into something a human can act on.
  *
  * `pending` is what the confirmation card shows, so it has to name the actual
  * target and say what else goes with it — approving "Removed a resource" is
  * approving nothing in particular. `past` is what the activity feed shows once
- * the op has run. Passing `graph` resolves ids to labels; without it the
+ * the operation has run. Passing `graph` resolves ids to labels; without it the
  * description still works, just less specifically.
  */
-export function describeOp(
-  op: Pick<AgentOp, 'name' | 'input'>,
+export function describeOperation(
+  operation: Pick<AgentOperation, 'name' | 'input'>,
   graph?: GraphState,
-): OpDescription {
-  const input = op.input ?? {};
+): OperationDescription {
+  const input = operation.input ?? {};
 
-  switch (op.name) {
+  switch (operation.name) {
     case 'add_resource': {
       const service = asString(input.service_id) || 'resource';
       const label = asString(input.label);
@@ -178,6 +178,11 @@ export function describeOp(
       };
     }
     default:
-      return { icon: 'info', pending: op.name, past: op.name, impact: [] };
+      return {
+        icon: 'info',
+        pending: operation.name,
+        past: operation.name,
+        impact: [],
+      };
   }
 }

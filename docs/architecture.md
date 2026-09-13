@@ -138,7 +138,7 @@ layout, and the React Flow envelope are never duplicated on the backend and the
 agent drives the same code paths a human drag-and-drop does.
 
 ```
-message ──▶ AgentRun ──▶ LLM turn ──▶ graph ops ──▶ client applies via
+message ──▶ AgentRun ──▶ LLM turn ──▶ graph operations ──▶ client applies via
    ▲          (server)    (provider)   (tool calls)  registry + canvas helpers
    │                                                        │
    └────────── tool results (validation, cost) ◀────────────┘
@@ -152,23 +152,23 @@ Two abstractions keep this decoupled:
   else. The registry holds provider classes and builds one per run from the
   organisation's stored credentials (`organisations.LLMConfig`, managed in
   Settings → AI Models), so one process serves many organisations and models.
-* **Graph ops** (`agent/tools.py`) - semantic, provider-agnostic operations
+* **Graph operations** (`agent/tools.py`) - semantic, provider-agnostic operations
   (`add_resource`, `connect`, `configure`, `set_parent`, `remove`, `validate`,
   `estimate_cost`, plus catalog lookups). The model never emits raw IaC and
-  selects services by capability, not by hardcoded service ID. Ops are grounded
+  selects services by capability, not by hardcoded service ID. Operations are grounded
   by the prompt (built from the project's catalog snapshot and live canvas) and
   by the client executing them through the frontend registry, which turns an
-  invalid op into an error tool result the model must correct.
+  invalid operation into an error tool result the model must correct.
 
 Because `validate()` and `estimate_cost()` are tools, the platform's own
 validation, cost, and security engines are the agent's guardrails and its
-self-correction signal. Op risk is graded: coarse op-type risk server-side
+self-correction signal. Operation risk is graded: coarse operation-type risk server-side
 (`agent/risk.py`), then escalated client-side at apply time from the service's
 `costProfile`, which lives on the frontend service definition.
 
-The client applies each turn's ops one at a time so the build is visible as it
+The client applies each turn's operations one at a time so the build is visible as it
 happens. The engine also broadcasts run events (`agent.message.delta`,
-`agent.tool_call`, `agent.op_applied`, `agent.run.completed`,
+`agent.tool_call`, `agent.operation_applied`, `agent.run.completed`,
 `agent.run.failed`) to the project's Channels group — the same transport
 deployments use — for observers other than the client driving the run; the
 editor panel itself renders from the REST turn loop.
@@ -224,5 +224,5 @@ the graph model through the service registry and the same canvas helpers and
 validation engine human edits use, rather than through a private path of its
 own. Today it is reactive (it acts when chatted with or
 tagged) and design-time only (it never deploys). A proactive background reviewer
-and a server-side op executor - which would let the agent run without a client
-present, behind the same op interface - are the intended next steps.
+and a server-side operation executor - which would let the agent run without a client
+present, behind the same operation interface - are the intended next steps.

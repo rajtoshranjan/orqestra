@@ -21,7 +21,7 @@ from agent.llm.types import (
 from agent.models import AgentConversation, AgentMessage, AgentRun
 from agent.prompts import build_system_prompt
 from agent.tests.fakes import FakeLLMProvider
-from agent.tools import CLIENT_OP_NAMES, SERVER_RESOLVED_OPS, resolve_read_op
+from agent.tools import CLIENT_OPERATION_NAMES, SERVER_RESOLVED_OPERATIONS, resolve_read_operation
 from django.test import TestCase
 from organisations.models import Organisation
 from projects.models import Project
@@ -75,7 +75,7 @@ class SystemPromptGroundingTests(TestCase):
 
 class ReadResolutionTests(TestCase):
     def test_list_services_is_answered_from_the_stored_catalog(self):
-        content, is_error = resolve_read_op("list_services", {}, RICH_CATALOG, [], [])
+        content, is_error = resolve_read_operation("list_services", {}, RICH_CATALOG, [], [])
 
         self.assertFalse(is_error)
         self.assertIn("lambda", content)
@@ -83,7 +83,7 @@ class ReadResolutionTests(TestCase):
 
     def test_list_services_with_an_unmatched_category_still_returns_content(self):
         """An empty tool result is rejected by every provider."""
-        content, is_error = resolve_read_op(
+        content, is_error = resolve_read_operation(
             "list_services", {"category": "quantum"}, RICH_CATALOG, [], []
         )
 
@@ -91,7 +91,7 @@ class ReadResolutionTests(TestCase):
         self.assertIn("quantum", content)
 
     def test_get_service_returns_the_full_entry(self):
-        content, is_error = resolve_read_op(
+        content, is_error = resolve_read_operation(
             "get_service", {"service_id": "lambda"}, RICH_CATALOG, [], []
         )
 
@@ -99,7 +99,7 @@ class ReadResolutionTests(TestCase):
         self.assertIn("execution-role", content)
 
     def test_get_service_reports_an_unknown_id_as_an_error(self):
-        content, is_error = resolve_read_op(
+        content, is_error = resolve_read_operation(
             "get_service", {"service_id": "nope"}, RICH_CATALOG, [], []
         )
 
@@ -107,7 +107,7 @@ class ReadResolutionTests(TestCase):
         self.assertIn("nope", content)
 
     def test_query_graph_reads_the_posted_snapshot(self):
-        content, is_error = resolve_read_op(
+        content, is_error = resolve_read_operation(
             "query_graph",
             {},
             RICH_CATALOG,
@@ -120,12 +120,12 @@ class ReadResolutionTests(TestCase):
         self.assertIn("e1", content)
 
     def test_mutations_are_not_server_resolvable(self):
-        for op in ("add_resource", "connect", "configure", "set_parent", "remove"):
-            self.assertNotIn(op, SERVER_RESOLVED_OPS)
+        for operation in ("add_resource", "connect", "configure", "set_parent", "remove"):
+            self.assertNotIn(operation, SERVER_RESOLVED_OPERATIONS)
 
     def test_validate_and_estimate_cost_stay_on_the_client(self):
-        self.assertIn("validate", CLIENT_OP_NAMES)
-        self.assertIn("estimate_cost", CLIENT_OP_NAMES)
+        self.assertIn("validate", CLIENT_OPERATION_NAMES)
+        self.assertIn("estimate_cost", CLIENT_OPERATION_NAMES)
 
 
 class ServerLoopTests(TestCase):
@@ -168,11 +168,11 @@ class ServerLoopTests(TestCase):
         )
 
         result = AgentEngine(provider=provider).advance(
-            self.run, op_results=[], catalog=RICH_CATALOG, graph=None
+            self.run, operation_results=[], catalog=RICH_CATALOG, graph=None
         )
 
         self.assertEqual(len(provider.calls), 2)
-        self.assertEqual([op.name for op in result.ops], ["add_resource"])
+        self.assertEqual([operation.name for operation in result.operations], ["add_resource"])
         self.assertEqual(result.run_status, RunStatus.AWAITING_CLIENT.value)
 
     def test_narration_from_server_resolved_turns_reaches_the_client(self):
@@ -193,7 +193,7 @@ class ServerLoopTests(TestCase):
         )
 
         result = AgentEngine(provider=provider).advance(
-            self.run, op_results=[], catalog=RICH_CATALOG, graph=None
+            self.run, operation_results=[], catalog=RICH_CATALOG, graph=None
         )
 
         self.assertIn("Let me look at the catalog.", result.assistant_text)
@@ -222,9 +222,9 @@ class ServerLoopTests(TestCase):
         engine = AgentEngine(provider=provider)
 
         first = engine.advance(
-            self.run, op_results=[], catalog=RICH_CATALOG, graph=None
+            self.run, operation_results=[], catalog=RICH_CATALOG, graph=None
         )
-        self.assertEqual([op.tool_call_id for op in first.ops], ["tc_add"])
+        self.assertEqual([operation.tool_call_id for operation in first.operations], ["tc_add"])
         self.run.refresh_from_db()
         self.assertEqual(
             [item["tool_call_id"] for item in self.run.resolved_results], ["tc_read"]
@@ -232,7 +232,7 @@ class ServerLoopTests(TestCase):
 
         engine.advance(
             self.run,
-            op_results=[
+            operation_results=[
                 {"tool_call_id": "tc_add", "content": "added n1", "is_error": False}
             ],
             catalog=RICH_CATALOG,
@@ -308,7 +308,7 @@ class BroadcastEconomyTests(TestCase):
         sink = RecordingSink()
 
         AgentEngine(provider=provider, event_sink=sink).advance(
-            self.run, op_results=[], catalog=[], graph=None
+            self.run, operation_results=[], catalog=[], graph=None
         )
 
         messages = [event for event in sink.events if event[0] == AGENT_MESSAGE]

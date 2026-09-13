@@ -213,8 +213,8 @@ class SendActionTests(BaseTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["status"], RunStatus.AWAITING_CLIENT.value)
-        self.assertEqual(response.data["ops"][0]["name"], "add_resource")
-        self.assertEqual(response.data["ops"][0]["risk"], "safe")
+        self.assertEqual(response.data["operations"][0]["name"], "add_resource")
+        self.assertEqual(response.data["operations"][0]["risk"], "safe")
         self.assertEqual(
             self.conversation.messages.filter(role=MessageRole.USER.value).count(), 1
         )
@@ -267,7 +267,7 @@ class AdvanceActionTests(BaseTestCase):
         )
 
     @patch("agent.views.build_provider")
-    def test_advance_with_op_results_completes_run(self, mock_get_provider):
+    def test_advance_with_operation_results_completes_run(self, mock_get_provider):
         mock_get_provider.return_value = FakeLLMProvider(
             [
                 [
@@ -281,7 +281,7 @@ class AdvanceActionTests(BaseTestCase):
         response = self.client.post(
             reverse("agent-run-advance", args=[self.run.id]),
             {
-                "op_results": [
+                "operation_results": [
                     {
                         "tool_call_id": "tc_1",
                         "content": "node n1 added",
@@ -294,15 +294,15 @@ class AdvanceActionTests(BaseTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["status"], RunStatus.COMPLETED.value)
-        self.assertEqual(response.data["ops"], [])
+        self.assertEqual(response.data["operations"], [])
         self.assertEqual(
             self.conversation.messages.filter(role=MessageRole.TOOL.value).count(), 1
         )
 
-    def test_advance_rejects_non_list_op_results(self):
+    def test_advance_rejects_non_list_operation_results(self):
         response = self.client.post(
             reverse("agent-run-advance", args=[self.run.id]),
-            {"op_results": "nope"},
+            {"operation_results": "nope"},
             format="json",
         )
 
@@ -321,7 +321,7 @@ class AdvanceActionTests(BaseTestCase):
 
         response = self.client.post(
             reverse("agent-run-advance", args=[other_run.id]),
-            {"op_results": []},
+            {"operation_results": []},
             format="json",
         )
 

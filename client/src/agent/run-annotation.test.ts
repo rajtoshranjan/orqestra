@@ -59,7 +59,7 @@ describe('runAnnotationAgent', () => {
       runId: 'r1',
       status: 'failed',
       assistantText: '',
-      ops: [],
+      operations: [],
       error: 'LLM provider error: 401 UNAUTHENTICATED',
     });
 
@@ -75,7 +75,7 @@ describe('runAnnotationAgent', () => {
       runId: 'r1',
       status: 'completed',
       assistantText: 'Removed lambda-3.',
-      ops: [],
+      operations: [],
     });
 
     await runAnnotationAgent(baseOptions);
@@ -84,12 +84,12 @@ describe('runAnnotationAgent', () => {
     expect(advanceAgentRun).not.toHaveBeenCalled();
   });
 
-  it('pauses on a confirm-risk op and asks in the thread rather than declining', async () => {
+  it('pauses on a confirm-risk operation and asks in the thread rather than declining', async () => {
     asMock(sendAgentMessage).mockResolvedValue({
       runId: 'r1',
       status: 'awaiting_client',
       assistantText: 'I can remove that.',
-      ops: [
+      operations: [
         {
           toolCallId: 'tc_1',
           name: 'remove',
@@ -106,11 +106,11 @@ describe('runAnnotationAgent', () => {
     expect(advanceAgentRun).not.toHaveBeenCalled();
   });
 
-  it('applies the paused op when the next comment approves it', async () => {
+  it('applies the paused operation when the next comment approves it', async () => {
     asMock(fetchActiveRunForAnnotation).mockResolvedValue({
       id: 'r1',
       status: 'awaiting_client',
-      ops: [
+      operations: [
         {
           toolCallId: 'tc_1',
           name: 'remove',
@@ -123,7 +123,7 @@ describe('runAnnotationAgent', () => {
       runId: 'r1',
       status: 'completed',
       assistantText: 'Removed it.',
-      ops: [],
+      operations: [],
     });
 
     await runAnnotationAgent({ ...baseOptions, message: 'yes, go ahead' });
@@ -134,11 +134,11 @@ describe('runAnnotationAgent', () => {
     expect(results[0].content.toLowerCase()).not.toContain('declined');
   });
 
-  it('declines the paused op when the next comment does not approve it', async () => {
+  it('declines the paused operation when the next comment does not approve it', async () => {
     asMock(fetchActiveRunForAnnotation).mockResolvedValue({
       id: 'r1',
       status: 'awaiting_client',
-      ops: [
+      operations: [
         {
           toolCallId: 'tc_1',
           name: 'remove',
@@ -151,7 +151,7 @@ describe('runAnnotationAgent', () => {
       runId: 'r1',
       status: 'completed',
       assistantText: 'Understood, left it in place.',
-      ops: [],
+      operations: [],
     });
 
     await runAnnotationAgent({
@@ -167,7 +167,7 @@ describe('runAnnotationAgent', () => {
     asMock(fetchActiveRunForAnnotation).mockResolvedValue({
       id: 'r1',
       status: 'running',
-      ops: [],
+      operations: [],
     });
 
     const result = await runAnnotationAgent(baseOptions);

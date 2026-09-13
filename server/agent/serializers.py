@@ -71,7 +71,7 @@ class AgentCatalogField(serializers.ListField):
         return sanitise_catalog(entries)
 
 
-class OpResultSerializer(serializers.Serializer):
+class OperationResultSerializer(serializers.Serializer):
     """One tool result reported by the client."""
 
     tool_call_id = serializers.CharField(max_length=128)
@@ -85,7 +85,7 @@ class GraphSnapshotSerializer(serializers.Serializer):
 
 
 class AdvanceRequestSerializer(serializers.Serializer):
-    op_results = OpResultSerializer(many=True, required=False, default=list)
+    operation_results = OperationResultSerializer(many=True, required=False, default=list)
     graph = GraphSnapshotSerializer(required=False, allow_null=True)
 
 
@@ -122,7 +122,7 @@ class AgentMessageSerializer(serializers.ModelSerializer):
 class AgentRunSerializer(serializers.ModelSerializer):
     """Run state, for resuming a run and for showing what one cost."""
 
-    ops = serializers.SerializerMethodField()
+    operations = serializers.SerializerMethodField()
 
     class Meta:
         model = AgentRun
@@ -134,14 +134,14 @@ class AgentRunSerializer(serializers.ModelSerializer):
             "input_tokens",
             "output_tokens",
             "error",
-            "ops",
+            "operations",
             "created_at",
             "updated_at",
         ]
         read_only_fields = fields
 
-    def get_ops(self, run):
-        return run.outstanding_ops()
+    def get_operations(self, run):
+        return run.outstanding_operations()
 
 
 class AgentConversationSerializer(serializers.ModelSerializer):
@@ -196,13 +196,13 @@ def advance_result_to_dict(run: AgentRun, result: AdvanceResult) -> dict:
         "status": result.run_status,
         "assistant_text": result.assistant_text,
         "error": run.error,
-        "ops": [
+        "operations": [
             {
-                "tool_call_id": op.tool_call_id,
-                "name": op.name,
-                "input": op.input,
-                "risk": op.risk,
+                "tool_call_id": operation.tool_call_id,
+                "name": operation.name,
+                "input": operation.input,
+                "risk": operation.risk,
             }
-            for op in result.ops
+            for operation in result.operations
         ],
     }

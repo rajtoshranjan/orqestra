@@ -2,13 +2,13 @@ import { describe, it, expect } from 'vitest';
 
 import '@/services'; // real registry for createServiceNode
 
-import { executeOp, type GraphState } from './op-executor';
+import { executeOperation, type GraphState } from './operation-executor';
 
 const empty = (): GraphState => ({ nodes: [], edges: [] });
 
-describe('executeOp — mutating ops', () => {
+describe('executeOperation — mutating operations', () => {
   it('add_resource creates a node from the registry', () => {
-    const outcome = executeOp(
+    const outcome = executeOperation(
       'add_resource',
       { service_id: 'lambda' },
       empty(),
@@ -24,7 +24,7 @@ describe('executeOp — mutating ops', () => {
   });
 
   it('add_resource merges supplied config', () => {
-    const outcome = executeOp(
+    const outcome = executeOperation(
       'add_resource',
       {
         service_id: 'lambda',
@@ -40,7 +40,11 @@ describe('executeOp — mutating ops', () => {
   });
 
   it('add_resource errors on an unknown service', () => {
-    const outcome = executeOp('add_resource', { service_id: 'nope' }, empty());
+    const outcome = executeOperation(
+      'add_resource',
+      { service_id: 'nope' },
+      empty(),
+    );
 
     expect(outcome.isError).toBe(true);
     expect(outcome.mutated).toBe(false);
@@ -48,15 +52,19 @@ describe('executeOp — mutating ops', () => {
   });
 
   it('connect adds a typed edge between existing nodes', () => {
-    const added = executeOp('add_resource', { service_id: 'lambda' }, empty());
-    const second = executeOp(
+    const added = executeOperation(
+      'add_resource',
+      { service_id: 'lambda' },
+      empty(),
+    );
+    const second = executeOperation(
       'add_resource',
       { service_id: 'dynamodb' },
       added.state,
     );
     const [a, b] = second.state.nodes;
 
-    const outcome = executeOp(
+    const outcome = executeOperation(
       'connect',
       { source_id: a.id, target_id: b.id, relationship_kind: 'reads-from' },
       second.state,
@@ -69,7 +77,7 @@ describe('executeOp — mutating ops', () => {
   });
 
   it('connect errors when an endpoint is missing', () => {
-    const outcome = executeOp(
+    const outcome = executeOperation(
       'connect',
       { source_id: 'x', target_id: 'y', relationship_kind: 'invokes' },
       empty(),
@@ -80,10 +88,14 @@ describe('executeOp — mutating ops', () => {
   });
 
   it('configure patches a node config', () => {
-    const added = executeOp('add_resource', { service_id: 'lambda' }, empty());
+    const added = executeOperation(
+      'add_resource',
+      { service_id: 'lambda' },
+      empty(),
+    );
     const node = added.state.nodes[0];
 
-    const outcome = executeOp(
+    const outcome = executeOperation(
       'configure',
       { node_id: node.id, config_patch: { memorySize: 512 } },
       added.state,
@@ -94,39 +106,51 @@ describe('executeOp — mutating ops', () => {
   });
 
   it('remove deletes a node and its connected edges', () => {
-    const added = executeOp('add_resource', { service_id: 'lambda' }, empty());
-    const second = executeOp(
+    const added = executeOperation(
+      'add_resource',
+      { service_id: 'lambda' },
+      empty(),
+    );
+    const second = executeOperation(
       'add_resource',
       { service_id: 'dynamodb' },
       added.state,
     );
     const [a, b] = second.state.nodes;
-    const connected = executeOp(
+    const connected = executeOperation(
       'connect',
       { source_id: a.id, target_id: b.id, relationship_kind: 'reads-from' },
       second.state,
     );
 
-    const outcome = executeOp('remove', { target_id: a.id }, connected.state);
+    const outcome = executeOperation(
+      'remove',
+      { target_id: a.id },
+      connected.state,
+    );
 
     expect(outcome.isError).toBe(false);
     expect(outcome.state.nodes.map((n) => n.id)).toEqual([b.id]);
     expect(outcome.state.edges).toHaveLength(0);
   });
 
-  it('returns an error for an unknown op', () => {
-    const outcome = executeOp('frobnicate', {}, empty());
+  it('returns an error for an unknown operation', () => {
+    const outcome = executeOperation('frobnicate', {}, empty());
 
     expect(outcome.isError).toBe(true);
     expect(outcome.mutated).toBe(false);
   });
 });
 
-describe('executeOp — read-only ops', () => {
+describe('executeOperation — read-only operations', () => {
   it('query_graph returns a JSON summary without mutating', () => {
-    const added = executeOp('add_resource', { service_id: 'lambda' }, empty());
+    const added = executeOperation(
+      'add_resource',
+      { service_id: 'lambda' },
+      empty(),
+    );
 
-    const outcome = executeOp('query_graph', {}, added.state);
+    const outcome = executeOperation('query_graph', {}, added.state);
 
     expect(outcome.mutated).toBe(false);
     expect(outcome.state).toBe(added.state);
@@ -136,53 +160,73 @@ describe('executeOp — read-only ops', () => {
 
   it('validate reports per-node errors', () => {
     // A lambda with no IAM role violates its declared validation rules.
-    const added = executeOp('add_resource', { service_id: 'lambda' }, empty());
+    const added = executeOperation(
+      'add_resource',
+      { service_id: 'lambda' },
+      empty(),
+    );
 
-    const outcome = executeOp('validate', {}, added.state);
+    const outcome = executeOperation('validate', {}, added.state);
 
     expect(outcome.isError).toBe(false);
     expect(outcome.content.toLowerCase()).toContain('validation');
   });
 
   it('estimate_cost returns a dollar figure', () => {
-    const added = executeOp('add_resource', { service_id: 'lambda' }, empty());
+    const added = executeOperation(
+      'add_resource',
+      { service_id: 'lambda' },
+      empty(),
+    );
 
-    const outcome = executeOp('estimate_cost', {}, added.state);
+    const outcome = executeOperation('estimate_cost', {}, added.state);
 
     expect(outcome.content).toContain('$');
   });
 
   it('list_services lists catalog ids', () => {
-    const outcome = executeOp('list_services', {}, empty());
+    const outcome = executeOperation('list_services', {}, empty());
 
     expect(outcome.content).toContain('lambda');
   });
 
   it('get_service returns details for a known service', () => {
-    const outcome = executeOp('get_service', { service_id: 'lambda' }, empty());
+    const outcome = executeOperation(
+      'get_service',
+      { service_id: 'lambda' },
+      empty(),
+    );
 
     const parsed = JSON.parse(outcome.content);
     expect(parsed.id).toBe('lambda');
   });
 
   it('get_service errors on an unknown id', () => {
-    const outcome = executeOp('get_service', { service_id: 'nope' }, empty());
+    const outcome = executeOperation(
+      'get_service',
+      { service_id: 'nope' },
+      empty(),
+    );
 
     expect(outcome.isError).toBe(true);
   });
 });
 
-describe('executeOp — structural rules', () => {
+describe('executeOperation — structural rules', () => {
   it('connect refuses a relationship the source service forbids', () => {
-    let state = executeOp(
+    let state = executeOperation(
       'add_resource',
       { service_id: 'lambda' },
       empty(),
     ).state;
-    state = executeOp('add_resource', { service_id: 'lambda' }, state).state;
+    state = executeOperation(
+      'add_resource',
+      { service_id: 'lambda' },
+      state,
+    ).state;
     const [a, b] = state.nodes;
 
-    const outcome = executeOp(
+    const outcome = executeOperation(
       'connect',
       { source_id: a.id, target_id: b.id, relationship_kind: 'invokes' },
       state,
@@ -193,16 +237,20 @@ describe('executeOp — structural rules', () => {
     expect(outcome.state.edges).toHaveLength(0);
   });
 
-  it('connect reports validation state like the other mutating ops', () => {
-    let state = executeOp(
+  it('connect reports validation state like the other mutating operations', () => {
+    let state = executeOperation(
       'add_resource',
       { service_id: 'lambda' },
       empty(),
     ).state;
-    state = executeOp('add_resource', { service_id: 'sqs' }, state).state;
+    state = executeOperation(
+      'add_resource',
+      { service_id: 'sqs' },
+      state,
+    ).state;
     const [a, b] = state.nodes;
 
-    const outcome = executeOp(
+    const outcome = executeOperation(
       'connect',
       { source_id: a.id, target_id: b.id, relationship_kind: 'invokes' },
       state,
@@ -213,20 +261,24 @@ describe('executeOp — structural rules', () => {
   });
 
   it('connect refuses a duplicate edge', () => {
-    let state = executeOp(
+    let state = executeOperation(
       'add_resource',
       { service_id: 'lambda' },
       empty(),
     ).state;
-    state = executeOp('add_resource', { service_id: 'sqs' }, state).state;
+    state = executeOperation(
+      'add_resource',
+      { service_id: 'sqs' },
+      state,
+    ).state;
     const [a, b] = state.nodes;
-    state = executeOp(
+    state = executeOperation(
       'connect',
       { source_id: a.id, target_id: b.id, relationship_kind: 'invokes' },
       state,
     ).state;
 
-    const outcome = executeOp(
+    const outcome = executeOperation(
       'connect',
       { source_id: a.id, target_id: b.id, relationship_kind: 'invokes' },
       state,
@@ -237,13 +289,13 @@ describe('executeOp — structural rules', () => {
   });
 
   it('add_resource refuses a parent the child service forbids', () => {
-    const state = executeOp(
+    const state = executeOperation(
       'add_resource',
       { service_id: 's3' },
       empty(),
     ).state;
 
-    const outcome = executeOp(
+    const outcome = executeOperation(
       'add_resource',
       { service_id: 'lambda', parent_id: state.nodes[0].id },
       state,
@@ -254,7 +306,7 @@ describe('executeOp — structural rules', () => {
   });
 
   it('add_resource fans children out instead of stacking them', () => {
-    let state = executeOp(
+    let state = executeOperation(
       'add_resource',
       { service_id: 'subnet' },
       empty(),
@@ -262,7 +314,7 @@ describe('executeOp — structural rules', () => {
     const parentId = state.nodes[0].id;
 
     for (let i = 0; i < 3; i += 1) {
-      state = executeOp(
+      state = executeOperation(
         'add_resource',
         { service_id: 'lambda', parent_id: parentId },
         state,
@@ -278,11 +330,19 @@ describe('executeOp — structural rules', () => {
   });
 
   it('set_parent refuses an illegal parent', () => {
-    let state = executeOp('add_resource', { service_id: 's3' }, empty()).state;
-    state = executeOp('add_resource', { service_id: 'lambda' }, state).state;
+    let state = executeOperation(
+      'add_resource',
+      { service_id: 's3' },
+      empty(),
+    ).state;
+    state = executeOperation(
+      'add_resource',
+      { service_id: 'lambda' },
+      state,
+    ).state;
     const [bucket, fn] = state.nodes;
 
-    const outcome = executeOp(
+    const outcome = executeOperation(
       'set_parent',
       { node_id: fn.id, parent_id: bucket.id },
       state,
@@ -295,20 +355,24 @@ describe('executeOp — structural rules', () => {
   });
 
   it('remove revalidates the nodes that are left', () => {
-    let state = executeOp(
+    let state = executeOperation(
       'add_resource',
       { service_id: 'lambda' },
       empty(),
     ).state;
-    state = executeOp('add_resource', { service_id: 'sqs' }, state).state;
+    state = executeOperation(
+      'add_resource',
+      { service_id: 'sqs' },
+      state,
+    ).state;
     const [fn, queue] = state.nodes;
-    state = executeOp(
+    state = executeOperation(
       'connect',
       { source_id: fn.id, target_id: queue.id, relationship_kind: 'invokes' },
       state,
     ).state;
 
-    const outcome = executeOp('remove', { target_id: queue.id }, state);
+    const outcome = executeOperation('remove', { target_id: queue.id }, state);
 
     // The survivor must carry freshly computed validation, not its stale copy.
     const survivor = outcome.state.nodes.find((n) => n.id === fn.id)!;
@@ -317,20 +381,20 @@ describe('executeOp — structural rules', () => {
   });
 
   it('validate writes its findings onto the canvas nodes', () => {
-    const state = executeOp(
+    const state = executeOperation(
       'add_resource',
       { service_id: 'lambda' },
       empty(),
     ).state;
 
-    const outcome = executeOp('validate', {}, state);
+    const outcome = executeOperation('validate', {}, state);
 
     expect(outcome.mutated).toBe(true);
     expect(outcome.state.nodes[0].data.validationErrors).toBeDefined();
   });
 
   it('list_services always returns non-empty content', () => {
-    const outcome = executeOp(
+    const outcome = executeOperation(
       'list_services',
       { category: 'no-such-category' },
       empty(),

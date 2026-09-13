@@ -5,7 +5,7 @@ import type { DiagramNode } from '@/types';
  * Structural rules for wiring and nesting, in one place.
  *
  * Both the human path (drag-to-connect, drag-into-container) and the agent's
- * ops go through these, so an edit the platform considers illegal is refused
+ * operations go through these, so an edit the platform considers illegal is refused
  * the same way whoever made it — the canvas raises a toast, the agent gets an
  * error tool result it can correct from. Service-specific rules live in the
  * service definitions (`allowedRelationships`, `forbiddenParents`, …); this

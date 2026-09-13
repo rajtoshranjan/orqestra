@@ -63,12 +63,12 @@ class AdvanceTests(EngineTestBase):
         sink = RecordingSink()
         engine = AgentEngine(provider=provider, event_sink=sink)
 
-        result = engine.advance(self.run, op_results=[], catalog=CATALOG)
+        result = engine.advance(self.run, operation_results=[], catalog=CATALOG)
 
         self.assertEqual(result.run_status, RunStatus.AWAITING_CLIENT.value)
-        self.assertEqual(len(result.ops), 1)
-        self.assertEqual(result.ops[0].name, "add_resource")
-        self.assertEqual(result.ops[0].risk, RiskLevel.SAFE.value)
+        self.assertEqual(len(result.operations), 1)
+        self.assertEqual(result.operations[0].name, "add_resource")
+        self.assertEqual(result.operations[0].risk, RiskLevel.SAFE.value)
         self.assertEqual(result.assistant_text, "Adding a Lambda.")
         self.assertIn(AGENT_TOOL_CALL, [event_type for event_type, _ in sink.events])
 
@@ -85,10 +85,10 @@ class AdvanceTests(EngineTestBase):
         sink = RecordingSink()
         engine = AgentEngine(provider=provider, event_sink=sink)
 
-        result = engine.advance(self.run, op_results=[], catalog=CATALOG)
+        result = engine.advance(self.run, operation_results=[], catalog=CATALOG)
 
         self.assertEqual(result.run_status, RunStatus.COMPLETED.value)
-        self.assertEqual(result.ops, [])
+        self.assertEqual(result.operations, [])
         self.run.refresh_from_db()
         self.assertEqual(self.run.status, RunStatus.COMPLETED.value)
         self.assertIn(
@@ -107,7 +107,7 @@ class AdvanceTests(EngineTestBase):
         )
         engine = AgentEngine(provider=provider)
 
-        engine.advance(self.run, op_results=[], catalog=CATALOG)
+        engine.advance(self.run, operation_results=[], catalog=CATALOG)
 
         assistant = self.conversation.messages.filter(
             role=MessageRole.ASSISTANT.value
@@ -116,7 +116,7 @@ class AdvanceTests(EngineTestBase):
         self.assertEqual(assistant.content[0]["text"], "Hi")
         self.assertEqual(assistant.output_tokens, 1)
 
-    def test_op_results_persisted_as_tool_message(self):
+    def test_operation_results_persisted_as_tool_message(self):
         provider = FakeLLMProvider(
             [
                 [
@@ -130,7 +130,7 @@ class AdvanceTests(EngineTestBase):
 
         engine.advance(
             self.run,
-            op_results=[
+            operation_results=[
                 {"tool_call_id": "tc_1", "content": "added node n1", "is_error": False}
             ],
             catalog=CATALOG,
@@ -158,7 +158,7 @@ class AdvanceTests(EngineTestBase):
 
         engine.advance(
             self.run,
-            op_results=[],
+            operation_results=[],
             catalog=CATALOG,
             graph={
                 "nodes": [
@@ -203,7 +203,7 @@ class AdvanceTests(EngineTestBase):
         )
         engine = AgentEngine(provider=provider)
 
-        engine.advance(self.run, op_results=[], catalog=CATALOG)
+        engine.advance(self.run, operation_results=[], catalog=CATALOG)
 
         messages = provider.calls[0]["messages"]
         tool_use_ids = {
@@ -248,7 +248,7 @@ class AdvanceTests(EngineTestBase):
         )
         engine = AgentEngine(provider=provider)
 
-        engine.advance(self.run, op_results=[], catalog=CATALOG)
+        engine.advance(self.run, operation_results=[], catalog=CATALOG)
 
         messages = provider.calls[0]["messages"]
         tool_use_ids = {
@@ -265,7 +265,7 @@ class AdvanceTests(EngineTestBase):
         self.run.turn_count = 2
         self.run.save(update_fields=["turn_count"])
 
-        result = engine.advance(self.run, op_results=[], catalog=CATALOG)
+        result = engine.advance(self.run, operation_results=[], catalog=CATALOG)
 
         self.assertEqual(result.run_status, RunStatus.FAILED.value)
         self.run.refresh_from_db()

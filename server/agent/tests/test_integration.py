@@ -53,14 +53,14 @@ class IntegrationTests(TestCase):
         sink = RecordingSink()
         engine = AgentEngine(provider=provider, event_sink=sink)
 
-        first = engine.advance(self.run, op_results=[], catalog=CATALOG)
+        first = engine.advance(self.run, operation_results=[], catalog=CATALOG)
         self.assertEqual(first.run_status, RunStatus.AWAITING_CLIENT.value)
-        self.assertEqual(first.ops[0].name, "add_resource")
+        self.assertEqual(first.operations[0].name, "add_resource")
 
-        # Simulate the client applying the op and reporting back.
+        # Simulate the client applying the operation and reporting back.
         second = engine.advance(
             self.run,
-            op_results=[
+            operation_results=[
                 {
                     "tool_call_id": "tc_1",
                     "content": "node n1 added; validate: ok",

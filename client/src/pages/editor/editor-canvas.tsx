@@ -24,7 +24,7 @@ import { useLocalStorage } from 'usehooks-ts';
 
 import { buildAnnotationAgentMessage } from '@/agent/annotation-trigger';
 import { selectAnchoredThreads } from '@/agent/inbox';
-import { type GraphState } from '@/agent/op-executor';
+import { type GraphState } from '@/agent/operation-executor';
 import { runAnnotationAgent } from '@/agent/run-annotation';
 import { useProjectDeploymentState, useCreateDeployment } from '@/api';
 import { ConfirmDialog } from '@/components/ui';
@@ -181,7 +181,7 @@ export function CanvasEditor({
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialProject.edges);
 
   // The agent reads/writes the live canvas graph through these. graphRef always
-  // points at the latest nodes/edges so sequential ops seed from current state.
+  // points at the latest nodes/edges so sequential operations seed from current state.
   const graphRef = React.useRef<GraphState>({ nodes, edges });
   React.useEffect(() => {
     graphRef.current = { nodes, edges };
@@ -599,7 +599,7 @@ export function CanvasEditor({
     (connection) => {
       if (!connection.source || !connection.target) return;
 
-      // The same rule the agent's `connect` op goes through, so a wiring the
+      // The same rule the agent's `connect` operation goes through, so a wiring the
       // platform rejects is rejected identically however it was made.
       const problem = checkConnection(
         connection.source,

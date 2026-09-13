@@ -1,4 +1,4 @@
-"""Human-readable descriptions of graph ops, derived from a run.
+"""Human-readable descriptions of graph operations, derived from a run.
 
 Kept server-side so agent-authored text is always something the run itself
 produced — a comment carrying the agent's name is never assembled by a caller.
@@ -24,29 +24,29 @@ def _label_map(run: AgentRun) -> dict[str, str]:
     return labels
 
 
-def describe_op(op: dict, labels: dict[str, str]) -> str:
-    """Imperative description of one pending op."""
-    op_input = op.get("input") or {}
-    name = op.get("name")
+def describe_operation(operation: dict, labels: dict[str, str]) -> str:
+    """Imperative description of one pending operation."""
+    operation_input = operation.get("input") or {}
+    name = operation.get("name")
 
     def label(key: str) -> str:
-        value = str(op_input.get(key) or "")
+        value = str(operation_input.get(key) or "")
         return labels.get(value, value)
 
     if name == "remove":
         return f"remove {label('target_id')}"
     if name == "add_resource":
-        service = op_input.get("service_id") or "a resource"
-        explicit = op_input.get("label")
+        service = operation_input.get("service_id") or "a resource"
+        explicit = operation_input.get("label")
         return f'add {service} "{explicit}"' if explicit else f"add {service}"
     if name == "configure":
-        fields = ", ".join((op_input.get("config_patch") or {}).keys())
+        fields = ", ".join((operation_input.get("config_patch") or {}).keys())
         target = label("node_id")
         return f"change {fields} on {target}" if fields else f"reconfigure {target}"
     if name == "connect":
         return f"connect {label('source_id')} to {label('target_id')}"
     if name == "set_parent":
-        parent = op_input.get("parent_id")
+        parent = operation_input.get("parent_id")
         node = label("node_id")
         return (
             f"move {node} into {labels.get(str(parent), parent)}"
@@ -59,13 +59,13 @@ def describe_op(op: dict, labels: dict[str, str]) -> str:
 def describe_pending_confirmation(run: AgentRun) -> str:
     """The question a paused run asks in its thread."""
     pending = [
-        op for op in run.outstanding_ops() if op.get("risk") == RiskLevel.CONFIRM.value
+        operation for operation in run.outstanding_operations() if operation.get("risk") == RiskLevel.CONFIRM.value
     ]
     if not pending:
         return run.narration()
 
     labels = _label_map(run)
-    described = "; ".join(describe_op(op, labels) for op in pending)
+    described = "; ".join(describe_operation(operation, labels) for operation in pending)
     narration = run.narration()
     lead = f"{narration}\n\n" if narration else ""
     return (

@@ -1,5 +1,5 @@
 from accounts.models import User
-from agent.engine import AdvanceResult, OpRequest
+from agent.engine import AdvanceResult, OperationRequest
 from agent.models import AgentConversation, AgentMessage, AgentRun
 from agent.serializers import AgentConversationDetailSerializer, advance_result_to_dict
 from django.test import TestCase
@@ -33,8 +33,8 @@ class SerializerTests(TestCase):
     def test_advance_result_to_dict_shape(self):
         run = AgentRun.objects.create(conversation=self.conversation)
         result = AdvanceResult(
-            ops=[
-                OpRequest(
+            operations=[
+                OperationRequest(
                     tool_call_id="tc_1",
                     name="add_resource",
                     input={"service_id": "lambda"},
@@ -50,5 +50,5 @@ class SerializerTests(TestCase):
         self.assertEqual(payload["run_id"], str(run.id))
         self.assertEqual(payload["status"], "awaiting_client")
         self.assertEqual(payload["assistant_text"], "Adding a Lambda.")
-        self.assertEqual(payload["ops"][0]["name"], "add_resource")
-        self.assertEqual(payload["ops"][0]["risk"], "safe")
+        self.assertEqual(payload["operations"][0]["name"], "add_resource")
+        self.assertEqual(payload["operations"][0]["risk"], "safe")

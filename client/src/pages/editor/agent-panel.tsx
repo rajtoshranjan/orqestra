@@ -18,8 +18,11 @@ import {
   X,
 } from 'lucide-react';
 
-import { type GraphState } from '@/agent/op-executor';
-import { describeOp, type AgentOpIcon } from '@/agent/op-label';
+import { type GraphState } from '@/agent/operation-executor';
+import {
+  describeOperation,
+  type AgentOperationIcon,
+} from '@/agent/operation-label';
 import { useAgentRun, type AgentTimelineItem } from '@/agent/use-agent-run';
 import type { ClientAnnotation } from '@/api';
 import {
@@ -54,7 +57,7 @@ const EXAMPLE_PROMPTS = [
   'An event pipeline: SQS → Lambda → DynamoDB',
 ];
 
-const ACTIVITY_ICONS: Record<AgentOpIcon, LucideIcon> = {
+const ACTIVITY_ICONS: Record<AgentOperationIcon, LucideIcon> = {
   add: Plus,
   connect: Link2,
   configure: SlidersHorizontal,
@@ -111,7 +114,7 @@ function ActivityRow({
   label,
   isError,
 }: {
-  icon: AgentOpIcon;
+  icon: AgentOperationIcon;
   label: string;
   isError: boolean;
 }) {
@@ -447,7 +450,10 @@ export function AgentPanel({
 
             {pendingOp &&
               (() => {
-                const desc = describeOp(pendingOp, pendingGraph ?? undefined);
+                const desc = describeOperation(
+                  pendingOp,
+                  pendingGraph ?? undefined,
+                );
                 const Icon = ACTIVITY_ICONS[desc.icon];
                 return (
                   <div

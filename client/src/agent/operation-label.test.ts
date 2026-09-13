@@ -1,23 +1,27 @@
 import { describe, it, expect } from 'vitest';
 
 import '@/services';
-import { executeOp } from './op-executor';
-import { describeOp } from './op-label';
+import { executeOperation } from './operation-executor';
+import { describeOperation } from './operation-label';
 
-import type { GraphState } from './op-executor';
+import type { GraphState } from './operation-executor';
 
 const empty = (): GraphState => ({ nodes: [], edges: [] });
 
 function vpcWithChildren(): { state: GraphState; vpcId: string } {
-  let state = executeOp('add_resource', { service_id: 'vpc' }, empty()).state;
+  let state = executeOperation(
+    'add_resource',
+    { service_id: 'vpc' },
+    empty(),
+  ).state;
   const vpcId = state.nodes[0].id;
-  state = executeOp(
+  state = executeOperation(
     'add_resource',
     { service_id: 'subnet', parent_id: vpcId },
     state,
   ).state;
   const subnetId = state.nodes[1].id;
-  state = executeOp(
+  state = executeOperation(
     'add_resource',
     { service_id: 'lambda', parent_id: subnetId, label: 'API' },
     state,
@@ -25,9 +29,9 @@ function vpcWithChildren(): { state: GraphState; vpcId: string } {
   return { state, vpcId };
 }
 
-describe('describeOp — tense', () => {
-  it('describes a pending op in the imperative and a done op in the past', () => {
-    const described = describeOp({
+describe('describeOperation — tense', () => {
+  it('describes a pending operation in the imperative and a done operation in the past', () => {
+    const described = describeOperation({
       name: 'add_resource',
       input: { service_id: 'lambda', label: 'API' },
     });
@@ -40,7 +44,7 @@ describe('describeOp — tense', () => {
     const { state, vpcId } = vpcWithChildren();
     const label = state.nodes.find((n) => n.id === vpcId)!.data.label;
 
-    const described = describeOp(
+    const described = describeOperation(
       { name: 'remove', input: { target_id: vpcId } },
       state,
     );
@@ -50,11 +54,11 @@ describe('describeOp — tense', () => {
   });
 });
 
-describe('describeOp — blast radius', () => {
+describe('describeOperation — blast radius', () => {
   it('reports the descendants a removal takes with it', () => {
     const { state, vpcId } = vpcWithChildren();
 
-    const described = describeOp(
+    const described = describeOperation(
       { name: 'remove', input: { target_id: vpcId } },
       state,
     );
@@ -63,20 +67,24 @@ describe('describeOp — blast radius', () => {
   });
 
   it('reports connections a removal severs', () => {
-    let state = executeOp(
+    let state = executeOperation(
       'add_resource',
       { service_id: 'lambda' },
       empty(),
     ).state;
-    state = executeOp('add_resource', { service_id: 'sqs' }, state).state;
+    state = executeOperation(
+      'add_resource',
+      { service_id: 'sqs' },
+      state,
+    ).state;
     const [fn, queue] = state.nodes;
-    state = executeOp(
+    state = executeOperation(
       'connect',
       { source_id: fn.id, target_id: queue.id, relationship_kind: 'invokes' },
       state,
     ).state;
 
-    const described = describeOp(
+    const described = describeOperation(
       { name: 'remove', input: { target_id: queue.id } },
       state,
     );
@@ -85,13 +93,13 @@ describe('describeOp — blast radius', () => {
   });
 
   it('has no impact list for a leaf removal with no edges', () => {
-    const state = executeOp(
+    const state = executeOperation(
       'add_resource',
       { service_id: 'lambda' },
       empty(),
     ).state;
 
-    const described = describeOp(
+    const described = describeOperation(
       { name: 'remove', input: { target_id: state.nodes[0].id } },
       state,
     );
@@ -100,13 +108,13 @@ describe('describeOp — blast radius', () => {
   });
 
   it('names the node and fields a configure touches', () => {
-    const state = executeOp(
+    const state = executeOperation(
       'add_resource',
       { service_id: 'lambda', label: 'API' },
       empty(),
     ).state;
 
-    const described = describeOp(
+    const described = describeOperation(
       {
         name: 'configure',
         input: {
@@ -122,19 +130,19 @@ describe('describeOp — blast radius', () => {
   });
 
   it('names both ends of a connection', () => {
-    let state = executeOp(
+    let state = executeOperation(
       'add_resource',
       { service_id: 'lambda', label: 'API' },
       empty(),
     ).state;
-    state = executeOp(
+    state = executeOperation(
       'add_resource',
       { service_id: 'sqs', label: 'Jobs' },
       state,
     ).state;
     const [fn, queue] = state.nodes;
 
-    const described = describeOp(
+    const described = describeOperation(
       {
         name: 'connect',
         input: {
@@ -151,9 +159,9 @@ describe('describeOp — blast radius', () => {
   });
 });
 
-describe('describeOp — without a graph', () => {
+describe('describeOperation — without a graph', () => {
   it('still produces a usable label when no graph is supplied', () => {
-    const described = describeOp({
+    const described = describeOperation({
       name: 'remove',
       input: { target_id: 'n1' },
     });

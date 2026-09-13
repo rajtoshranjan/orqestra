@@ -33,14 +33,14 @@ export type AgentCatalogEntry = {
   useCases?: string[];
 };
 
-export type AgentOp = {
+export type AgentOperation = {
   toolCallId: string;
   name: string;
   input: Record<string, unknown>;
   risk: AgentRiskLevel;
 };
 
-export type AgentOpResult = {
+export type AgentOperationResult = {
   toolCallId: string;
   content: string;
   isError: boolean;
@@ -50,7 +50,7 @@ export type AgentAdvanceResponse = {
   runId: string;
   status: AgentRunStatusValue;
   assistantText: string;
-  ops: AgentOp[];
+  operations: AgentOperation[];
   error?: string;
 };
 
@@ -63,7 +63,7 @@ export type AgentRun = {
   outputTokens: number;
   error: string;
   /** Tool calls still waiting on this client, so another surface can resume. */
-  ops: AgentOp[];
+  operations: AgentOperation[];
 };
 
 export type AgentMessageBlock =
@@ -92,40 +92,42 @@ export type AgentConversationMessage = {
 export type AgentGraphSnapshot = { nodes: unknown[]; edges: unknown[] };
 
 /**
- * Map the response envelope with the shared mapper, but leave each op's `input`
+ * Map the response envelope with the shared mapper, but leave each operation's `input`
  * exactly as the model produced it: those keys are the tool schema's
  * (`service_id`, `config_patch`) and the config values inside are the service's
  * own, so translating either would break the executor that reads them.
  */
-/** Runs carry ops too, whose `input` must survive casing untouched. */
+/** Runs carry operations too, whose `input` must survive casing untouched. */
 function mapRun(raw: Record<string, unknown>): AgentRun {
   const mapped = snakeToCamelRecursive(raw) as AgentRun;
-  const rawOps = (raw.ops ?? []) as { input?: Record<string, unknown> }[];
+  const rawOperations = (raw.operations ?? []) as {
+    input?: Record<string, unknown>;
+  }[];
   return {
     ...mapped,
-    ops: (mapped.ops ?? []).map((op, index) => ({
-      ...op,
-      input: rawOps[index]?.input ?? {},
+    operations: (mapped.operations ?? []).map((operation, index) => ({
+      ...operation,
+      input: rawOperations[index]?.input ?? {},
     })),
   };
 }
 
 function mapAdvance(data: unknown): AgentAdvanceResponse {
   const raw = (data ?? {}) as {
-    ops?: { input?: Record<string, unknown> }[];
+    operations?: { input?: Record<string, unknown> }[];
   };
   const mapped = snakeToCamelRecursive(data) as {
     runId: string;
     status: AgentRunStatusValue;
     assistantText: string;
-    ops?: AgentOp[];
+    operations?: AgentOperation[];
     error?: string;
   };
-  const ops = (mapped.ops ?? []).map((op, index) => ({
-    ...op,
-    input: raw.ops?.[index]?.input ?? {},
+  const operations = (mapped.operations ?? []).map((operation, index) => ({
+    ...operation,
+    input: raw.operations?.[index]?.input ?? {},
   }));
-  return { ...mapped, ops };
+  return { ...mapped, operations };
 }
 
 export async function createAgentConversation(params: {
@@ -245,14 +247,14 @@ export async function replyToAnnotation(
 
 export async function advanceAgentRun(
   runId: string,
-  opResults: AgentOpResult[],
+  operationResults: AgentOperationResult[],
   graph?: AgentGraphSnapshot,
   signal?: AbortSignal,
 ): Promise<AgentAdvanceResponse> {
   const response = await api.post<ServerResponse<unknown>>(
     `/agent/runs/${runId}/advance/`,
     {
-      op_results: camelToSnakeRecursive(opResults),
+      operation_results: camelToSnakeRecursive(operationResults),
       ...(graph ? { graph } : {}),
     },
     { signal },

@@ -20,7 +20,7 @@ describe('bodyMentionsAgent', () => {
 });
 
 describe('threadEngagesAgent / shouldTriggerAgent', () => {
-  it('stays engaged in an open thread once the agent has replied', () => {
+  it('stays engaged in an operationen thread once the agent has replied', () => {
     const thread = {
       status: 'open',
       comments: [

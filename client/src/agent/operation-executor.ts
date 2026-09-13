@@ -27,7 +27,7 @@ export function toServerGraph(graph: GraphState): ServerGraphSnapshot {
   };
 }
 
-export type OpOutcome = {
+export type OperationOutcome = {
   state: GraphState;
   content: string;
   isError: boolean;
@@ -44,11 +44,11 @@ const CHILD_ORIGIN = { x: 24, y: 56 };
 const CHILD_GAP_X = 240;
 const CHILD_GAP_Y = 100;
 
-function errorOutcome(state: GraphState, content: string): OpOutcome {
+function errorOutcome(state: GraphState, content: string): OperationOutcome {
   return { state, content, isError: true, mutated: false };
 }
 
-function readOutcome(state: GraphState, content: string): OpOutcome {
+function readOutcome(state: GraphState, content: string): OperationOutcome {
   return { state, content, isError: false, mutated: false };
 }
 
@@ -95,7 +95,10 @@ function summarizeErrors(node: DiagramNode): string {
     : ' Validation: ok.';
 }
 
-function addResource(input: Record<string, any>, state: GraphState): OpOutcome {
+function addResource(
+  input: Record<string, any>,
+  state: GraphState,
+): OperationOutcome {
   const serviceId = String(input.service_id ?? '');
   if (!registry.find(serviceId)) {
     return errorOutcome(state, `Unknown service_id "${serviceId}".`);
@@ -148,7 +151,10 @@ function addResource(input: Record<string, any>, state: GraphState): OpOutcome {
   };
 }
 
-function connect(input: Record<string, any>, state: GraphState): OpOutcome {
+function connect(
+  input: Record<string, any>,
+  state: GraphState,
+): OperationOutcome {
   const source = String(input.source_id ?? '');
   const target = String(input.target_id ?? '');
   const kind = input.relationship_kind
@@ -187,7 +193,10 @@ function connect(input: Record<string, any>, state: GraphState): OpOutcome {
   };
 }
 
-function configure(input: Record<string, any>, state: GraphState): OpOutcome {
+function configure(
+  input: Record<string, any>,
+  state: GraphState,
+): OperationOutcome {
   const nodeId = String(input.node_id ?? '');
   const patch =
     input.config_patch && typeof input.config_patch === 'object'
@@ -220,7 +229,10 @@ function configure(input: Record<string, any>, state: GraphState): OpOutcome {
   };
 }
 
-function setParent(input: Record<string, any>, state: GraphState): OpOutcome {
+function setParent(
+  input: Record<string, any>,
+  state: GraphState,
+): OperationOutcome {
   const nodeId = String(input.node_id ?? '');
   const parentId = input.parent_id == null ? null : String(input.parent_id);
   const target = state.nodes.find((node) => node.id === nodeId);
@@ -262,7 +274,10 @@ function setParent(input: Record<string, any>, state: GraphState): OpOutcome {
   };
 }
 
-function remove(input: Record<string, any>, state: GraphState): OpOutcome {
+function remove(
+  input: Record<string, any>,
+  state: GraphState,
+): OperationOutcome {
   const targetId = String(input.target_id ?? '');
   const isNode = state.nodes.some((node) => node.id === targetId);
   const isEdge = state.edges.some((edge) => edge.id === targetId);
@@ -307,7 +322,7 @@ function remove(input: Record<string, any>, state: GraphState): OpOutcome {
   };
 }
 
-function queryGraph(state: GraphState): OpOutcome {
+function queryGraph(state: GraphState): OperationOutcome {
   const summary = {
     nodes: state.nodes.map((node) => ({
       id: node.id,
@@ -325,7 +340,7 @@ function queryGraph(state: GraphState): OpOutcome {
   return readOutcome(state, JSON.stringify(summary));
 }
 
-function validateGraph(state: GraphState): OpOutcome {
+function validateGraph(state: GraphState): OperationOutcome {
   // Write the fresh validation back onto the nodes: the model is told about
   // the errors, and so is the user looking at the canvas.
   const next = revalidateAll(state);
@@ -341,7 +356,7 @@ function validateGraph(state: GraphState): OpOutcome {
   return { state: next, content, isError: false, mutated: true };
 }
 
-function estimateCost(state: GraphState): OpOutcome {
+function estimateCost(state: GraphState): OperationOutcome {
   let total = 0;
   for (const node of state.nodes) {
     const profile = registry.find(node.data.serviceId)?.costProfile;
@@ -365,7 +380,7 @@ function estimateCost(state: GraphState): OpOutcome {
 function listServices(
   input: Record<string, any>,
   state: GraphState,
-): OpOutcome {
+): OperationOutcome {
   const category = input.category ? String(input.category) : null;
   const lines = registry
     .getAll()
@@ -386,7 +401,10 @@ function listServices(
   return readOutcome(state, lines.join('\n'));
 }
 
-function getService(input: Record<string, any>, state: GraphState): OpOutcome {
+function getService(
+  input: Record<string, any>,
+  state: GraphState,
+): OperationOutcome {
   const serviceId = String(input.service_id ?? '');
   const service = registry.find(serviceId);
   if (!service)
@@ -407,11 +425,11 @@ function getService(input: Record<string, any>, state: GraphState): OpOutcome {
   );
 }
 
-export function executeOp(
+export function executeOperation(
   opName: string,
   input: Record<string, any>,
   state: GraphState,
-): OpOutcome {
+): OperationOutcome {
   switch (opName) {
     case 'add_resource':
       return addResource(input, state);

@@ -1,6 +1,6 @@
 """API-boundary guards: run status, result filtering, cancellation, attribution.
 
-The client is the source of truth for op results, so the boundary has to be the
+The client is the source of truth for operation results, so the boundary has to be the
 place that keeps history replayable — a retried POST, a stale confirmation, or a
 hand-rolled request must never reach the engine.
 """
@@ -67,7 +67,7 @@ class AdvanceStatusGuardTests(GuardTestBase):
                     conversation=self.conversation, status=run_status
                 )
                 response = self.client.post(
-                    self.advance_url(run), {"op_results": []}, format="json"
+                    self.advance_url(run), {"operation_results": []}, format="json"
                 )
                 self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -93,7 +93,7 @@ class AdvanceStatusGuardTests(GuardTestBase):
         response = self.client.post(
             self.advance_url(run),
             {
-                "op_results": [
+                "operation_results": [
                     {"tool_call_id": "tc_1", "content": "ok", "is_error": False},
                     {"tool_call_id": "tc_1", "content": "ok again", "is_error": False},
                     {"tool_call_id": "ghost", "content": "invented", "is_error": False},
@@ -117,7 +117,7 @@ class AdvanceStatusGuardTests(GuardTestBase):
         for payload in ([{}], ["not-an-object"], [{"content": "no id"}]):
             with self.subTest(payload=payload):
                 response = self.client.post(
-                    self.advance_url(run), {"op_results": payload}, format="json"
+                    self.advance_url(run), {"operation_results": payload}, format="json"
                 )
                 self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -309,7 +309,7 @@ class CatalogValidationTests(GuardTestBase):
 
 
 class PausedRunConfirmationTests(GuardTestBase):
-    """A run paused on a high-impact op asks its question in the thread."""
+    """A run paused on a high-impact operation asks its question in the thread."""
 
     def setUp(self):
         super().setUp()

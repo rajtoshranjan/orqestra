@@ -2,7 +2,7 @@ import json
 
 from .llm.types import ToolSpec
 
-GRAPH_OP_NAMES = [
+GRAPH_OPERATION_NAMES = [
     "list_services",
     "get_service",
     "query_graph",
@@ -138,7 +138,7 @@ def graph_tool_specs() -> list[ToolSpec]:
 
 # --- Server-resolved reads -------------------------------------------------
 #
-# These ops have no side effects and read data the server already holds: the
+# These operations have no side effects and read data the server already holds: the
 # catalog snapshot on the conversation, and the graph posted with the request.
 # Resolving them here keeps a lookup from costing an HTTP round trip plus a
 # whole extra model turn against AGENT_MAX_TURNS.
@@ -146,9 +146,9 @@ def graph_tool_specs() -> list[ToolSpec]:
 # `validate` and `estimate_cost` stay on the client: they need the frontend
 # service registry's validators and cost estimators, which have no server twin.
 
-SERVER_RESOLVED_OPS = frozenset({"list_services", "get_service", "query_graph"})
+SERVER_RESOLVED_OPERATIONS = frozenset({"list_services", "get_service", "query_graph"})
 
-CLIENT_OP_NAMES = [name for name in GRAPH_OP_NAMES if name not in SERVER_RESOLVED_OPS]
+CLIENT_OPERATION_NAMES = [name for name in GRAPH_OPERATION_NAMES if name not in SERVER_RESOLVED_OPERATIONS]
 
 
 def _service_line(service: dict) -> str:
@@ -188,8 +188,8 @@ def service_catalog_lines(catalog: list[dict]) -> list[str]:
     return [_service_line(service) for service in catalog]
 
 
-def _list_services(op_input: dict, catalog: list[dict]) -> str:
-    category = op_input.get("category")
+def _list_services(operation_input: dict, catalog: list[dict]) -> str:
+    category = operation_input.get("category")
     services = [
         service
         for service in catalog
@@ -205,8 +205,8 @@ def _list_services(op_input: dict, catalog: list[dict]) -> str:
     return "\n".join(_service_line(service) for service in services)
 
 
-def _get_service(op_input: dict, catalog: list[dict]) -> tuple[str, bool]:
-    service_id = str(op_input.get("service_id") or "")
+def _get_service(operation_input: dict, catalog: list[dict]) -> tuple[str, bool]:
+    service_id = str(operation_input.get("service_id") or "")
     for service in catalog:
         if service.get("id") == service_id:
             return json.dumps(service), False
@@ -243,18 +243,18 @@ def _query_graph(nodes: list[dict], edges: list[dict]) -> str:
     )
 
 
-def resolve_read_op(
-    op_name: str,
-    op_input: dict,
+def resolve_read_operation(
+    operation_name: str,
+    operation_input: dict,
     catalog: list[dict],
     nodes: list[dict],
     edges: list[dict],
 ) -> tuple[str, bool]:
-    """Answer a read-only op server-side. Returns (content, is_error)."""
-    if op_name == "list_services":
-        return _list_services(op_input or {}, catalog), False
-    if op_name == "get_service":
-        return _get_service(op_input or {}, catalog)
-    if op_name == "query_graph":
+    """Answer a read-only operation server-side. Returns (content, is_error)."""
+    if operation_name == "list_services":
+        return _list_services(operation_input or {}, catalog), False
+    if operation_name == "get_service":
+        return _get_service(operation_input or {}, catalog)
+    if operation_name == "query_graph":
         return _query_graph(nodes, edges), False
-    raise ValueError(f"{op_name} is not server-resolvable.")
+    raise ValueError(f"{operation_name} is not server-resolvable.")

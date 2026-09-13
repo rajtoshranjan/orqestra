@@ -9,8 +9,8 @@ import {
 } from '@/api/agent';
 
 import { buildAgentCatalog } from './catalog';
-import { toServerGraph, type GraphState } from './op-executor';
-import { applyConfirmedOp, processOps } from './run-loop';
+import { toServerGraph, type GraphState } from './operation-executor';
+import { applyConfirmedOperation, processOperations } from './run-loop';
 
 export type RunAnnotationAgentOptions = {
   projectId: string;
@@ -25,7 +25,7 @@ export type RunAnnotationAgentOptions = {
 export type RunAnnotationResult = {
   /** A run was already working this thread, so this comment was not acted on. */
   skipped: boolean;
-  /** The run paused on a high-impact op and asked for approval in the thread. */
+  /** The run paused on a high-impact operation and asked for approval in the thread. */
   awaitingConfirmation: boolean;
 };
 
@@ -47,7 +47,7 @@ export function isAffirmative(text: string): boolean {
  * Run one annotation-anchored agent request.
  *
  * Confirmation happens in the thread rather than in a panel that cannot show
- * this conversation: a high-impact op pauses the run and posts a question, and
+ * this conversation: a high-impact operation pauses the run and posts a question, and
  * the next comment resolves it. That keeps the whole exchange in one place and
  * means anchored threads can do the full action space, deletions included.
  */
@@ -83,16 +83,16 @@ export async function runAnnotationAgent({
     const paused = await fetchActiveRunForAnnotation(annotationId);
     let response: AgentAdvanceResponse;
 
-    if (paused && paused.ops.length > 0) {
+    if (paused && paused.operations.length > 0) {
       // This comment is the answer to a confirmation we asked for.
       const approved = isAffirmative(message);
-      const [op, ...rest] = paused.ops;
-      const applied = applyConfirmedOp(op, latestState, approved);
+      const [operation, ...rest] = paused.operations;
+      const applied = applyConfirmedOperation(operation, latestState, approved);
       latestState = applied.state;
       structural = structural || applied.structural;
       applyGraph(latestState);
 
-      const outcome = await processOps(rest, latestState, {
+      const outcome = await processOperations(rest, latestState, {
         confirmPolicy: 'pause',
       });
       latestState = outcome.state;
@@ -124,20 +124,27 @@ export async function runAnnotationAgent({
         // own error — posting here too would double up.
         throw new Error(response.error || 'The agent run failed.');
       }
-      if (response.status !== 'awaiting_client' || response.ops.length === 0) {
+      if (
+        response.status !== 'awaiting_client' ||
+        response.operations.length === 0
+      ) {
         break;
       }
 
-      const outcome = await processOps(response.ops, latestState, {
-        confirmPolicy: 'pause',
-      });
+      const outcome = await processOperations(
+        response.operations,
+        latestState,
+        {
+          confirmPolicy: 'pause',
+        },
+      );
       latestState = outcome.state;
       structural = structural || outcome.structural;
       applyGraph(latestState);
 
       if (outcome.pending) {
         // Leave the run paused and let it ask its own question in the thread —
-        // the server builds that text from the run's outstanding ops. The next
+        // the server builds that text from the run's outstanding operations. The next
         // comment resumes it via the `paused` branch above.
         if (structural && layoutGraph) applyGraph(layoutGraph(latestState));
         await replyToAnnotation(annotationId, response.runId);

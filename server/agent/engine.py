@@ -5,7 +5,7 @@ from orqestra.env_variables import EnvVariable
 
 from .constants import (
     AGENT_MESSAGE,
-    AGENT_OP_APPLIED,
+    AGENT_OPERATION_APPLIED,
     AGENT_RUN_COMPLETED,
     AGENT_RUN_FAILED,
     AGENT_TOOL_CALL,
@@ -30,8 +30,8 @@ from .llm.types import (
 )
 from .models import AgentMessage, AgentRun
 from .prompts import build_catalog_block, build_system_prompt
-from .risk import classify_op_risk
-from .tools import SERVER_RESOLVED_OPS, graph_tool_specs, resolve_read_op
+from .risk import classify_operation_risk
+from .tools import SERVER_RESOLVED_OPERATIONS, graph_tool_specs, resolve_read_operation
 
 EventSink = Callable[[str, dict], None]
 
@@ -143,7 +143,7 @@ def _budget_history(history: list[LLMMessage], max_tokens: int) -> list[LLMMessa
 
 
 @dataclass
-class OpRequest:
+class OperationRequest:
     tool_call_id: str
     name: str
     input: dict
@@ -152,7 +152,7 @@ class OpRequest:
 
 @dataclass
 class AdvanceResult:
-    ops: list[OpRequest] = field(default_factory=list)
+    operations: list[OperationRequest] = field(default_factory=list)
     assistant_text: str = ""
     run_status: str = RunStatus.RUNNING.value
 
@@ -184,13 +184,13 @@ class AgentEngine:
     def advance(
         self,
         run: AgentRun,
-        op_results: list[dict],
+        operation_results: list[dict],
         catalog: list[dict],
         graph: dict | None = None,
     ) -> AdvanceResult:
         if run.is_terminal:
             # Cancelled or already finished: never call the provider again.
-            return AdvanceResult(ops=[], assistant_text="", run_status=run.status)
+            return AdvanceResult(operations=[], assistant_text="", run_status=run.status)
 
         conversation = run.conversation
         nodes, edges = self._resolve_graph(conversation, graph)
@@ -199,7 +199,7 @@ class AgentEngine:
         #    the server resolved itself are merged in ahead of the client's, so
         #    the message answers every outstanding tool call in one block.
         pending = list(run.resolved_results or [])
-        merged_results = pending + list(op_results)
+        merged_results = pending + list(operation_results)
         if merged_results:
             self._persist_tool_results(conversation, merged_results, run)
             if pending:
@@ -207,7 +207,7 @@ class AgentEngine:
                 run.save(update_fields=["resolved_results", "updated_at"])
             for item in merged_results:
                 self.emit(
-                    AGENT_OP_APPLIED,
+                    AGENT_OPERATION_APPLIED,
                     {"run_id": str(run.id), "tool_call_id": item["tool_call_id"]},
                 )
 
@@ -281,10 +281,10 @@ class AgentEngine:
                 return self._complete(run, "".join(narration))
 
             server_calls = [
-                call for call in turn.tool_calls if call.name in SERVER_RESOLVED_OPS
+                call for call in turn.tool_calls if call.name in SERVER_RESOLVED_OPERATIONS
             ]
             client_calls = [
-                call for call in turn.tool_calls if call.name not in SERVER_RESOLVED_OPS
+                call for call in turn.tool_calls if call.name not in SERVER_RESOLVED_OPERATIONS
             ]
             server_results = [
                 self._resolve_read(run, call, catalog, nodes, edges)
@@ -361,9 +361,9 @@ class AgentEngine:
         nodes: list[dict],
         edges: list[dict],
     ) -> dict:
-        """Answer a read-only op here rather than paying a client round trip."""
+        """Answer a read-only operation here rather than paying a client round trip."""
         try:
-            content, is_error = resolve_read_op(
+            content, is_error = resolve_read_operation(
                 call.name, call.input or {}, catalog, nodes, edges
             )
         except Exception as error:  # noqa: BLE001 - a bad read must not fail the run
@@ -428,24 +428,24 @@ class AgentEngine:
         resolved_results: list[dict],
         assistant_text: str,
     ) -> AdvanceResult:
-        ops = [
-            OpRequest(
+        operations = [
+            OperationRequest(
                 tool_call_id=call.id,
                 name=call.name,
                 input=call.input,
-                risk=classify_op_risk(call.name, call.input).value,
+                risk=classify_operation_risk(call.name, call.input).value,
             )
             for call in calls
         ]
-        for op in ops:
+        for operation in operations:
             self.emit(
                 AGENT_TOOL_CALL,
                 {
                     "run_id": str(run.id),
-                    "tool_call_id": op.tool_call_id,
-                    "name": op.name,
-                    "input": op.input,
-                    "risk": op.risk,
+                    "tool_call_id": operation.tool_call_id,
+                    "name": operation.name,
+                    "input": operation.input,
+                    "risk": operation.risk,
                 },
             )
         run.status = RunStatus.AWAITING_CLIENT.value
@@ -461,7 +461,7 @@ class AgentEngine:
             ]
         )
         return AdvanceResult(
-            ops=ops, assistant_text=assistant_text, run_status=run.status
+            operations=operations, assistant_text=assistant_text, run_status=run.status
         )
 
     def _complete(self, run: AgentRun, assistant_text: str) -> AdvanceResult:
@@ -484,7 +484,7 @@ class AgentEngine:
             },
         )
         return AdvanceResult(
-            ops=[], assistant_text=assistant_text, run_status=run.status
+            operations=[], assistant_text=assistant_text, run_status=run.status
         )
 
     def _fail(
@@ -504,5 +504,5 @@ class AgentEngine:
         )
         self.emit(AGENT_RUN_FAILED, {"run_id": str(run.id), "error": error})
         return AdvanceResult(
-            ops=[], assistant_text=assistant_text, run_status=run.status
+            operations=[], assistant_text=assistant_text, run_status=run.status
         )

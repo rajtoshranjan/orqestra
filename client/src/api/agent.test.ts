@@ -128,7 +128,7 @@ describe('agent api', () => {
           run_id: 'r1',
           status: 'awaiting_client',
           assistant_text: 'Adding a Lambda.',
-          ops: [
+          operations: [
             {
               tool_call_id: 'tc_1',
               name: 'add_resource',
@@ -149,7 +149,7 @@ describe('agent api', () => {
     );
     expect(result.runId).toBe('r1');
     expect(result.assistantText).toBe('Adding a Lambda.');
-    expect(result.ops[0]).toEqual({
+    expect(result.operations[0]).toEqual({
       toolCallId: 'tc_1',
       name: 'add_resource',
       input: { service_id: 'lambda' },
@@ -157,14 +157,14 @@ describe('agent api', () => {
     });
   });
 
-  it('sends op results in snake_case to advance', async () => {
+  it('sends operation results in snake_case to advance', async () => {
     post.mockResolvedValue({
       data: {
         data: {
           run_id: 'r1',
           status: 'completed',
           assistant_text: 'Done.',
-          ops: [],
+          operations: [],
         },
       },
     });
@@ -176,14 +176,14 @@ describe('agent api', () => {
     expect(post).toHaveBeenCalledWith(
       '/agent/runs/r1/advance/',
       {
-        op_results: [
+        operation_results: [
           { tool_call_id: 'tc_1', content: 'node added', is_error: false },
         ],
       },
       { signal: undefined },
     );
     expect(result.status).toBe('completed');
-    expect(result.ops).toEqual([]);
+    expect(result.operations).toEqual([]);
   });
 
   it('includes the live graph snapshot when provided to send', async () => {
@@ -193,7 +193,7 @@ describe('agent api', () => {
           run_id: 'r1',
           status: 'completed',
           assistant_text: '',
-          ops: [],
+          operations: [],
         },
       },
     });
@@ -220,7 +220,7 @@ describe('agent api', () => {
           run_id: 'r1',
           status: 'completed',
           assistant_text: '',
-          ops: [],
+          operations: [],
         },
       },
     });
@@ -234,7 +234,9 @@ describe('agent api', () => {
     expect(post).toHaveBeenCalledWith(
       '/agent/runs/r1/advance/',
       {
-        op_results: [{ tool_call_id: 'tc_1', content: 'ok', is_error: false }],
+        operation_results: [
+          { tool_call_id: 'tc_1', content: 'ok', is_error: false },
+        ],
         graph: { nodes: [], edges: [] },
       },
       { signal: undefined },

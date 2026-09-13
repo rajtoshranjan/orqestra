@@ -56,7 +56,7 @@ class EmptyTurnTests(LifecycleTestBase):
         provider = FakeLLMProvider([[Usage(input_tokens=5, output_tokens=0)]])
 
         result = AgentEngine(provider=provider).advance(
-            self.run, op_results=[], catalog=[], graph=None
+            self.run, operation_results=[], catalog=[], graph=None
         )
 
         self.assertEqual(result.run_status, RunStatus.FAILED.value)
@@ -96,7 +96,7 @@ class TruncationTests(LifecycleTestBase):
         )
 
         result = AgentEngine(provider=provider).advance(
-            self.run, op_results=[], catalog=[], graph=None
+            self.run, operation_results=[], catalog=[], graph=None
         )
 
         self.assertEqual(result.run_status, RunStatus.FAILED.value)
@@ -172,15 +172,15 @@ class CancellationTests(LifecycleTestBase):
         provider = FakeLLMProvider([[TextDelta(text="should never run")]])
 
         result = AgentEngine(provider=provider).advance(
-            self.run, op_results=[], catalog=[], graph=None
+            self.run, operation_results=[], catalog=[], graph=None
         )
 
         self.assertEqual(result.run_status, RunStatus.CANCELLED.value)
         self.assertEqual(provider.calls, [])
 
 
-class OutstandingOpTests(LifecycleTestBase):
-    def test_outstanding_ops_carry_input_and_risk(self):
+class OutstandingOperationTests(LifecycleTestBase):
+    def test_outstanding_operations_carry_input_and_risk(self):
         """A thread or a reloaded panel has to know what it is being asked to approve."""
         AgentMessage.objects.create(
             conversation=self.conversation,
@@ -206,13 +206,13 @@ class OutstandingOpTests(LifecycleTestBase):
             ),
         )
 
-        ops = self.run.outstanding_ops()
+        operations = self.run.outstanding_operations()
 
-        self.assertEqual(len(ops), 1)
-        self.assertEqual(ops[0]["tool_call_id"], "tc_1")
-        self.assertEqual(ops[0]["name"], "remove")
-        self.assertEqual(ops[0]["input"], {"target_id": "n1"})
-        self.assertEqual(ops[0]["risk"], "confirm")
+        self.assertEqual(len(operations), 1)
+        self.assertEqual(operations[0]["tool_call_id"], "tc_1")
+        self.assertEqual(operations[0]["name"], "remove")
+        self.assertEqual(operations[0]["input"], {"target_id": "n1"})
+        self.assertEqual(operations[0]["risk"], "confirm")
 
-    def test_no_outstanding_ops_when_everything_is_answered(self):
-        self.assertEqual(self.run.outstanding_ops(), [])
+    def test_no_outstanding_operations_when_everything_is_answered(self):
+        self.assertEqual(self.run.outstanding_operations(), [])

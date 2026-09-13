@@ -67,16 +67,16 @@ does.
 2. Server runs one LLM turn              agent/engine.py → BaseLLMProvider.stream()
         │
         ▼
-3. Read-only ops resolve server-side     list_services / get_service /
+3. Read-only operations resolve server-side     list_services / get_service /
         │                                query_graph answered from the stored
         │                                catalog and the posted graph, then the
         │                                loop takes another turn immediately —
         │                                no round trip, no turn spent
         ▼
-4. Mutating ops go to the client         coarse risk classified server-side
+4. Mutating operations go to the client         coarse risk classified server-side
         │                                (agent/risk.py), refined at apply time
         ▼
-5. Client applies each op                client/src/agent/op-executor.ts
+5. Client applies each operation                client/src/agent/operation-executor.ts
         │                                → shared graph rules + service registry
         │                                → React Flow → normal project autosave
         ▼
@@ -87,9 +87,9 @@ does.
 7. Model continues or self-corrects      loop back to 2
 ```
 
-The loop ends when the model stops emitting ops and posts a summary, when you
-press **Stop**, or when it hits `AGENT_MAX_TURNS` (default 20). Ops classified as
-risky pause the loop for confirmation; the remaining ops in that batch resume
+The loop ends when the model stops emitting operations and posts a summary, when you
+press **Stop**, or when it hits `AGENT_MAX_TURNS` (default 20). Operations classified as
+risky pause the loop for confirmation; the remaining operations in that batch resume
 after you decide (see [Risk model](#risk-model)).
 
 A run is a state machine — `running` → `awaiting_client` → `completed` /
@@ -99,12 +99,12 @@ outstanding, so a retried request can't write a duplicate `tool_result` that
 poisons the replayed history. A run abandoned mid-flight (a closed tab) is
 retired after `AGENT_RUN_STALE_MINUTES` so it can never block the conversation.
 
-The build reads live because the client applies each turn's ops **one at a
+The build reads live because the client applies each turn's operations **one at a
 time**, with a short beat between them, narrating as it goes — the architecture
 visibly assembles instead of appearing in one lump.
 
 The engine also broadcasts run events to the project's Channels group
-(`agent.message`, `agent.tool_call`, `agent.op_applied`, `agent.run.completed`,
+(`agent.message`, `agent.tool_call`, `agent.operation_applied`, `agent.run.completed`,
 `agent.run.failed`) through the same real-time transport deployments use. One
 `agent.message` is emitted per completed turn rather than per token — a
 delta-rate broadcast put a channel-layer round trip on the hot path for every
@@ -136,10 +136,10 @@ the request, and the loop continues without returning to the browser. Only
 mutations, `validate` and `estimate_cost` reach the client — the latter two
 because they need the frontend registry's validators and cost estimators.
 
-The ops are grounded twice. The system prompt carries each service's
+The operations are grounded twice. The system prompt carries each service's
 capabilities, allowed parents, allowed relationships and summary — not just its
 id — so the model can select and wire by capability without spending turns
-looking things up. And the client executes each op through the same
+looking things up. And the client executes each operation through the same
 `checkConnection` / `checkParent` rules a human drag-and-drop goes through
 (`client/src/utils/graph-rules.ts`), so an unknown service, an illegal parent or
 a rejected wiring comes straight back as an error tool result the model has to
@@ -160,7 +160,7 @@ Autonomy is graded by blast radius:
 - **safe** — applied immediately and undoable like any other canvas edit.
 - **confirm** — the run pauses and the panel asks before applying.
 
-Coarse, op-type risk is decided server-side (`server/agent/risk.py`): `remove`
+Coarse, operation-type risk is decided server-side (`server/agent/risk.py`): `remove`
 always confirms. The client then merges in finer signal at apply time
 (`client/src/agent/risk.ts`), because the profiles it needs live on the frontend
 service definitions:
@@ -170,7 +170,7 @@ service definitions:
   (exposure, encryption, retention, instance class, capacity …). A service can
   name its own with `sensitiveConfigKeys`.
 
-A pending confirmation stops the run at that op and holds the rest of the
+A pending confirmation stops the run at that operation and holds the rest of the
 batch; approving applies it and resumes, declining reports "the user declined
 this change" back to the model as the tool result so it can adjust rather than
 silently retry. The confirmation card names the actual target and what else the
@@ -325,7 +325,7 @@ ollama pull qwen3:8b
 Three things matter when picking a model:
 
 - **It must support tool calling.** The agent acts only through its grounded
-  ops, so a model with no tool template (plain `llama3`, `gemma`, most
+  operations, so a model with no tool template (plain `llama3`, `gemma`, most
   `*-text` variants) can chat but can never touch the canvas. `qwen3`,
   `llama3.1`+, and `mistral-nemo` do support it.
 - **Context.** Ollama defaults to a 4096-token window, which silently drops the
@@ -375,7 +375,7 @@ the standard organisation permissions (`IsOrganisationMember` to read,
 | `POST` | `/agent/conversations/` | Start a conversation, optionally anchored to an annotation. |
 | `GET` | `/agent/conversations/<id>/` | Full transcript, for rehydrating the panel. |
 | `POST` | `/agent/conversations/<id>/send/` | Send a user message with the live graph snapshot; starts a run. |
-| `POST` | `/agent/runs/<id>/advance/` | Report op results and take the next turn. |
+| `POST` | `/agent/runs/<id>/advance/` | Report operation results and take the next turn. |
 | `POST` | `/agent/runs/<id>/cancel/` | Stop a run. The engine checks before each turn. |
 | `POST` | `/agent/annotations/<id>/reply/` | Post the agent's reply into a comment thread. Takes a `run`, not a body: the text is derived server-side from that run's own narration, error, or pending confirmation, so a comment carrying the agent's name is always something the agent actually said. |
 
@@ -392,7 +392,7 @@ cd client && npm test
 The backend suite covers the engine loop, tools, prompts, risk, serializers,
 events, both providers, and the annotation reply path, using a fake provider
 (`server/agent/tests/fakes.py`) — no API key or network needed. The frontend
-suite covers the op executor, run loop, risk resolution, inbox derivation,
+suite covers the operation executor, run loop, risk resolution, inbox derivation,
 annotation triggering, and error parsing.
 
 ## Related documents

@@ -22,7 +22,7 @@ export function threadEngagesAgent(thread: AgentThreadState): boolean {
 
 /**
  * Whether a newly submitted comment should hand off to the agent: either it
- * tags `@orqestra` explicitly, or it lands in an open thread the agent is
+ * tags `@orqestra` explicitly, or it lands in an operationen thread the agent is
  * already engaged in (so the user needn't re-tag on every reply).
  */
 export function shouldTriggerAgent(

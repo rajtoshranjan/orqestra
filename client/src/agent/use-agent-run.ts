@@ -8,16 +8,16 @@ import {
   sendAgentMessage,
   type AgentConversationMessage,
   AgentAdvanceResponse,
-  AgentOp,
-  AgentOpResult,
+  AgentOperation,
+  AgentOperationResult,
 } from '@/api/agent';
 import { makeId } from '@/utils/diagram';
 
 import { buildAgentCatalog } from './catalog';
 import { describeAgentError } from './errors';
-import { toServerGraph, type GraphState } from './op-executor';
-import { describeOp, type AgentOpIcon } from './op-label';
-import { applyConfirmedOp, processOps } from './run-loop';
+import { toServerGraph, type GraphState } from './operation-executor';
+import { describeOperation, type AgentOperationIcon } from './operation-label';
+import { applyConfirmedOperation, processOperations } from './run-loop';
 
 export type AgentRunStatus =
   | 'idle'
@@ -32,7 +32,7 @@ export type AgentTimelineItem =
   | {
       id: string;
       kind: 'activity';
-      icon: AgentOpIcon;
+      icon: AgentOperationIcon;
       label: string;
       isError: boolean;
     }
@@ -54,8 +54,8 @@ export type UseAgentRunOptions = {
 export function messagesToTimeline(
   messages: AgentConversationMessage[],
 ): AgentTimelineItem[] {
-  // Op failures are recorded as tool_result blocks on the following message, so
-  // collect them first — otherwise a reloaded transcript renders every op as a
+  // Operation failures are recorded as tool_result blocks on the following message, so
+  // collect them first — otherwise a reloaded transcript renders every operation as a
   // success and misrepresents what actually happened.
   const failed = new Set<string>();
   for (const message of messages) {
@@ -77,7 +77,7 @@ export function messagesToTimeline(
           text: block.text,
         });
       } else if (block.type === 'tool_call') {
-        const { icon, past } = describeOp({
+        const { icon, past } = describeOperation({
           name: block.name,
           input: block.input,
         });
@@ -95,7 +95,7 @@ export function messagesToTimeline(
   return items;
 }
 
-// A short beat between ops so the user watches the architecture build up.
+// A short beat between operations so the user watches the architecture build up.
 const STEP_DELAY_MS = 200;
 const delay = (ms: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -110,14 +110,14 @@ export function useAgentRun({
 }: UseAgentRunOptions) {
   const [items, setItems] = useState<AgentTimelineItem[]>([]);
   const [status, setStatus] = useState<AgentRunStatus>('idle');
-  const [pendingOp, setPendingOp] = useState<AgentOp | null>(null);
+  const [pendingOp, setPendingOp] = useState<AgentOperation | null>(null);
   const [errorText, setErrorText] = useState<string | null>(null);
 
   const conversationIdRef = useRef<string | null>(null);
   const lastMessageRef = useRef<string | null>(null);
   const runIdRef = useRef<string | null>(null);
-  const pendingResultsRef = useRef<AgentOpResult[]>([]);
-  const remainingRef = useRef<AgentOp[]>([]);
+  const pendingResultsRef = useRef<AgentOperationResult[]>([]);
+  const remainingRef = useRef<AgentOperation[]>([]);
   const hydratedRef = useRef(false);
   const abortRef = useRef<AbortController | null>(null);
   // Track whether the run changed topology, and the last applied state, so we
@@ -158,7 +158,7 @@ export function useAgentRun({
         conversationIdRef.current = convo.id;
         setItems(messagesToTimeline(convo.messages));
         if (convo.activeRun) {
-          // A run the previous session left mid-flight. Its ops are already on
+          // A run the previous session left mid-flight. Its operations are already on
           // the canvas and autosaved; re-applying them would duplicate, so
           // retire it and say so rather than silently resuming.
           await cancelAgentRun(convo.activeRun.id).catch(() => undefined);
@@ -183,16 +183,25 @@ export function useAgentRun({
     ]);
   }, []);
 
-  const pushActivity = useCallback((op: AgentOp, isError: boolean) => {
-    const { icon, past } = describeOp(op, latestStateRef.current ?? undefined);
-    setItems((prev) => [
-      ...prev,
-      { id: makeId(), kind: 'activity', icon, label: past, isError },
-    ]);
-  }, []);
+  const pushActivity = useCallback(
+    (operation: AgentOperation, isError: boolean) => {
+      const { icon, past } = describeOperation(
+        operation,
+        latestStateRef.current ?? undefined,
+      );
+      setItems((prev) => [
+        ...prev,
+        { id: makeId(), kind: 'activity', icon, label: past, isError },
+      ]);
+    },
+    [],
+  );
 
-  const pushSkipped = useCallback((op: AgentOp) => {
-    const { pending } = describeOp(op, latestStateRef.current ?? undefined);
+  const pushSkipped = useCallback((operation: AgentOperation) => {
+    const { pending } = describeOperation(
+      operation,
+      latestStateRef.current ?? undefined,
+    );
     setItems((prev) => [
       ...prev,
       {
@@ -205,18 +214,18 @@ export function useAgentRun({
     ]);
   }, []);
 
-  // Apply a turn's ops one at a time (with a beat) so the build is visible.
-  // Stops at the first op that needs confirmation, or when the user cancels.
-  const applyOpsStepwise = useCallback(
-    (ops: AgentOp[], startState: GraphState) =>
-      processOps(ops, startState, {
+  // Apply a turn's operations one at a time (with a beat) so the build is visible.
+  // Stops at the first operation that needs confirmation, or when the user cancels.
+  const applyOperationsStepwise = useCallback(
+    (operations: AgentOperation[], startState: GraphState) =>
+      processOperations(operations, startState, {
         confirmPolicy: 'pause',
         signal: abortRef.current?.signal,
         beat: () => delay(STEP_DELAY_MS),
-        onApplied: (op, outcome) => {
+        onApplied: (operation, outcome) => {
           latestStateRef.current = outcome.state;
           applyGraph(outcome.state);
-          pushActivity(op, outcome.isError);
+          pushActivity(operation, outcome.isError);
         },
       }),
     [applyGraph, pushActivity],
@@ -233,8 +242,8 @@ export function useAgentRun({
     applyGraph(laid);
   }, [applyGraph, layoutGraph]);
 
-  // Drive the client loop: narrate, apply ops, report results, repeat
-  // until the run completes or an op needs confirmation.
+  // Drive the client loop: narrate, apply operations, report results, repeat
+  // until the run completes or an operation needs confirmation.
   const drive = useCallback(
     async (initial: AgentAdvanceResponse) => {
       let response = initial;
@@ -259,14 +268,17 @@ export function useAgentRun({
         }
         if (
           response.status !== 'awaiting_client' ||
-          response.ops.length === 0
+          response.operations.length === 0
         ) {
           finalizeLayout();
           setStatus('idle');
           return;
         }
 
-        const outcome = await applyOpsStepwise(response.ops, state);
+        const outcome = await applyOperationsStepwise(
+          response.operations,
+          state,
+        );
         state = outcome.state;
         latestStateRef.current = state;
         if (outcome.structural) structuralRef.current = true;
@@ -280,7 +292,7 @@ export function useAgentRun({
         if (outcome.pending) {
           pendingResultsRef.current = outcome.results;
           remainingRef.current = outcome.pending.remaining;
-          setPendingOp(outcome.pending.op);
+          setPendingOp(outcome.pending.operation);
           setStatus('awaiting_confirm');
           return;
         }
@@ -293,7 +305,13 @@ export function useAgentRun({
         );
       }
     },
-    [appendAssistant, applyOpsStepwise, getGraph, finalizeLayout, pushNotice],
+    [
+      appendAssistant,
+      applyOperationsStepwise,
+      getGraph,
+      finalizeLayout,
+      pushNotice,
+    ],
   );
 
   /** Start a turn from a user message, reusing or creating the conversation. */
@@ -359,7 +377,7 @@ export function useAgentRun({
     await startRun(last, false);
   }, [readOnly, status, startRun]);
 
-  /** Stop a run in flight. Ops already applied stay on the canvas. */
+  /** Stop a run in flight. Operations already applied stay on the canvas. */
   const cancel = useCallback(async () => {
     const runId = runIdRef.current;
     abortRef.current?.abort();
@@ -379,23 +397,23 @@ export function useAgentRun({
 
   const confirm = useCallback(
     async (approved: boolean) => {
-      const op = pendingOp;
-      if (!op) return;
+      const operation = pendingOp;
+      if (!operation) return;
       setPendingOp(null);
       setStatus('thinking');
       try {
         const base = latestStateRef.current ?? getGraph();
-        const applied = applyConfirmedOp(op, base, approved);
+        const applied = applyConfirmedOperation(operation, base, approved);
         applyGraph(applied.state);
         latestStateRef.current = applied.state;
         if (approved) {
           if (applied.structural) structuralRef.current = true;
-          pushActivity(op, applied.result.isError);
+          pushActivity(operation, applied.result.isError);
         } else {
-          pushSkipped(op);
+          pushSkipped(operation);
         }
 
-        const outcome = await applyOpsStepwise(
+        const outcome = await applyOperationsStepwise(
           remainingRef.current,
           applied.state,
         );
@@ -410,7 +428,7 @@ export function useAgentRun({
         if (outcome.pending) {
           pendingResultsRef.current = results;
           remainingRef.current = outcome.pending.remaining;
-          setPendingOp(outcome.pending.op);
+          setPendingOp(outcome.pending.operation);
           setStatus('awaiting_confirm');
           return;
         }
@@ -444,7 +462,7 @@ export function useAgentRun({
       applyGraph,
       pushActivity,
       pushSkipped,
-      applyOpsStepwise,
+      applyOperationsStepwise,
       drive,
     ],
   );
@@ -471,7 +489,7 @@ export function useAgentRun({
     cancel,
     retry,
     reset,
-    /** The graph the confirmation card describes its op against. */
+    /** The graph the confirmation card describes its operation against. */
     pendingGraph: latestStateRef.current,
   };
 }
