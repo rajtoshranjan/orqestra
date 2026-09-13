@@ -240,8 +240,7 @@ organisation admin cannot raise a timeout that ties up a server worker.
 |----------|---------|---------|
 | `AGENT_MAX_TURNS` | `20` | Model turns one request may take. Reads are answered server-side, so this budget is spent on decisions rather than lookups. |
 | `AGENT_MAX_OUTPUT_TOKENS` | `8192` | Cap on a single turn's output. A turn that hits this fails the run with a "truncated" error rather than looking like a clean finish. |
-| `AGENT_REQUEST_TIMEOUT` | `120` | Seconds to wait on a hosted provider before failing the run. The turn runs inside a request, so this bounds how long a worker is held. |
-| `OLLAMA_READ_TIMEOUT` | `300` | Seconds to wait on an Ollama generation. Local models are slow, so this is deliberately more generous. |
+| `AGENT_REQUEST_TIMEOUT` | `120` | Seconds to wait on any LLM provider before failing the run. The turn runs inside a request, so this bounds how long a worker is held. |
 | `AGENT_RUN_STALE_MINUTES` | `10` | How long before a run abandoned mid-flight (a closed tab) is retired, so it can't block its conversation. |
 
 ## Troubleshooting

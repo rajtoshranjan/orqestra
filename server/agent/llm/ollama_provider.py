@@ -81,7 +81,7 @@ class OllamaProvider(BaseLLMProvider):
                 json=payload,
                 headers=self._get_headers(),
                 stream=True,
-                timeout=(10, int(EnvVariable.OLLAMA_READ_TIMEOUT.value)),
+                timeout=(10, int(EnvVariable.AGENT_REQUEST_TIMEOUT.value)),
             )
         except requests.exceptions.ConnectionError as error:
             raise RuntimeError(

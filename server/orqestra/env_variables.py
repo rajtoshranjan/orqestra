@@ -38,16 +38,7 @@ class EnvVariable(Enum):
     REDIS_PORT = os.environ.get("REDIS_PORT", "6379")
 
     # Agent Variables.
-    #
-    # Model choice and credentials are NOT here: they belong to an
-    # organisation (organisations.LLMConfig) and are managed in the app under
-    # Settings -> AI Models. What remains are operator-level safety limits an
-    # org admin should not be able to raise.
-    OLLAMA_READ_TIMEOUT = os.environ.get("OLLAMA_READ_TIMEOUT", "300")
     AGENT_MAX_TURNS = os.environ.get("AGENT_MAX_TURNS", "20")
     AGENT_MAX_OUTPUT_TOKENS = os.environ.get("AGENT_MAX_OUTPUT_TOKENS", "8192")
-    # Seconds to wait on a hosted provider before failing the run cleanly.
     AGENT_REQUEST_TIMEOUT = os.environ.get("AGENT_REQUEST_TIMEOUT", "120")
-    # A run left mid-flight by a closed tab is abandoned after this long, so
-    # it can never block the conversation permanently.
     AGENT_RUN_STALE_MINUTES = os.environ.get("AGENT_RUN_STALE_MINUTES", "10")
