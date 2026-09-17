@@ -21,7 +21,11 @@ from agent.llm.types import (
 from agent.models import AgentConversation, AgentMessage, AgentRun
 from agent.prompts import build_system_prompt
 from agent.tests.fakes import FakeLLMProvider
-from agent.tools import CLIENT_OPERATION_NAMES, SERVER_RESOLVED_OPERATIONS, resolve_read_operation
+from agent.tools import (
+    CLIENT_OPERATION_NAMES,
+    SERVER_RESOLVED_OPERATIONS,
+    resolve_read_operation,
+)
 from django.test import TestCase
 from organisations.models import Organisation
 from projects.models import Project
@@ -75,7 +79,9 @@ class SystemPromptGroundingTests(TestCase):
 
 class ReadResolutionTests(TestCase):
     def test_list_services_is_answered_from_the_stored_catalog(self):
-        content, is_error = resolve_read_operation("list_services", {}, RICH_CATALOG, [], [])
+        content, is_error = resolve_read_operation(
+            "list_services", {}, RICH_CATALOG, [], []
+        )
 
         self.assertFalse(is_error)
         self.assertIn("lambda", content)
@@ -120,7 +126,13 @@ class ReadResolutionTests(TestCase):
         self.assertIn("e1", content)
 
     def test_mutations_are_not_server_resolvable(self):
-        for operation in ("add_resource", "connect", "configure", "set_parent", "remove"):
+        for operation in (
+            "add_resource",
+            "connect",
+            "configure",
+            "set_parent",
+            "remove",
+        ):
             self.assertNotIn(operation, SERVER_RESOLVED_OPERATIONS)
 
     def test_validate_and_estimate_cost_stay_on_the_client(self):
@@ -172,7 +184,9 @@ class ServerLoopTests(TestCase):
         )
 
         self.assertEqual(len(provider.calls), 2)
-        self.assertEqual([operation.name for operation in result.operations], ["add_resource"])
+        self.assertEqual(
+            [operation.name for operation in result.operations], ["add_resource"]
+        )
         self.assertEqual(result.run_status, RunStatus.AWAITING_CLIENT.value)
 
     def test_narration_from_server_resolved_turns_reaches_the_client(self):
@@ -224,7 +238,9 @@ class ServerLoopTests(TestCase):
         first = engine.advance(
             self.run, operation_results=[], catalog=RICH_CATALOG, graph=None
         )
-        self.assertEqual([operation.tool_call_id for operation in first.operations], ["tc_add"])
+        self.assertEqual(
+            [operation.tool_call_id for operation in first.operations], ["tc_add"]
+        )
         self.run.refresh_from_db()
         self.assertEqual(
             [item["tool_call_id"] for item in self.run.resolved_results], ["tc_read"]

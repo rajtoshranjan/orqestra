@@ -11,13 +11,7 @@ from utils.encryption import decrypt_val
 
 from .constants import OrganisationMemberRole
 from .helpers import create_default_organisation, get_active_organisation, log_action
-from .models import (
-    AuditLog,
-    AWSAccount,
-    LLMConfig,
-    Organisation,
-    OrganisationMember,
-)
+from .models import AuditLog, AWSAccount, LLMConfig, Organisation, OrganisationMember
 from .permissions import CanManageOrganisation, IsNonGuestMember, IsOrganisationMember
 from .serializers import (
     AuditLogSerializer,

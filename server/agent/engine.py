@@ -190,7 +190,9 @@ class AgentEngine:
     ) -> AdvanceResult:
         if run.is_terminal:
             # Cancelled or already finished: never call the provider again.
-            return AdvanceResult(operations=[], assistant_text="", run_status=run.status)
+            return AdvanceResult(
+                operations=[], assistant_text="", run_status=run.status
+            )
 
         conversation = run.conversation
         nodes, edges = self._resolve_graph(conversation, graph)
@@ -281,10 +283,14 @@ class AgentEngine:
                 return self._complete(run, "".join(narration))
 
             server_calls = [
-                call for call in turn.tool_calls if call.name in SERVER_RESOLVED_OPERATIONS
+                call
+                for call in turn.tool_calls
+                if call.name in SERVER_RESOLVED_OPERATIONS
             ]
             client_calls = [
-                call for call in turn.tool_calls if call.name not in SERVER_RESOLVED_OPERATIONS
+                call
+                for call in turn.tool_calls
+                if call.name not in SERVER_RESOLVED_OPERATIONS
             ]
             server_results = [
                 self._resolve_read(run, call, catalog, nodes, edges)

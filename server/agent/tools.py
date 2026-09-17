@@ -148,7 +148,9 @@ def graph_tool_specs() -> list[ToolSpec]:
 
 SERVER_RESOLVED_OPERATIONS = frozenset({"list_services", "get_service", "query_graph"})
 
-CLIENT_OPERATION_NAMES = [name for name in GRAPH_OPERATION_NAMES if name not in SERVER_RESOLVED_OPERATIONS]
+CLIENT_OPERATION_NAMES = [
+    name for name in GRAPH_OPERATION_NAMES if name not in SERVER_RESOLVED_OPERATIONS
+]
 
 
 def _service_line(service: dict) -> str:

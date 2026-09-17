@@ -11,7 +11,8 @@ class RiskTests(SimpleTestCase):
 
     def test_add_resource_is_safe(self):
         self.assertEqual(
-            classify_operation_risk("add_resource", {"service_id": "lambda"}), RiskLevel.SAFE
+            classify_operation_risk("add_resource", {"service_id": "lambda"}),
+            RiskLevel.SAFE,
         )
 
     def test_read_only_operations_are_safe(self):

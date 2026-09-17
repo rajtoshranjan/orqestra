@@ -8,13 +8,7 @@ from .constants import (
     LLMProviderChoice,
 )
 from .helpers import get_active_organisation
-from .models import (
-    AuditLog,
-    AWSAccount,
-    LLMConfig,
-    Organisation,
-    OrganisationMember,
-)
+from .models import AuditLog, AWSAccount, LLMConfig, Organisation, OrganisationMember
 
 
 class OrganisationSerializer(serializers.ModelSerializer):

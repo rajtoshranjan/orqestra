@@ -59,13 +59,17 @@ def describe_operation(operation: dict, labels: dict[str, str]) -> str:
 def describe_pending_confirmation(run: AgentRun) -> str:
     """The question a paused run asks in its thread."""
     pending = [
-        operation for operation in run.outstanding_operations() if operation.get("risk") == RiskLevel.CONFIRM.value
+        operation
+        for operation in run.outstanding_operations()
+        if operation.get("risk") == RiskLevel.CONFIRM.value
     ]
     if not pending:
         return run.narration()
 
     labels = _label_map(run)
-    described = "; ".join(describe_operation(operation, labels) for operation in pending)
+    described = "; ".join(
+        describe_operation(operation, labels) for operation in pending
+    )
     narration = run.narration()
     lead = f"{narration}\n\n" if narration else ""
     return (

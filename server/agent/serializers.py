@@ -85,7 +85,9 @@ class GraphSnapshotSerializer(serializers.Serializer):
 
 
 class AdvanceRequestSerializer(serializers.Serializer):
-    operation_results = OperationResultSerializer(many=True, required=False, default=list)
+    operation_results = OperationResultSerializer(
+        many=True, required=False, default=list
+    )
     graph = GraphSnapshotSerializer(required=False, allow_null=True)
 
 

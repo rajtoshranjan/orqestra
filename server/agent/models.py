@@ -6,12 +6,7 @@ from django.utils import timezone
 from orqestra.env_variables import EnvVariable
 from orqestra.models import BaseModel
 
-from .constants import (
-    TERMINAL_RUN_STATUSES,
-    ConversationStatus,
-    MessageRole,
-    RunStatus,
-)
+from .constants import TERMINAL_RUN_STATUSES, ConversationStatus, MessageRole, RunStatus
 
 
 class AgentConversation(BaseModel):
@@ -175,7 +170,9 @@ class AgentRun(BaseModel):
                         "tool_call_id": block["id"],
                         "name": block.get("name"),
                         "input": operation_input,
-                        "risk": classify_operation_risk(block.get("name"), operation_input).value,
+                        "risk": classify_operation_risk(
+                            block.get("name"), operation_input
+                        ).value,
                     }
                 )
         return operations
