@@ -1,4 +1,5 @@
 from accounts.models import User
+from agent.llm.registry import llm_registry
 from rest_framework import serializers
 from utils.encryption import decrypt_val, encrypt_val
 
@@ -164,7 +165,60 @@ class AWSAccountSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
 
-class LLMConfigSerializer(serializers.ModelSerializer):
+class LLMConfigCredentialsMixin:
+    def __init__(self, *args, configs=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if configs is None:
+            configs = self.context.get("llm_configs")
+        if configs is not None:
+            self.fields["config"].queryset = configs
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        errors = {}
+        source = attrs.get("config") or self.instance
+        provider = attrs.get("provider", getattr(self.instance, "provider", None))
+        adapter = llm_registry.get(provider)
+        same_provider = source is not None and provider == source.provider
+        base_url = attrs.get("base_url", source.base_url if same_provider else "")
+        endpoint = None
+        try:
+            endpoint = adapter.normalize_endpoint(base_url)
+            attrs["base_url"] = endpoint
+        except serializers.ValidationError as error:
+            errors.update(error.detail)
+        if provider in LLM_PROVIDERS_REQUIRING_BASE_URL and not base_url:
+            errors["base_url"] = (
+                "A base URL is required, for example http://host.docker.internal:11434."
+            )
+
+        key = attrs.get("api_key", "")
+        stored_key = getattr(source, "api_key", "")
+        if stored_key and not key:
+            try:
+                same_endpoint = (
+                    same_provider
+                    and endpoint == adapter.normalize_endpoint(source.base_url)
+                )
+            except serializers.ValidationError:
+                same_endpoint = False
+            if not same_endpoint:
+                errors["api_key"] = (
+                    "Enter a new API key when changing provider or endpoint. "
+                    "A saved key can only be reused with its original destination."
+                )
+        if provider in LLM_PROVIDERS_REQUIRING_KEY and not (key or stored_key):
+            errors["api_key"] = "An API key or a saved config with a key is required."
+        if self.instance and "config" in attrs:
+            errors["config"] = (
+                "A credential source may only be supplied when creating a config."
+            )
+        if errors:
+            raise serializers.ValidationError(errors)
+        return attrs
+
+
+class LLMConfigSerializer(LLMConfigCredentialsMixin, serializers.ModelSerializer):
     """Encrypts the key on write and never returns it on read.
 
     Unlike an AWS access key id, there is nothing useful to show from a model
@@ -176,6 +230,12 @@ class LLMConfigSerializer(serializers.ModelSerializer):
         write_only=True, required=False, allow_blank=True, trim_whitespace=True
     )
     has_api_key = serializers.SerializerMethodField()
+    config = serializers.PrimaryKeyRelatedField(
+        queryset=LLMConfig.objects.none(),
+        pk_field=serializers.UUIDField(),
+        required=False,
+        write_only=True,
+    )
 
     class Meta:
         model = LLMConfig
@@ -187,6 +247,7 @@ class LLMConfigSerializer(serializers.ModelSerializer):
             "model",
             "api_key",
             "has_api_key",
+            "config",
             "base_url",
             "context_window",
             "is_default",
@@ -198,32 +259,13 @@ class LLMConfigSerializer(serializers.ModelSerializer):
     def get_has_api_key(self, config) -> bool:
         return bool(config.api_key)
 
-    def validate(self, attrs):
-        provider = attrs.get("provider") or getattr(self.instance, "provider", None)
-
-        # On update an absent key means "leave the stored one alone", so only
-        # demand one when there is nothing on file.
-        stored_key = getattr(self.instance, "api_key", "")
-        key = attrs.get("api_key", stored_key)
-        if provider in LLM_PROVIDERS_REQUIRING_KEY and not key:
-            raise serializers.ValidationError(
-                {"api_key": f"An API key is required for {provider}."}
-            )
-
-        base_url = attrs.get("base_url", getattr(self.instance, "base_url", ""))
-        if provider in LLM_PROVIDERS_REQUIRING_BASE_URL and not base_url:
-            raise serializers.ValidationError(
-                {
-                    "base_url": (
-                        f"A base URL is required for {provider} — for example "
-                        "http://host.docker.internal:11434 for a local endpoint."
-                    )
-                }
-            )
-        return attrs
-
     def create(self, validated_data):
-        validated_data["api_key"] = encrypt_val(validated_data.get("api_key", ""))
+        source = validated_data.pop("config", None)
+        key = validated_data.pop("api_key", "")
+        # Copy ciphertext, never decrypt a key merely to store it again.
+        validated_data["api_key"] = (
+            encrypt_val(key) if key else (source.api_key if source else "")
+        )
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
@@ -236,20 +278,22 @@ class LLMConfigSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
 
-class LLMConfigTestSerializer(serializers.Serializer):
-    """An unsaved config to dial, so the form can be checked before saving."""
+class LLMConfigModelsSerializer(LLMConfigCredentialsMixin, serializers.Serializer):
+    """Discover models before a model or display name has been chosen."""
 
     provider = serializers.ChoiceField(choices=LLMProviderChoice.choices())
-    model = serializers.CharField(max_length=255)
-    api_key = serializers.CharField(required=False, allow_blank=True, default="")
-    base_url = serializers.CharField(required=False, allow_blank=True, default="")
-    context_window = serializers.IntegerField(required=False, default=0, min_value=0)
-    # Set when re-testing a saved config whose key the form never received.
+    api_key = serializers.CharField(required=False, allow_blank=True, write_only=True)
+    base_url = serializers.CharField(required=False, allow_blank=True, max_length=512)
     config = serializers.PrimaryKeyRelatedField(
-        queryset=LLMConfig.objects.none(), required=False
+        queryset=LLMConfig.objects.none(),
+        pk_field=serializers.UUIDField(),
+        required=False,
+        write_only=True,
     )
 
-    def __init__(self, *args, configs=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        if configs is not None:
-            self.fields["config"].queryset = configs
+
+class LLMConfigTestSerializer(LLMConfigModelsSerializer):
+    """An unsaved config to dial, so the form can be checked before saving."""
+
+    model = serializers.CharField(max_length=255)
+    context_window = serializers.IntegerField(required=False, default=0, min_value=0)

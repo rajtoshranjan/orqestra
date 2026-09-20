@@ -7,7 +7,9 @@ encrypted at rest, masked on read, and only owners/admins may manage them.
 from unittest import mock
 
 from accounts.models import User
-from agent.llm.types import TextDelta
+import anthropic
+import httpx
+from agent.tests.test_anthropic_provider import _FakeClient
 from django.urls import reverse
 from organisations.constants import LLMProviderChoice, OrganisationMemberRole
 from organisations.models import AuditLog, LLMConfig, Organisation, OrganisationMember
@@ -17,17 +19,6 @@ from utils.encryption import decrypt_val
 
 LIST_URL = "organisation-llm-config-list"
 
-
-class _StubProvider:
-    """Yields scripted events, or raises, in place of a real vendor call."""
-
-    def __init__(self, script):
-        self._script = script
-
-    def stream(self, **kwargs):
-        if isinstance(self._script, Exception):
-            raise self._script
-        yield from self._script
 
 
 def payload(**overrides):
@@ -287,31 +278,30 @@ class LLMConfigConnectionTestTests(BaseTestCase):
     URL = "organisation-llm-config-test"
 
     def test_a_reachable_provider_reports_success(self):
-        with mock.patch("organisations.views.provider_from_credentials") as build:
-            build.return_value = _StubProvider([TextDelta(text="pong")])
-
+        with mock.patch("anthropic.Anthropic", return_value=_FakeClient()):
             response = self.client.post(reverse(self.URL), payload(), format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data["ok"])
 
     def test_a_provider_failure_is_reported_without_a_500(self):
-        with mock.patch("organisations.views.provider_from_credentials") as build:
-            build.return_value = _StubProvider(RuntimeError("401 unauthorised"))
-
+        failure = anthropic.AuthenticationError(
+            "sk-ant-secret", body={"error": "sk-ant-secret"},
+            response=httpx.Response(401, request=httpx.Request("POST", "https://api.anthropic.com")),
+        )
+        with mock.patch("anthropic.Anthropic", side_effect=failure):
             response = self.client.post(reverse(self.URL), payload(), format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data["ok"])
         self.assertIn("401", response.data["error"])
+        self.assertNotIn("sk-ant-secret", str(response.data))
 
     def test_testing_a_saved_config_reuses_its_stored_key(self):
         """The form never receives the key back, so it can't resend it."""
         created = self.client.post(reverse(LIST_URL), payload(), format="json")
 
-        with mock.patch("organisations.views.provider_from_credentials") as build:
-            build.return_value = _StubProvider([TextDelta(text="pong")])
-
+        with mock.patch("anthropic.Anthropic", return_value=_FakeClient()) as client_factory:
             response = self.client.post(
                 reverse(self.URL),
                 {
@@ -323,7 +313,7 @@ class LLMConfigConnectionTestTests(BaseTestCase):
             )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(build.call_args.kwargs["api_key"], "sk-ant-secret")
+        self.assertEqual(client_factory.call_args.kwargs["api_key"], "sk-ant-secret")
 
     def test_a_regular_member_may_not_dial_out(self):
         member = User.objects.create_user(

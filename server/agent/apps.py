@@ -11,6 +11,7 @@ class AgentConfig(AppConfig):
         from .llm.anthropic_provider import AnthropicProvider
         from .llm.gemini_provider import GeminiProvider
         from .llm.ollama_provider import OllamaProvider
+        from .llm.openai_provider import OpenAIProvider
         from .llm.registry import llm_registry
 
         # Classes, not instances: each run builds a provider from the
@@ -18,3 +19,4 @@ class AgentConfig(AppConfig):
         llm_registry.register(AnthropicProvider)
         llm_registry.register(GeminiProvider)
         llm_registry.register(OllamaProvider)
+        llm_registry.register(OpenAIProvider)

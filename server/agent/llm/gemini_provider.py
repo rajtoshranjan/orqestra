@@ -1,51 +1,36 @@
 from collections.abc import Iterator
+from urllib.parse import quote
 
+import requests
 from orqestra.env_variables import EnvVariable
 
 from .base import BaseLLMProvider
-from .mappers import ensure_tool_call_id, to_gemini_messages, to_gemini_tools
-from .types import (
-    LLMCapabilities,
-    LLMEvent,
-    LLMMessage,
-    Stop,
-    TextDelta,
-    ToolCallRequested,
-    ToolSpec,
-    Usage,
-)
+from .errors import safe_call, safe_stream, status_error
+from .mappers import from_gemini_models, from_gemini_stream, to_gemini_request
+from .types import LLMCapabilities, LLMEvent, LLMMessage, LLMModel, ToolSpec
 
 
 class GeminiProvider(BaseLLMProvider):
     name = "gemini"
+    endpoint = "https://generativelanguage.googleapis.com"
     capabilities = LLMCapabilities(
         supports_streaming=True, supports_tools=True, max_context_tokens=1000000
     )
 
-    def __init__(self, client=None, **kwargs):
-        super().__init__(**kwargs)
-        # An injected client is for tests; production builds one from the key.
-        self._client = client
+    def _get_headers(self) -> dict[str, str]:
+        return {"x-goog-api-key": self._api_key}
 
-    def _get_client(self):
-        if self._client is None:
-            if not self._api_key:
-                raise RuntimeError(
-                    "This Gemini model has no API key. Add one in "
-                    "Settings → AI Models."
-                )
-            from google import genai
-            from google.genai import types
+    @safe_call
+    def list_models(self) -> list[LLMModel]:
+        self._require_api_key()
+        return self._list_catalog(
+            "/v1beta/models",
+            from_gemini_models,
+            page_parameter="pageToken",
+            params={"pageSize": 100},
+        )
 
-            # Bounded like the other adapters: the turn runs inside a request.
-            self._client = genai.Client(
-                api_key=self._api_key,
-                http_options=types.HttpOptions(
-                    timeout=int(EnvVariable.AGENT_REQUEST_TIMEOUT.value) * 1000
-                ),
-            )
-        return self._client
-
+    @safe_stream
     def stream(
         self,
         *,
@@ -54,68 +39,27 @@ class GeminiProvider(BaseLLMProvider):
         tools: list[ToolSpec],
         temperature: float = 0.0,
         max_tokens: int = 4096,
-        cacheable_prefix: str = "",  # noqa: ARG002 - no vendor equivalent yet
+        cacheable_prefix: str = "",
     ) -> Iterator[LLMEvent]:
-        client = self._get_client()
-        from google.genai import types
-
-        config = types.GenerateContentConfig(
-            system_instruction=system_prompt,
-            temperature=temperature,
-            max_output_tokens=max_tokens,
-            tools=to_gemini_tools(tools),
-        )
-
-        response_stream = client.models.generate_content_stream(
-            model=self._get_model(),
-            contents=to_gemini_messages(messages),
-            config=config,
-        )
-
-        tool_calls: list[ToolCallRequested] = []
-        finish_reason = "stop"
-        usage_event = None
-
-        for chunk in response_stream:
-            try:
-                text = chunk.text
-            except ValueError:
-                text = None
-            if text:
-                yield TextDelta(text=text)
-
-            if chunk.function_calls:
-                for call in chunk.function_calls:
-                    tool_calls.append(
-                        ToolCallRequested(
-                            id=ensure_tool_call_id(call.id),
-                            name=call.name,
-                            input=call.args or {},
-                        )
-                    )
-
-            if chunk.usage_metadata:
-                usage_event = Usage(
-                    input_tokens=chunk.usage_metadata.prompt_token_count or 0,
-                    output_tokens=chunk.usage_metadata.candidates_token_count or 0,
-                )
-
-            if chunk.candidates:
-                candidate = chunk.candidates[0]
-                if candidate.finish_reason:
-                    reason = str(candidate.finish_reason)
-                    if hasattr(candidate.finish_reason, "name"):
-                        reason = candidate.finish_reason.name
-                    elif hasattr(candidate.finish_reason, "value"):
-                        reason = candidate.finish_reason.value
-                    finish_reason = reason.lower()
-
-        for call in tool_calls:
-            yield call
-
-        if usage_event:
-            yield usage_event
-        else:
-            yield Usage(input_tokens=0, output_tokens=0)
-
-        yield Stop(reason=finish_reason)
+        self._require_api_key()
+        model = quote(self._get_model().removeprefix("models/"), safe="")
+        # The pinned SDK follows redirects without a per-client opt-out. Own
+        # the transport so a redirect cannot forward x-goog-api-key elsewhere.
+        with requests.post(
+            f"{self.endpoint}/v1beta/models/{model}:streamGenerateContent",
+            params={"alt": "sse"},
+            json=to_gemini_request(
+                system_prompt=system_prompt,
+                messages=messages,
+                tools=tools,
+                temperature=temperature,
+                max_tokens=max_tokens,
+            ),
+            headers=self._get_headers(),
+            stream=True,
+            allow_redirects=False,
+            timeout=(10, int(EnvVariable.AGENT_REQUEST_TIMEOUT.value)),
+        ) as response:
+            if response.status_code != 200:
+                raise status_error(response.status_code)
+            yield from from_gemini_stream(response.iter_lines())

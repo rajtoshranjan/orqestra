@@ -5,13 +5,82 @@ vi.mock('./client', () => ({
 }));
 
 import { api } from './client';
-import { testLLMConnection } from './llm-configs';
+import {
+  createLLMConfig,
+  discoverLLMModels,
+  testLLMConnection,
+} from './llm-configs';
 
 const post = api.post as unknown as ReturnType<typeof vi.fn>;
 
 describe('llm config api', () => {
   beforeEach(() => {
     post.mockReset();
+  });
+
+  it('discovers models without a model id or display name', async () => {
+    const result = { ok: true, models: [{ id: 'gpt-4.1', name: 'gpt-4.1' }] };
+    post.mockResolvedValue({ data: { data: result } });
+
+    expect(
+      await discoverLLMModels({ provider: 'openai', apiKey: 'test-key' }),
+    ).toEqual(result);
+    expect(post).toHaveBeenCalledWith('/organisations/llm-configs/models/', {
+      provider: 'openai',
+      api_key: 'test-key',
+    });
+  });
+
+  it('reuses saved credentials for discovery without exposing a key', async () => {
+    post.mockResolvedValue({ data: { data: { ok: true, models: [] } } });
+    await discoverLLMModels({
+      provider: 'ollama',
+      configId: 'cfg-1',
+      baseUrl: 'http://host.docker.internal:11434',
+      apiKey: '',
+    });
+    expect(post).toHaveBeenCalledWith('/organisations/llm-configs/models/', {
+      provider: 'ollama',
+      config: 'cfg-1',
+      base_url: 'http://host.docker.internal:11434',
+    });
+  });
+
+  it('preserves discovery failures for actionable UI feedback', async () => {
+    const result = { ok: false, error: 'The provider rejected the API key.' };
+    post.mockResolvedValue({ data: { data: result } });
+    expect(
+      await discoverLLMModels({ provider: 'openai', apiKey: 'invalid' }),
+    ).toEqual(result);
+  });
+
+  it('creates another model using a saved credential source', async () => {
+    post.mockResolvedValue({
+      data: {
+        data: {
+          id: 'cfg-2',
+          name: 'Second model',
+          provider: 'openai',
+          model: 'gpt-4.1-mini',
+          has_api_key: true,
+          is_default: false,
+        },
+      },
+    });
+    const result = await createLLMConfig({
+      name: 'Second model',
+      provider: 'openai',
+      model: 'gpt-4.1-mini',
+      configId: 'cfg-1',
+    });
+    expect(post).toHaveBeenCalledWith('/organisations/llm-configs/', {
+      name: 'Second model',
+      provider: 'openai',
+      model: 'gpt-4.1-mini',
+      config: 'cfg-1',
+    });
+    expect(result.hasApiKey).toBe(true);
+    expect(result).not.toHaveProperty('apiKey');
   });
 
   it('omits a blank api key so an edit never wipes the stored one', async () => {

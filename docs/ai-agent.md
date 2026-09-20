@@ -193,25 +193,56 @@ many of them, and an org admin can change models without a redeploy.
 > variables are gone and are no longer read. Each organisation must add its
 > model once through the UI below; nothing is imported automatically.
 
-### 1. Add a model
+### 1. Connect a provider and choose a model
 
-**Settings → AI Models → Add model.** Owners and admins only — these are
-credentials. Regular members can see which models exist; guests cannot.
+Open **Settings → AI Models** and choose **Connect OpenAI**, **Connect Anthropic**,
+**Connect Google Gemini**, or **Connect Ollama**. Owners and admins only — these
+are credentials. Regular members can see saved models; guests cannot.
 
-| Field | Notes |
-|-------|-------|
-| **Name** | How it appears in the list, e.g. "Claude Sonnet 5". |
-| **Provider** | `Anthropic`, `Google Gemini`, or `Ollama`. |
-| **Model id** | Passed to the provider verbatim — `claude-sonnet-5`, `gemini-2.5-flash`, `qwen3:8b`. |
-| **Endpoint URL** | Ollama only. `https://ollama.com` for cloud, or an address your **server container** can reach for local — usually `http://host.docker.internal:11434`, not `localhost`. |
-| **API key** | Required for Anthropic and Gemini. Optional for a local Ollama endpoint. Stored encrypted; never returned to the browser. |
-| **Context window** | Ollama local only. Its 4096 default truncates the service catalog out of the prompt, so set something like `32768`. |
+1. Follow the provider's **Get an API key** link, then enter the key. For local
+   Ollama, enter an endpoint your **server container** can reach (usually
+   `http://host.docker.internal:11434`, not `localhost`); no key is required.
+   Ollama cloud uses `https://ollama.com` and an Ollama API key.
+2. Click **Load available models**. The server queries the provider using your
+   credentials; no prompt is sent and nothing is saved yet. Search and choose a
+   model from the live results instead of typing its ID.
+3. Optionally set a display name. Otherwise the selected model's name is used.
+   For local Ollama, set a supported context window such as `32768`; leave it
+   blank for cloud models.
+4. Click **Test connection**, then **Save model**. Testing sends a small prompt
+   and may incur provider charges. Agent runs send prompts and graph context to
+   the selected provider.
 
-Press **Test connection** before saving. It makes one cheap call and reports
-back, so a wrong key or a model id the provider doesn't serve surfaces here
-rather than on someone's first message.
+The first model saved becomes the organisation default automatically. To use
+another model from the same provider, click **Choose another model** and reuse a
+saved connection. Its encrypted credential is copied server-side into the new
+model configuration; the browser never receives it. These are independent
+configurations, so later key rotation must be applied to each one.
 
-The first model an organisation adds becomes its default automatically.
+Discovery filters models this adapter can support. OpenAI uses verified
+Chat Completions/tool-capable model families and their context/output limits;
+Gemini 3 is not listed because its tool-history thought signatures are not yet
+supported. Ollama checks `/api/show` for tool support. An empty list or failure
+is shown explicitly, never replaced with a fabricated catalog. **Enter a model
+ID manually** remains available for advanced/custom models, but does not imply
+that the adapter supports every new provider model.
+
+### OpenAI API access versus a ChatGPT subscription
+
+The OpenAI connection uses a **Platform API key** and separate API billing.
+ChatGPT subscriptions are not API keys or general-purpose API credits.
+
+OpenAI documents subscription sign-in through **Codex**, including authentication
+in [Codex App Server](https://developers.openai.com/codex/app-server). Orqestra's
+current `BaseLLMProvider` engine does not embed that runtime, so **ChatGPT
+subscription login is not implemented**. A Codex integration would need an
+isolated agent backend, per-account credential/session storage, and verified
+restrictions on built-in execution tools, while preserving the existing graph
+operation/approval boundary. It must not reuse private OAuth client IDs or
+undocumented ChatGPT endpoints.
+
+See [OpenAI's authentication documentation](https://developers.openai.com/codex/auth)
+for the supported sign-in methods.
 
 ### 2. Pick which model a project uses
 
@@ -247,9 +278,11 @@ organisation admin cannot raise a timeout that ties up a server worker.
 
 | What you see | What it means |
 |--------------|---------------|
-| *"No AI model is configured for this organisation"* | Nobody has added one. Settings → AI Models → Add model. |
+| *"No AI model is configured for this organisation"* | Nobody has saved one. Settings → AI Models → Connect a provider → Load available models → Save model. |
 | *"This … model has no API key"* | The stored config has no key. Edit it and add one. |
-| A 404 or "model not found" from the provider | The **Model id** isn't one that provider serves. Check it against the provider's current model list. |
+| A 404 or "model not found" from the provider | Reload the live model list and choose a model your account can access. |
+| Model discovery is empty | No compatible models were returned; check account access or install a tool-capable Ollama model. |
+| Changing provider or endpoint asks for a new key | Stored credentials cannot be forwarded to a different destination. Supply a new key explicitly. |
 | *"has no tool-calling support"* (Ollama) | The model has no tool template, so it can chat but can never touch the canvas. Pick a tool-capable model — see below. |
 | *"Cannot reach Ollama at …"* | The **server container** can't see that endpoint. A host-local Ollama is `http://host.docker.internal:11434`, not `localhost`. |
 | *"The model's response was truncated"* | The turn hit `AGENT_MAX_OUTPUT_TOKENS`. Ask for a smaller change, or raise it. |
@@ -262,12 +295,16 @@ organisation admin cannot raise a timeout that ties up a server worker.
 `organisations.LLMConfig`, alongside `AWSAccount` and following the same rules:
 
 - Encrypted at rest with `encrypt_val` (Fernet, keyed off `SECRET_KEY`), and
-  decrypted only in `build_provider` — plaintext exists for the life of one
-  provider instance.
+  decrypted only when constructing a provider for a run, discovery, or test.
+  Reusing a credential on creation copies ciphertext without decrypting it.
 - Never returned by the API. The serializer exposes `has_api_key`, not the key,
   so an edit form cannot leak it and a blank key on update keeps the stored one.
 - Managed by owners and admins (`CanManageOrganisation`), readable by non-guest
   members, and every change writes an `AuditLog` entry.
+- Discovery and tests are also admin-only and scoped to the active organisation.
+  Hosted providers use fixed endpoints; redirects are not followed. A saved key
+  can only be reused for its original provider and normalized endpoint. Changing
+  either requires an explicit replacement key. Provider errors are sanitized.
 
 ## Adding an LLM provider
 
@@ -277,8 +314,9 @@ streamed `TextDelta` / `ToolCallRequested` / `Usage` / `Stop` events), so a new
 model is an adapter plus a registration:
 
 1. Add `server/agent/llm/{name}_provider.py` with a class extending
-   `BaseLLMProvider`: set `name` and `capabilities`, and implement `stream()` to
-   yield canonical `LLMEvent`s. Credentials arrive through the base
+   `BaseLLMProvider`: set `name`, `capabilities`, and a fixed `endpoint` for hosted
+   providers. Implement `stream()` to yield canonical `LLMEvent`s and
+   `list_models()` to return compatible live `LLMModel(id, name)` entries. Credentials arrive through the base
    constructor (`model`, `api_key`, `base_url`, `context_window`) — never read
    them from the environment.
 2. Translate to and from the vendor's shapes in `server/agent/llm/mappers.py` —
@@ -289,11 +327,13 @@ model is an adapter plus a registration:
 4. Add it to `LLMProviderChoice` (`server/organisations/constants.py`) and to
    `LLM_PROVIDERS` in `client/src/api/llm-configs.ts` so admins can pick it in
    Settings → AI Models. Declare whether it needs an API key or a base URL in
-   the same two places.
+   the same two places. Add its connection guidance to `PROVIDER_SETUP` in
+   `client/src/pages/org-settings/llm-setup-utils.ts`.
 
-No engine, prompt, tool, or frontend changes are required.
-`AnthropicProvider`, `GeminiProvider`, and `OllamaProvider` are the worked
-examples.
+No engine, prompt, or tool changes are required.
+`OpenAIProvider`, `AnthropicProvider`, `GeminiProvider`, and `OllamaProvider` are
+worked examples. Catalog requests share a bounded discovery deadline, reject
+redirects, and limit each response to 1 MiB.
 
 Three things every adapter owes the engine:
 
@@ -364,7 +404,19 @@ byte-identical on every turn of a run.
 
 ## API
 
-All routes are under `/agent/`, scoped to the active organisation and gated by
+Model setup routes are under `/organisations/llm-configs/`:
+
+| Method | Route suffix | Purpose |
+|--------|--------------|---------|
+| `GET` / `POST` | `/` | List or create saved models. Creation can supply write-only `config` to reuse an organisation-owned credential. |
+| `PATCH` / `DELETE` | `/<id>/` | Update or remove a model. A blank key preserves the existing key. |
+| `POST` | `/models/` | Discover live models with `{provider, api_key?, base_url?, config?}`; no model ID or name is required. Returns `{ok: true, models: [{id, name}]}` or `{ok: false, error}` in the standard response envelope. |
+| `POST` | `/test/` | Test the connection with the same credentials plus `model` and optional `context_window`. |
+
+Validation/permission failures use standard HTTP error responses. Discovery and
+connection failures use `ok: false` and safe, actionable error messages.
+
+Agent routes are under `/agent/`, scoped to the active organisation and gated by
 the standard organisation permissions (`IsOrganisationMember` to read,
 `CanWriteOrganisation` to act).
 

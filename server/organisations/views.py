@@ -1,5 +1,4 @@
-from agent.llm.registry import provider_from_credentials
-from agent.llm.types import LLMMessage, Role, TextBlock
+from django.db import transaction
 from django.db.models import Prefetch, Q
 from orqestra.pagination import StandardResultsSetPagination
 from rest_framework.decorators import action
@@ -7,15 +6,16 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-from utils.encryption import decrypt_val
 
 from .constants import OrganisationMemberRole
 from .helpers import create_default_organisation, get_active_organisation, log_action
+from .llm_service import discover_models, test_connection
 from .models import AuditLog, AWSAccount, LLMConfig, Organisation, OrganisationMember
 from .permissions import CanManageOrganisation, IsNonGuestMember, IsOrganisationMember
 from .serializers import (
     AuditLogSerializer,
     AWSAccountSerializer,
+    LLMConfigModelsSerializer,
     LLMConfigSerializer,
     LLMConfigTestSerializer,
     OrganisationMemberSerializer,
@@ -253,10 +253,14 @@ class LLMConfigViewSet(ModelViewSet):
 
     def get_queryset(self):
         org = get_active_organisation(self.request, raise_exception=False)
-        if org:
-            return LLMConfig.objects.filter(organisation_id=org.id)
-        return LLMConfig.objects.none()
+        return LLMConfig.objects.for_organisation(org)
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["llm_configs"] = self.get_queryset()
+        return context
+
+    @transaction.atomic
     def perform_create(self, serializer):
         active_org = get_active_organisation(self.request)
         config = serializer.save(organisation=active_org)
@@ -272,6 +276,7 @@ class LLMConfigViewSet(ModelViewSet):
             },
         )
 
+    @transaction.atomic
     def perform_update(self, serializer):
         config = serializer.save()
         log_action(
@@ -298,34 +303,15 @@ class LLMConfigViewSet(ModelViewSet):
             data=request.data, configs=self.get_queryset()
         )
         payload.is_valid(raise_exception=True)
-        data = payload.validated_data
+        return Response(test_connection(payload.validated_data))
 
-        # The form never receives a stored key back, so re-testing a saved
-        # config has to fall back to the one on file.
-        saved = data.get("config")
-        api_key = data.get("api_key") or (
-            decrypt_val(saved.api_key) if saved and saved.api_key else ""
+    @action(detail=False, methods=["post"])
+    def models(self, request):
+        payload = LLMConfigModelsSerializer(
+            data=request.data, configs=self.get_queryset()
         )
-
-        try:
-            provider = provider_from_credentials(
-                provider=data["provider"],
-                model=data["model"],
-                api_key=api_key,
-                base_url=data.get("base_url", ""),
-                context_window=data.get("context_window", 0),
-            )
-            for _ in provider.stream(
-                system_prompt="Reply with the single word: ok.",
-                messages=[LLMMessage(role=Role.USER, content=[TextBlock(text="ping")])],
-                tools=[],
-                max_tokens=16,
-            ):
-                pass
-        except Exception as error:  # noqa: BLE001 - the failure IS the answer
-            return Response({"ok": False, "error": str(error)})
-
-        return Response({"ok": True, "model": data["model"]})
+        payload.is_valid(raise_exception=True)
+        return Response(discover_models(payload.validated_data))
 
     def perform_destroy(self, instance):
         organisation = instance.organisation

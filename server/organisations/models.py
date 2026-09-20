@@ -104,6 +104,13 @@ class AWSAccount(BaseModel):
         return f"{self.name} ({self.organisation.name})"
 
 
+class LLMConfigQuerySet(models.QuerySet):
+    def for_organisation(self, organisation):
+        if organisation is None:
+            return self.none()
+        return self.filter(organisation=organisation)
+
+
 class LLMConfig(BaseModel):
     """An organisation's connection to a model provider.
 
@@ -128,6 +135,8 @@ class LLMConfig(BaseModel):
     context_window = models.PositiveIntegerField(default=0)
     # The config the agent uses when a project names none. Exactly one per org.
     is_default = models.BooleanField(default=False)
+
+    objects = LLMConfigQuerySet.as_manager()
 
     class Meta(BaseModel.Meta):
         db_table = "llm_configs"

@@ -16,6 +16,7 @@ from agent.llm.types import (
     Usage,
 )
 from django.test import SimpleTestCase
+from orqestra.exceptions.api import LLMProviderError
 
 
 class _FakeResponse:
@@ -180,7 +181,7 @@ class OllamaProviderTests(SimpleTestCase):
     def test_a_missing_base_url_is_reported_actionably(self):
         provider = OllamaProvider(model="qwen3:8b")
 
-        with self.assertRaises(RuntimeError) as caught:
+        with self.assertRaises(LLMProviderError) as caught:
             list(provider.stream(system_prompt="s", messages=[], tools=[]))
 
         self.assertIn("Settings", str(caught.exception))
@@ -238,7 +239,7 @@ class OllamaProviderTests(SimpleTestCase):
         response = _FakeResponse([], status_code=401, text="unauthorized")
 
         with _post_returning(response):
-            with self.assertRaises(RuntimeError) as context:
+            with self.assertRaises(LLMProviderError) as context:
                 list(provider.stream(system_prompt="s", messages=[], tools=[]))
 
         self.assertIn("AI Models", str(context.exception))
@@ -250,7 +251,7 @@ class OllamaProviderTests(SimpleTestCase):
         )
 
         with _post_returning(response):
-            with self.assertRaises(RuntimeError) as context:
+            with self.assertRaises(LLMProviderError) as context:
                 list(provider.stream(system_prompt="s", messages=[], tools=[]))
 
         self.assertIn("404", str(context.exception))
@@ -265,15 +266,15 @@ class OllamaProviderTests(SimpleTestCase):
         )
 
         with _post_returning(response):
-            with self.assertRaises(RuntimeError) as context:
+            with self.assertRaises(LLMProviderError) as context:
                 list(provider.stream(system_prompt="s", messages=[], tools=[]))
 
         message = str(context.exception)
-        self.assertIn("llama3", message)
+        self.assertNotIn("registry.ollama.ai", message)
         self.assertIn("tool-calling", message)
         self.assertIn("AI Models", message)
 
-    def test_connection_error_names_the_url(self):
+    def test_connection_error_explains_container_connectivity(self):
         import requests
 
         provider = OllamaProvider(base_url="http://host.docker.internal:11434")
@@ -281,10 +282,10 @@ class OllamaProviderTests(SimpleTestCase):
         with mock.patch(
             "requests.post", side_effect=requests.exceptions.ConnectionError()
         ):
-            with self.assertRaises(RuntimeError) as context:
+            with self.assertRaises(LLMProviderError) as context:
                 list(provider.stream(system_prompt="s", messages=[], tools=[]))
 
-        self.assertIn("host.docker.internal:11434", str(context.exception))
+        self.assertIn("server container", str(context.exception))
 
     def test_to_ollama_tools(self):
         tools = [

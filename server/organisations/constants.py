@@ -17,6 +17,7 @@ class LLMProviderChoice(Enum):
     ANTHROPIC = "anthropic"
     GEMINI = "gemini"
     OLLAMA = "ollama"
+    OPENAI = "openai"
 
     @classmethod
     def choices(cls):
@@ -26,7 +27,11 @@ class LLMProviderChoice(Enum):
 # Providers that authenticate with an API key. Ollama against a local endpoint
 # needs none, so its key is optional.
 LLM_PROVIDERS_REQUIRING_KEY = frozenset(
-    {LLMProviderChoice.ANTHROPIC.value, LLMProviderChoice.GEMINI.value}
+    {
+        LLMProviderChoice.ANTHROPIC.value,
+        LLMProviderChoice.GEMINI.value,
+        LLMProviderChoice.OPENAI.value,
+    }
 )
 
 # Providers that are reached at an operator-supplied address rather than a

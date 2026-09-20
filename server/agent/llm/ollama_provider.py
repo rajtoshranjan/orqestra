@@ -2,13 +2,23 @@ import json
 from collections.abc import Iterator
 
 from orqestra.env_variables import EnvVariable
+from orqestra.exceptions.api import LLMProviderError
 
 from .base import BaseLLMProvider
-from .mappers import ensure_tool_call_id, to_ollama_messages, to_ollama_tools
+from .errors import safe_call, safe_stream, status_error
+from .mappers import (
+    ensure_tool_call_id,
+    from_ollama_models,
+    ollama_model_supports_tools,
+    to_ollama_messages,
+    to_ollama_model_info,
+    to_ollama_tools,
+)
 from .types import (
     LLMCapabilities,
     LLMEvent,
     LLMMessage,
+    LLMModel,
     Stop,
     TextDelta,
     ToolCallRequested,
@@ -31,7 +41,7 @@ class OllamaProvider(BaseLLMProvider):
 
     def _get_base_url(self) -> str:
         if not self._base_url:
-            raise RuntimeError(
+            raise LLMProviderError(
                 "This Ollama model has no base URL. Add one in "
                 "Settings → AI Models — for example "
                 "http://host.docker.internal:11434 for a local endpoint."
@@ -45,6 +55,25 @@ class OllamaProvider(BaseLLMProvider):
         key = self._get_api_key()
         return {"Authorization": f"Bearer {key}"} if key else {}
 
+    @safe_call
+    def list_models(self) -> list[LLMModel]:
+        self._get_base_url()
+        deadline = self._catalog_deadline()
+        models = from_ollama_models(
+            self._request_json("GET", "/api/tags", deadline=deadline)
+        )
+        compatible = {}
+        for model in models:
+            details = self._request_json(
+                "POST", "/api/show", deadline=deadline,
+                json=to_ollama_model_info(model),
+            )
+            if ollama_model_supports_tools(details):
+                compatible[model.id] = model
+        self._catalog_remaining(deadline)
+        return sorted(compatible.values(), key=lambda model: model.id)
+
+    @safe_stream
     def stream(
         self,
         *,
@@ -81,38 +110,31 @@ class OllamaProvider(BaseLLMProvider):
                 json=payload,
                 headers=self._get_headers(),
                 stream=True,
+                allow_redirects=False,
                 timeout=(10, int(EnvVariable.AGENT_REQUEST_TIMEOUT.value)),
             )
-        except requests.exceptions.ConnectionError as error:
-            raise RuntimeError(
-                f"Cannot reach Ollama at {self._get_base_url()}. Check the base "
-                "URL in Settings → AI Models is reachable from the server "
-                "container (and that `ollama serve` is running, for a local "
-                "endpoint)."
-            ) from error
+        except requests.exceptions.ConnectionError:
+            raise LLMProviderError(
+                "Cannot reach Ollama. Check the base URL in Settings → AI Models "
+                "is reachable from the server container and that `ollama serve` is running."
+            ) from None
 
         with response:
             if response.status_code != 200:
                 body = response.text[:500]
-                if response.status_code in (401, 403):
-                    raise RuntimeError(
-                        "Ollama rejected the credentials for "
-                        f"{self._get_base_url()}. Set a valid API key in "
-                        "Settings → AI Models (required for cloud models, "
-                        "unused for a local endpoint)."
-                    )
+
                 if "does not support tools" in body:
                     # The agent acts only through tools, so a model with no tool
                     # template cannot drive a run at all - say so plainly rather
                     # than surfacing Ollama's registry path.
-                    raise RuntimeError(
-                        f"The Ollama model '{self._get_model()}' has no tool-calling "
+                    raise LLMProviderError(
+                        "The Ollama model has no tool-calling "
                         "support, and the agent can only act through tools. Pick a "
                         "tool-capable model (for example qwen3:8b, llama3.1:8b, or "
                         "mistral-nemo), pull it with `ollama pull`, and set it "
                         "as the model in Settings → AI Models."
                     )
-                raise RuntimeError(f"Ollama returned {response.status_code}: {body}")
+                raise status_error(response.status_code)
 
             tool_calls: list[ToolCallRequested] = []
             finish_reason = "stop"
@@ -124,7 +146,10 @@ class OllamaProvider(BaseLLMProvider):
                 chunk = json.loads(line)
 
                 if chunk.get("error"):
-                    raise RuntimeError(f"Ollama error: {chunk['error']}")
+                    raise LLMProviderError(
+                        "Ollama could not complete the response. "
+                        "Check model support and retry."
+                    )
 
                 message = chunk.get("message") or {}
 

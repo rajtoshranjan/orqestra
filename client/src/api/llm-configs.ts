@@ -5,11 +5,17 @@ import { api } from './client';
 import type { ServerResponse } from './types';
 
 /** Providers the server has an adapter for (server/agent/llm/). */
-export const LLM_PROVIDERS = ['anthropic', 'gemini', 'ollama'] as const;
+export const LLM_PROVIDERS = [
+  'openai',
+  'anthropic',
+  'gemini',
+  'ollama',
+] as const;
 export type LLMProvider = (typeof LLM_PROVIDERS)[number];
 
 /** Providers that authenticate with an API key. Local Ollama needs none. */
 export const PROVIDERS_REQUIRING_KEY: readonly LLMProvider[] = [
+  'openai',
   'anthropic',
   'gemini',
 ];
@@ -18,6 +24,7 @@ export const PROVIDERS_REQUIRING_KEY: readonly LLMProvider[] = [
 export const PROVIDERS_REQUIRING_BASE_URL: readonly LLMProvider[] = ['ollama'];
 
 export const PROVIDER_LABELS: Record<LLMProvider, string> = {
+  openai: 'OpenAI',
   anthropic: 'Anthropic',
   gemini: 'Google Gemini',
   ollama: 'Ollama',
@@ -44,6 +51,7 @@ type ServerLLMConfigPayload = {
   base_url?: string;
   context_window?: number;
   is_default?: boolean;
+  config?: string;
 };
 
 export type LLMConfig = {
@@ -68,9 +76,25 @@ export type CreateLLMConfigPayload = {
   baseUrl?: string;
   contextWindow?: number;
   isDefault?: boolean;
+  /** Reuse credentials from an existing, organisation-owned configuration. */
+  configId?: string;
 };
 
 export type UpdateLLMConfigPayload = Partial<CreateLLMConfigPayload>;
+
+export type LLMModel = {
+  id: string;
+  name: string;
+};
+
+export type LLMDiscoveryPayload = Pick<
+  CreateLLMConfigPayload,
+  'provider' | 'apiKey' | 'baseUrl' | 'configId'
+>;
+
+export type LLMDiscoveryResult =
+  | { ok: true; models: LLMModel[] }
+  | { ok: false; error: string };
 
 export type LLMConnectionResult = {
   ok: boolean;
@@ -104,6 +128,7 @@ const mapPayloadToServer = (
   if (payload.contextWindow !== undefined)
     server.context_window = payload.contextWindow;
   if (payload.isDefault !== undefined) server.is_default = payload.isDefault;
+  if (payload.configId) server.config = payload.configId;
   return server;
 };
 
@@ -114,7 +139,7 @@ const fetchLLMConfigs = async (): Promise<LLMConfig[]> => {
   return response.data.data.map(mapServerLLMConfigToClient);
 };
 
-const createLLMConfig = async (
+export const createLLMConfig = async (
   payload: CreateLLMConfigPayload,
 ): Promise<LLMConfig> => {
   const response = await api.post<ServerResponse<ServerLLMConfig>>(
@@ -148,10 +173,18 @@ export const testLLMConnection = async (
 ): Promise<LLMConnectionResult> => {
   const response = await api.post<ServerResponse<LLMConnectionResult>>(
     '/organisations/llm-configs/test/',
-    {
-      ...mapPayloadToServer(payload),
-      ...(payload.configId ? { config: payload.configId } : {}),
-    },
+    mapPayloadToServer(payload),
+  );
+  return response.data.data;
+};
+
+/** Fetch the live catalog without sending a prompt or storing credentials. */
+export const discoverLLMModels = async (
+  payload: LLMDiscoveryPayload,
+): Promise<LLMDiscoveryResult> => {
+  const response = await api.post<ServerResponse<LLMDiscoveryResult>>(
+    '/organisations/llm-configs/models/',
+    mapPayloadToServer(payload),
   );
   return response.data.data;
 };

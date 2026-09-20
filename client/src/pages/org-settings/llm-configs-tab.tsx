@@ -1,22 +1,17 @@
 import { useState } from 'react';
 
-import { CheckCircle2, Edit2, Plug, Plus, Trash2, XCircle } from 'lucide-react';
+import { Edit2, Plug, Trash2 } from 'lucide-react';
 
+import { describeAgentError } from '@/agent/errors';
 import {
   useLLMConfigs,
-  useCreateLLMConfig,
   useUpdateLLMConfig,
   useDeleteLLMConfig,
-  testLLMConnection,
   LLM_PROVIDERS,
   PROVIDER_LABELS,
-  PROVIDERS_REQUIRING_BASE_URL,
-  PROVIDERS_REQUIRING_KEY,
-  type CreateLLMConfigPayload,
   type LLMConfig,
-  type LLMConnectionResult,
   type LLMProvider,
-} from '@/api';
+} from '@/api/llm-configs';
 import {
   Badge,
   Button,
@@ -27,15 +22,8 @@ import {
   CardTitle,
   ConfirmDialog,
   Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
   EmptyState,
-  Input,
   LoadingState,
-  Select,
   Table,
   TableBody,
   TableCell,
@@ -45,185 +33,122 @@ import {
 } from '@/components/ui';
 import { toast } from '@/hooks/use-toast';
 
+import { LLMSetupDialog } from './llm-setup-dialog';
+import { PROVIDER_SETUP } from './llm-setup-utils';
+
 type LLMConfigsTabProps = {
   canManage: boolean;
 };
 
-const EMPTY_FORM: CreateLLMConfigPayload = {
-  name: '',
-  provider: 'anthropic',
-  model: '',
-  apiKey: '',
-  baseUrl: '',
-  contextWindow: 0,
-};
-
-/** A sensible starting model per provider, so the field is never a blank guess. */
-const MODEL_PLACEHOLDER: Record<LLMProvider, string> = {
-  anthropic: 'claude-sonnet-5',
-  gemini: 'gemini-2.5-flash',
-  ollama: 'qwen3:8b',
-};
+type SetupTarget = { provider: LLMProvider; configId?: string };
 
 export function LLMConfigsTab({ canManage }: LLMConfigsTabProps) {
-  const { data: configs = [], isLoading } = useLLMConfigs();
-  const createMutation = useCreateLLMConfig();
+  const { data: configs = [], isLoading, isError, refetch } = useLLMConfigs();
   const updateMutation = useUpdateLLMConfig();
   const deleteMutation = useDeleteLLMConfig();
-
-  const [formOpen, setFormOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState<CreateLLMConfigPayload>(EMPTY_FORM);
-  const [testing, setTesting] = useState(false);
-  const [testResult, setTestResult] = useState<LLMConnectionResult | null>(
-    null,
-  );
+  const [setupTarget, setSetupTarget] = useState<SetupTarget | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<LLMConfig | null>(null);
-
-  const needsKey = PROVIDERS_REQUIRING_KEY.includes(formData.provider);
-  const needsBaseUrl = PROVIDERS_REQUIRING_BASE_URL.includes(formData.provider);
-  const isEditing = editingId !== null;
-
-  const closeForm = (open: boolean): void => {
-    setFormOpen(open);
-    if (!open) {
-      setFormData(EMPTY_FORM);
-      setEditingId(null);
-      setTestResult(null);
-    }
-  };
-
-  const startEdit = (config: LLMConfig): void => {
-    setEditingId(config.id);
-    setFormData({
-      name: config.name,
-      provider: config.provider,
-      model: config.model,
-      // Never prefilled: the server doesn't return it. Blank means "keep it".
-      apiKey: '',
-      baseUrl: config.baseUrl,
-      contextWindow: config.contextWindow,
-    });
-    setTestResult(null);
-    setFormOpen(true);
-  };
-
-  const missingRequired = (): string | null => {
-    if (!formData.name.trim()) return 'Give this model a name.';
-    if (!formData.model.trim()) return 'Enter the model id.';
-    if (needsKey && !formData.apiKey && !isEditing)
-      return `${PROVIDER_LABELS[formData.provider]} needs an API key.`;
-    if (needsBaseUrl && !formData.baseUrl?.trim())
-      return 'Enter the endpoint URL.';
-    return null;
-  };
-
-  const handleTest = async (): Promise<void> => {
-    const problem = missingRequired();
-    if (problem) {
-      setTestResult({ ok: false, error: problem });
-      return;
-    }
-    setTesting(true);
-    setTestResult(null);
-    try {
-      setTestResult(
-        await testLLMConnection({
-          ...formData,
-          ...(editingId ? { configId: editingId } : {}),
-        }),
-      );
-    } catch {
-      setTestResult({ ok: false, error: 'Could not reach the server.' });
-    } finally {
-      setTesting(false);
-    }
-  };
-
-  const handleSave = async (): Promise<void> => {
-    const problem = missingRequired();
-    if (problem) {
-      toast({
-        title: 'Missing details',
-        description: problem,
-        variant: 'destructive',
-      });
-      return;
-    }
-    try {
-      if (editingId) {
-        await updateMutation.mutateAsync({
-          configId: editingId,
-          data: formData,
-        });
-      } else {
-        await createMutation.mutateAsync(formData);
-      }
-      toast({
-        title: editingId ? 'Model updated' : 'Model added',
-        description: `${formData.name} is ready for the agent to use.`,
-      });
-      closeForm(false);
-    } catch {
-      toast({
-        title: 'Could not save',
-        description: 'Check the details and try again.',
-        variant: 'destructive',
-      });
-    }
-  };
 
   const handleDelete = async (): Promise<void> => {
     if (!deleteTarget) return;
     try {
       await deleteMutation.mutateAsync(deleteTarget.id);
       toast({ title: 'Model removed', description: deleteTarget.name });
-    } catch {
-      toast({ title: 'Could not remove the model', variant: 'destructive' });
+    } catch (error: unknown) {
+      toast({
+        title: 'Could not remove the model',
+        description: describeAgentError(error),
+        variant: 'destructive',
+      });
     } finally {
       setDeleteTarget(null);
     }
   };
 
   const makeDefault = async (config: LLMConfig): Promise<void> => {
-    await updateMutation.mutateAsync({
-      configId: config.id,
-      data: { isDefault: true },
-    });
+    try {
+      await updateMutation.mutateAsync({
+        configId: config.id,
+        data: { isDefault: true },
+      });
+    } catch (error: unknown) {
+      toast({
+        title: 'Could not change the default',
+        description: describeAgentError(error),
+        variant: 'destructive',
+      });
+    }
   };
 
   if (isLoading) return <LoadingState />;
+  if (isError)
+    return (
+      <Card>
+        <CardContent className="space-y-3 pt-6">
+          <p role="alert" className="text-sm text-destructive">
+            Could not load your AI models.
+          </p>
+          <Button variant="outline" onClick={() => void refetch()}>
+            Try again
+          </Button>
+        </CardContent>
+      </Card>
+    );
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
-        <div className="space-y-1.5">
-          <CardTitle>AI models</CardTitle>
-          <CardDescription>
-            Models the agent can use. Keys are stored encrypted and never leave
-            the server. Projects use the default unless they pick their own.
-          </CardDescription>
-        </div>
-        {canManage && (
-          <Button
-            size="sm"
-            onClick={() => setFormOpen(true)}
-            className="gap-1.5"
-          >
-            <Plus size={14} aria-hidden="true" /> Add model
-          </Button>
-        )}
+      <CardHeader>
+        <CardTitle>AI models</CardTitle>
+        <CardDescription>
+          Connect a provider and choose from its available models. Projects use
+          your organisation’s default unless they pick their own.
+        </CardDescription>
       </CardHeader>
-
-      <CardContent>
+      <CardContent className="space-y-6">
+        {canManage && (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {LLM_PROVIDERS.map((provider) => {
+              const connected = configs.some(
+                (config) => config.provider === provider,
+              );
+              return (
+                <div
+                  key={provider}
+                  className="flex flex-col items-start gap-2 rounded-lg border p-4"
+                >
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-medium">
+                      {PROVIDER_LABELS[provider]}
+                    </h3>
+                    {connected && <Badge variant="outline">Configured</Badge>}
+                  </div>
+                  <p className="flex-1 text-xs text-muted-foreground">
+                    {PROVIDER_SETUP[provider].description}
+                  </p>
+                  <Button
+                    size="sm"
+                    variant={connected ? 'outline' : 'default'}
+                    onClick={() => setSetupTarget({ provider })}
+                    className="gap-1.5"
+                  >
+                    <Plug size={13} aria-hidden="true" />
+                    {connected
+                      ? 'Choose another model'
+                      : `Connect ${PROVIDER_LABELS[provider]}`}
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        )}
         {configs.length === 0 ? (
           <EmptyState
             icon={Plug}
-            title="No AI models yet"
+            title="No AI models connected"
             description={
               canManage
-                ? 'Add a model so the agent can design on the canvas.'
-                : 'An owner or admin needs to add one before the agent can run.'
+                ? 'Choose a provider above. The first model you save becomes the organisation default.'
+                : 'An owner or admin needs to connect a provider before the agent can run.'
             }
             size="sm"
           />
@@ -270,6 +195,7 @@ export function LLMConfigsTab({ canManage }: LLMConfigsTabProps) {
                             variant="ghost"
                             size="sm"
                             className="h-7 text-xs"
+                            disabled={updateMutation.isPending}
                             onClick={() => void makeDefault(config)}
                           >
                             Make default
@@ -279,7 +205,12 @@ export function LLMConfigsTab({ canManage }: LLMConfigsTabProps) {
                           variant="ghost"
                           size="sm"
                           className="size-7 p-0"
-                          onClick={() => startEdit(config)}
+                          onClick={() =>
+                            setSetupTarget({
+                              provider: config.provider,
+                              configId: config.id,
+                            })
+                          }
                           aria-label={`Edit ${config.name}`}
                         >
                           <Edit2 size={13} aria-hidden="true" />
@@ -302,187 +233,22 @@ export function LLMConfigsTab({ canManage }: LLMConfigsTabProps) {
           </Table>
         )}
       </CardContent>
-
-      <Dialog open={formOpen} onOpenChange={closeForm}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{isEditing ? 'Edit model' : 'Add model'}</DialogTitle>
-            <DialogDescription>
-              The agent uses this to design on the canvas. Test the connection
-              before saving to catch a wrong key or model id here rather than
-              mid-run.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium" htmlFor="llm-name">
-                Name
-              </label>
-              <Input
-                id="llm-name"
-                value={formData.name}
-                onChange={(event) =>
-                  setFormData({ ...formData, name: event.target.value })
-                }
-                placeholder="Claude Sonnet 5"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium" htmlFor="llm-provider">
-                Provider
-              </label>
-              <Select
-                id="llm-provider"
-                value={formData.provider}
-                onChange={(event) =>
-                  setFormData({
-                    ...formData,
-                    provider: event.target.value as LLMProvider,
-                    model: '',
-                  })
-                }
-              >
-                {LLM_PROVIDERS.map((provider) => (
-                  <option key={provider} value={provider}>
-                    {PROVIDER_LABELS[provider]}
-                  </option>
-                ))}
-              </Select>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium" htmlFor="llm-model">
-                Model id
-              </label>
-              <Input
-                id="llm-model"
-                value={formData.model}
-                onChange={(event) =>
-                  setFormData({ ...formData, model: event.target.value })
-                }
-                placeholder={MODEL_PLACEHOLDER[formData.provider]}
-                className="font-mono text-xs"
-              />
-            </div>
-
-            {needsBaseUrl && (
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium" htmlFor="llm-base-url">
-                  Endpoint URL
-                </label>
-                <Input
-                  id="llm-base-url"
-                  value={formData.baseUrl ?? ''}
-                  onChange={(event) =>
-                    setFormData({ ...formData, baseUrl: event.target.value })
-                  }
-                  placeholder="http://host.docker.internal:11434"
-                  className="font-mono text-xs"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Use <code>https://ollama.com</code> for cloud models, or the
-                  host address your server can reach for a local one.
-                </p>
-              </div>
+      <Dialog
+        open={canManage && setupTarget !== null}
+        onOpenChange={(open) => !open && setSetupTarget(null)}
+      >
+        {canManage && setupTarget && (
+          <LLMSetupDialog
+            key={setupTarget.configId ?? setupTarget.provider}
+            provider={setupTarget.provider}
+            configs={configs}
+            editing={configs.find(
+              (config) => config.id === setupTarget.configId,
             )}
-
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium" htmlFor="llm-api-key">
-                API key{' '}
-                {!needsKey && (
-                  <span className="font-normal text-muted-foreground">
-                    (optional for a local endpoint)
-                  </span>
-                )}
-              </label>
-              <Input
-                id="llm-api-key"
-                type="password"
-                value={formData.apiKey ?? ''}
-                onChange={(event) =>
-                  setFormData({ ...formData, apiKey: event.target.value })
-                }
-                placeholder={
-                  isEditing ? 'Leave blank to keep the stored key' : ''
-                }
-              />
-            </div>
-
-            {needsBaseUrl && (
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium" htmlFor="llm-ctx">
-                  Context window
-                </label>
-                <Input
-                  id="llm-ctx"
-                  type="number"
-                  min={0}
-                  value={formData.contextWindow || ''}
-                  onChange={(event) =>
-                    setFormData({
-                      ...formData,
-                      contextWindow: Number(event.target.value) || 0,
-                    })
-                  }
-                  placeholder="32768"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Local endpoints default to 4096, which truncates the service
-                  catalog out of the prompt. Leave blank for cloud models.
-                </p>
-              </div>
-            )}
-
-            {testResult && (
-              <div
-                role="status"
-                className={`flex items-start gap-2 rounded-lg border p-3 text-xs ${
-                  testResult.ok
-                    ? 'border-success/40 bg-success/10 text-success'
-                    : 'border-destructive/40 bg-destructive/10 text-destructive'
-                }`}
-              >
-                {testResult.ok ? (
-                  <CheckCircle2 size={14} className="mt-px shrink-0" />
-                ) : (
-                  <XCircle size={14} className="mt-px shrink-0" />
-                )}
-                <span className="min-w-0 break-words">
-                  {testResult.ok
-                    ? `Connected. ${testResult.model} responded.`
-                    : testResult.error}
-                </span>
-              </div>
-            )}
-          </div>
-
-          <DialogFooter className="gap-2 sm:justify-between">
-            <Button
-              variant="outline"
-              onClick={() => void handleTest()}
-              disabled={testing}
-              className="gap-1.5"
-            >
-              <Plug size={14} aria-hidden="true" />
-              {testing ? 'Testing…' : 'Test connection'}
-            </Button>
-            <div className="flex gap-2">
-              <Button variant="ghost" onClick={() => closeForm(false)}>
-                Cancel
-              </Button>
-              <Button
-                onClick={() => void handleSave()}
-                disabled={createMutation.isPending || updateMutation.isPending}
-              >
-                Save
-              </Button>
-            </div>
-          </DialogFooter>
-        </DialogContent>
+            onClose={() => setSetupTarget(null)}
+          />
+        )}
       </Dialog>
-
       <ConfirmDialog
         open={deleteTarget !== null}
         onOpenChange={(open) => !open && setDeleteTarget(null)}

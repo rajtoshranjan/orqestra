@@ -56,6 +56,18 @@ class LLMCapabilities:
     max_context_tokens: int = 200000
 
 
+@dataclass(frozen=True)
+class LLMModel:
+    id: str
+    name: str
+
+
+@dataclass
+class ModelCatalogPage:
+    models: list[LLMModel]
+    next_page: str = ""
+
+
 # --- Streaming events -------------------------------------------------------
 
 

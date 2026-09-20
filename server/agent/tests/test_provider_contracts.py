@@ -4,10 +4,13 @@ Tool-call ids and prompt caching are engine-level concerns that each adapter has
 historically had to rediscover. These pin them at the seam instead.
 """
 
+from unittest import mock
+
 from agent.llm.anthropic_provider import AnthropicProvider
 from agent.llm.gemini_provider import GeminiProvider
 from agent.llm.mappers import ensure_tool_call_id
 from agent.llm.types import LLMMessage, Role, TextBlock, ToolSpec
+from agent.tests.http_fakes import sse_response
 from django.test import SimpleTestCase
 
 TOOLS = [ToolSpec(name="noop", description="", input_schema={"type": "object"})]
@@ -31,55 +34,20 @@ class ToolCallIdTests(SimpleTestCase):
 # --- Gemini ---------------------------------------------------------------
 
 
-class _FakeCall:
-    def __init__(self, id, name, args):
-        self.id = id
-        self.name = name
-        self.args = args
-
-
-class _FakeChunk:
-    text = None
-    usage_metadata = None
-    candidates = None
-
-    def __init__(self, function_calls):
-        self.function_calls = function_calls
-
-
-class _FakeModels:
-    def __init__(self, chunks):
-        self._chunks = chunks
-        self.kwargs = None
-
-    def generate_content_stream(self, **kwargs):
-        self.kwargs = kwargs
-        return iter(self._chunks)
-
-
-class _FakeGeminiClient:
-    def __init__(self, chunks):
-        self.models = _FakeModels(chunks)
-
 
 class GeminiToolCallIdTests(SimpleTestCase):
     def test_parallel_calls_without_ids_do_not_collide(self):
         """Gemini returns id=None; two calls in a turn must stay distinguishable."""
-        chunks = [
-            _FakeChunk(
-                [
-                    _FakeCall(None, "add_resource", {"service_id": "lambda"}),
-                    _FakeCall(None, "add_resource", {"service_id": "s3"}),
-                ]
-            )
-        ]
-        provider = GeminiProvider(
-            client=_FakeGeminiClient(chunks), model="gemini-2.5-flash"
-        )
-
-        events = list(
-            provider.stream(system_prompt="s", messages=MESSAGES, tools=TOOLS)
-        )
+        response = sse_response([{"candidates": [{
+            "content": {"parts": [
+                {"functionCall": {"name": "add_resource", "args": {"service_id": "lambda"}}},
+                {"functionCall": {"name": "add_resource", "args": {"service_id": "s3"}}},
+            ]},
+            "finishReason": "STOP",
+        }]}], done=False)
+        provider = GeminiProvider(api_key="secret", model="gemini-2.5-flash")
+        with mock.patch("requests.post", return_value=response):
+            events = list(provider.stream(system_prompt="s", messages=MESSAGES, tools=TOOLS))
         ids = [event.id for event in events if getattr(event, "name", None)]
 
         self.assertEqual(len(ids), 2)
