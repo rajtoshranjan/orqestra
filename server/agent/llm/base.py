@@ -12,7 +12,7 @@ from orqestra.env_variables import EnvVariable
 from orqestra.exceptions.api import LLMProviderError
 
 from .endpoints import normalize_base_url
-from .errors import safe_call, status_error
+from .errors import ERROR_MAX_BODY_BYTES, safe_call, status_error
 from .types import (
     LLMCapabilities,
     LLMEvent,
@@ -77,6 +77,9 @@ class BaseLLMProvider(ABC):
                 "An API key is required. Add one in Settings → AI Models."
             )
 
+    def _response_error(self, status_code: int, body: bytes = b"") -> LLMProviderError:
+        return status_error(status_code)
+
     def _catalog_deadline(self) -> float:
         return monotonic() + min(30, int(EnvVariable.AGENT_REQUEST_TIMEOUT.value))
 
@@ -118,29 +121,39 @@ class BaseLLMProvider(ABC):
                 **kwargs,
             ) as response:
                 self._catalog_remaining(deadline)
-                if response.status_code != 200:
-                    raise status_error(response.status_code)
+                failed = response.status_code != 200
+                if failed and response.status_code != 429:
+                    raise self._response_error(response.status_code)
+                max_bytes = ERROR_MAX_BODY_BYTES if failed else CATALOG_MAX_BODY_BYTES
                 # Avoid an unbounded decompressor behind a small chunk size.
                 encoding = response.headers.get("content-encoding", "identity")
                 if encoding.lower() != "identity":
+                    if failed:
+                        raise self._response_error(response.status_code)
                     raise LLMProviderError(
                         "The provider ignored the uncompressed catalog request. "
                         "Check the endpoint or proxy configuration."
                     )
                 length = response.headers.get("content-length")
-                if length is not None and int(length) > CATALOG_MAX_BODY_BYTES:
+                if length is not None and int(length) > max_bytes:
+                    if failed:
+                        raise self._response_error(response.status_code)
                     raise LLMProviderError("The provider model catalog is too large.")
                 body = bytearray()
                 async for chunk in response.aiter_raw(
-                    chunk_size=CATALOG_READ_CHUNK_BYTES
+                    chunk_size=min(CATALOG_READ_CHUNK_BYTES, max_bytes)
                 ):
                     self._catalog_remaining(deadline)
-                    if len(body) + len(chunk) > CATALOG_MAX_BODY_BYTES:
+                    if len(body) + len(chunk) > max_bytes:
+                        if failed:
+                            raise self._response_error(response.status_code)
                         raise LLMProviderError(
                             "The provider model catalog is too large."
                         )
                     body.extend(chunk)
                 self._catalog_remaining(deadline)
+                if failed:
+                    raise self._response_error(response.status_code, bytes(body))
                 payload = json.loads(body)
                 self._catalog_remaining(deadline)
                 if not isinstance(payload, dict) or "error" in payload:

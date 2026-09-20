@@ -2,7 +2,7 @@ import { ExternalLink } from 'lucide-react';
 
 import { Button } from '@/components/ui';
 
-export function OpenAIAccessNote() {
+export function OpenAIAccessNote(): React.JSX.Element {
   return (
     <div className="space-y-2 rounded-lg border bg-muted/30 p-3 text-xs text-muted-foreground">
       <p className="font-medium text-foreground">

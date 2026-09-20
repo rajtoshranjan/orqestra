@@ -3,18 +3,18 @@ from unittest import mock
 import requests
 from django.test import SimpleTestCase
 
-from agent.constants import MessageRole, RunStatus
-from agent.engine import AgentEngine
-from agent.llm.mappers import (
+from ..constants import MessageRole, RunStatus
+from ..engine import AgentEngine
+from ..llm.mappers import (
     from_openai_models,
     openai_model_limits,
     to_openai_messages,
     to_openai_request,
     to_openai_tools,
 )
-from agent.llm.openai_provider import OpenAIProvider
-from agent.llm.registry import build_provider, llm_registry
-from agent.llm.types import (
+from ..llm.openai_provider import OpenAIProvider
+from ..llm.registry import build_provider, llm_registry
+from ..llm.types import (
     LLMMessage,
     Role,
     Stop,
@@ -26,8 +26,8 @@ from agent.llm.types import (
     ToolSpec,
     Usage,
 )
-from agent.models import AgentConversation, AgentMessage, AgentRun
-from agent.tests.http_fakes import json_response, openai_text_response, sse_response
+from ..models import AgentConversation, AgentMessage, AgentRun
+from .http_fakes import json_response, openai_text_response, sse_response
 from organisations.models import LLMConfig
 from orqestra.exceptions.api import LLMProviderError
 from orqestra.tests import BaseTestCase
@@ -370,6 +370,23 @@ class OpenAIRunTests(BaseTestCase):
             result = self.engine.advance(self.run, operation_results=[], catalog=[])
         self.assertEqual(result.run_status, RunStatus.FAILED.value)
         self.assertEqual(result.operations, [])
+
+    def test_quota_failure_is_actionable_on_the_run_without_retries(self):
+        response = json_response({"error": {
+            "code": "insufficient_quota", "type": "insufficient_quota",
+            "message": "sk-secret org-secret",
+        }}, 429)
+        with mock.patch("requests.post", return_value=response) as post:
+            result = self.engine.advance(self.run, operation_results=[], catalog=[])
+        self.assertEqual(result.run_status, RunStatus.FAILED.value)
+        self.assertEqual(result.operations, [])
+        self.run.refresh_from_db()
+        message = str(self.run.error)
+        self.assertIn("insufficient_quota", message)
+        self.assertIn("ChatGPT subscriptions", message)
+        self.assertNotIn("sk-secret", message)
+        self.assertNotIn("org-secret", message)
+        self.assertEqual(post.call_count, 1)
 
     def test_provider_error_persisted_on_run_contains_no_key(self):
         with mock.patch("requests.post", return_value=json_response({"error": "sk-secret"}, 401)):

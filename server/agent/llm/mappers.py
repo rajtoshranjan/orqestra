@@ -7,6 +7,7 @@ from typing import Any
 
 from orqestra.exceptions.api import LLMProviderError
 
+from .errors import status_error
 from .types import (
     LLMEvent,
     LLMMessage,
@@ -452,6 +453,69 @@ def from_gemini_stream(lines: Iterable[bytes]) -> Iterator[LLMEvent]:
         yield from calls
     yield usage
     yield Stop(reason=finish_reason)
+
+
+_OPENAI_BILLING_ERRORS = {
+    "insufficient_quota": (
+        "OpenAI API quota is unavailable or exhausted (429: insufficient_quota). "
+        "Check API credits, billing and limits for the organisation/project that "
+        "owns this API key. Retrying alone will not restore quota. "
+        "ChatGPT subscriptions do not include OpenAI API credits."
+    ),
+    "credit_balance_exhausted": (
+        "OpenAI API credits are exhausted (429: credit_balance_exhausted). "
+        "Add credits in OpenAI Platform billing for the organisation that owns "
+        "this API key. ChatGPT subscriptions do not include OpenAI API credits."
+    ),
+    "organization_spend_limit_exceeded": (
+        "Your OpenAI organisation's API spend limit was reached "
+        "(429: organization_spend_limit_exceeded). Ask its owner to review "
+        "the spend limit, or wait for the limit to reset."
+    ),
+    "project_spend_limit_exceeded": (
+        "Your OpenAI project's API spend limit was reached "
+        "(429: project_spend_limit_exceeded). Ask its owner to review the "
+        "project's spend limit, or wait for the limit to reset."
+    ),
+    "organization_usage_limit_exceeded": (
+        "Your OpenAI organisation's API usage limit was reached "
+        "(429: organization_usage_limit_exceeded). Request a higher approved "
+        "usage limit from OpenAI, or wait for the limit to reset."
+    ),
+}
+_OPENAI_RATE_LIMIT_CODES = frozenset({"rate_limit_exceeded", "slow_down"})
+
+
+def from_openai_error(status_code: int, body: bytes = b"") -> LLMProviderError:
+    """Use only allowlisted codes; never reflect vendor messages or identifiers."""
+    if status_code != 429:
+        return status_error(status_code)
+    try:
+        payload = json.loads(body)
+    except (ValueError, UnicodeError):
+        payload = None
+    error = payload.get("error") if isinstance(payload, dict) else None
+    if isinstance(error, dict):
+        code = error.get("code")
+        error_type = error.get("type")
+        if isinstance(code, str) and code in _OPENAI_BILLING_ERRORS:
+            return LLMProviderError(_OPENAI_BILLING_ERRORS[code])
+        if error_type == "insufficient_quota":
+            return LLMProviderError(_OPENAI_BILLING_ERRORS["insufficient_quota"])
+        if (
+            isinstance(code, str) and code in _OPENAI_RATE_LIMIT_CODES
+        ) or error_type in ("rate_limit_error", "rate_limit_exceeded"):
+            return LLMProviderError(
+                "OpenAI temporarily rate-limited this request (429). Wait before "
+                "retrying, reduce concurrent requests or tokens per request, "
+                "and check the model's limits in OpenAI Platform."
+            )
+    return LLMProviderError(
+        "OpenAI returned 429 without a recognised quota or rate-limit code. "
+        "Check API billing and limits for the organisation/project that owns "
+        "this API key; if those are available, wait before retrying. "
+        "ChatGPT subscriptions do not include OpenAI API credits."
+    )
 
 
 def from_openai_stream(lines: Iterable[bytes]) -> Iterator[LLMEvent]:

@@ -7,10 +7,10 @@ from unittest import mock
 import httpx
 from django.test import SimpleTestCase
 
-from agent.llm.anthropic_provider import AnthropicProvider
-from agent.llm.base import CATALOG_MAX_BODY_BYTES, CATALOG_READ_CHUNK_BYTES
-from agent.llm.ollama_provider import OllamaProvider
-from agent.llm.openai_provider import OpenAIProvider
+from ..llm.anthropic_provider import AnthropicProvider
+from ..llm.base import CATALOG_MAX_BODY_BYTES, CATALOG_READ_CHUNK_BYTES
+from ..llm.ollama_provider import OllamaProvider
+from ..llm.openai_provider import OpenAIProvider
 from orqestra.exceptions.api import LLMProviderError
 
 
@@ -190,8 +190,8 @@ class CatalogTransportTests(SimpleTestCase):
                 self.assertNotIn("sk-secret", str(caught.exception))
                 self.assertTrue(stream.closed)
 
-    def test_redirect_and_error_bodies_are_not_read_or_followed(self):
-        for status_code in (302, 307, 401, 429, 500):
+    def test_redirect_and_non_429_error_bodies_are_not_read_or_followed(self):
+        for status_code in (302, 307, 401, 500):
             with self.subTest(status=status_code):
                 stream = RecordingStream([b"sk-secret"])
                 requests_seen = []
@@ -210,6 +210,28 @@ class CatalogTransportTests(SimpleTestCase):
                 self.assertNotIn("sk-secret", str(caught.exception))
                 self.assertEqual(stream.chunks_read, 0)
                 self.assertTrue(stream.closed)
+
+    def test_429_body_is_read_for_classification_without_following_redirects(self):
+        stream = RecordingStream([
+            b'{"error":{"code":"insufficient_quota","message":"sk-secret"}}'
+        ])
+        requests_seen = []
+
+        def handler(request):
+            requests_seen.append(str(request.url))
+            return httpx.Response(
+                429, stream=stream,
+                headers={"Location": "https://attacker.example"},
+            )
+
+        with self.mock_transport(handler):
+            with self.assertRaises(LLMProviderError) as caught:
+                self.request()
+        self.assertEqual(requests_seen, ["https://api.openai.com/v1/models"])
+        self.assertIn("insufficient_quota", str(caught.exception))
+        self.assertNotIn("sk-secret", str(caught.exception))
+        self.assertEqual(stream.chunks_read, 1)
+        self.assertTrue(stream.closed)
 
     def test_pagination_uses_one_deadline_and_never_returns_partial_catalog(self):
         clock = SimpleNamespace(now=0.0)

@@ -2,10 +2,12 @@ from collections.abc import Iterator
 
 import requests
 from orqestra.env_variables import EnvVariable
+from orqestra.exceptions.api import LLMProviderError
 
 from .base import BaseLLMProvider
-from .errors import safe_call, safe_stream, status_error
+from .errors import read_error_body, safe_call, safe_stream
 from .mappers import (
+    from_openai_error,
     from_openai_models,
     from_openai_stream,
     openai_context_limit,
@@ -27,6 +29,9 @@ class OpenAIProvider(BaseLLMProvider):
         if self._context_window:
             context_limit = min(context_limit, self._context_window)
         self.capabilities = LLMCapabilities(max_context_tokens=context_limit)
+
+    def _response_error(self, status_code: int, body: bytes = b"") -> LLMProviderError:
+        return from_openai_error(status_code, body)
 
     @safe_call
     def list_models(self) -> list[LLMModel]:
@@ -62,5 +67,6 @@ class OpenAIProvider(BaseLLMProvider):
             timeout=(10, int(EnvVariable.AGENT_REQUEST_TIMEOUT.value)),
         ) as response:
             if response.status_code != 200:
-                raise status_error(response.status_code)
+                body = read_error_body(response) if response.status_code == 429 else b""
+                raise self._response_error(response.status_code, body)
             yield from from_openai_stream(response.iter_lines())

@@ -4,12 +4,12 @@ import httpx
 from django.test import SimpleTestCase
 from rest_framework.exceptions import ValidationError
 
-from agent.llm.anthropic_provider import AnthropicProvider
-from agent.llm.gemini_provider import GeminiProvider
-from agent.llm.ollama_provider import OllamaProvider
-from agent.llm.openai_provider import OpenAIProvider
-from agent.llm.types import LLMModel
-from agent.tests.http_fakes import CatalogResponse
+from ..llm.anthropic_provider import AnthropicProvider
+from ..llm.gemini_provider import GeminiProvider
+from ..llm.ollama_provider import OllamaProvider
+from ..llm.openai_provider import OpenAIProvider
+from ..llm.types import LLMModel
+from .http_fakes import CatalogResponse
 from orqestra.exceptions.api import LLMProviderError
 
 

@@ -42,7 +42,9 @@ type LLMConfigsTabProps = {
 
 type SetupTarget = { provider: LLMProvider; configId?: string };
 
-export function LLMConfigsTab({ canManage }: LLMConfigsTabProps) {
+export function LLMConfigsTab({
+  canManage,
+}: LLMConfigsTabProps): React.JSX.Element {
   const { data: configs = [], isLoading, isError, refetch } = useLLMConfigs();
   const updateMutation = useUpdateLLMConfig();
   const deleteMutation = useDeleteLLMConfig();

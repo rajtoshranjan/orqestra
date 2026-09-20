@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import type { LLMConfig } from '@/api/llm-configs';
+import { LLM_PROVIDERS, type LLMConfig } from '@/api/llm-configs';
 
 import {
   connectionProblem,
   initialLLMForm,
+  PROVIDER_SETUP,
   selectedModelPayload,
 } from './llm-setup-utils';
 
@@ -26,6 +27,14 @@ const MODELS = [
 ];
 
 describe('LLM setup', () => {
+  it('shows the subscription access note only for OpenAI via provider metadata', () => {
+    expect(
+      LLM_PROVIDERS.filter(
+        (provider) => PROVIDER_SETUP[provider].showOpenAIAccessNote,
+      ),
+    ).toEqual(['openai']);
+  });
+
   it('does not invent a default model before discovery', () => {
     const form = initialLLMForm('openai');
     expect(selectedModelPayload(form, [], false).model).toBe('');

@@ -9,12 +9,18 @@ import {
 
 export const PROVIDER_SETUP: Record<
   LLMProvider,
-  { description: string; keyUrl: string; keyLabel: string }
+  {
+    description: string;
+    keyUrl: string;
+    keyLabel: string;
+    showOpenAIAccessNote?: boolean;
+  }
 > = {
   openai: {
     description: 'GPT models with an OpenAI Platform API key.',
     keyUrl: 'https://platform.openai.com/api-keys',
     keyLabel: 'Get an OpenAI API key',
+    showOpenAIAccessNote: true,
   },
   anthropic: {
     description: 'Claude models with an Anthropic API key.',

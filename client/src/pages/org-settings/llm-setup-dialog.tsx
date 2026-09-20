@@ -36,7 +36,7 @@ export function LLMSetupDialog({
   configs,
   editing,
   onClose,
-}: LLMSetupDialogProps) {
+}: LLMSetupDialogProps): React.JSX.Element {
   const setup = useLLMSetup(provider, configs, editing, onClose);
   const needsUrl = PROVIDERS_REQUIRING_BASE_URL.includes(provider);
   const needsKey = PROVIDERS_REQUIRING_KEY.includes(provider);
@@ -68,7 +68,7 @@ export function LLMSetupDialog({
       </DialogHeader>
 
       <fieldset disabled={busy} className="min-w-0 space-y-4">
-        {provider === 'openai' && <OpenAIAccessNote />}
+        {guide.showOpenAIAccessNote && <OpenAIAccessNote />}
         <div className="space-y-2">
           <p className="text-sm font-medium">1. Connect your provider</p>
           {!editing && setup.connections.length > 0 && (

@@ -19,7 +19,7 @@ export function LLMModelPicker({
   loaded,
   onChange,
   onToggleManual,
-}: LLMModelPickerProps) {
+}: LLMModelPickerProps): React.JSX.Element {
   const [search, setSearch] = useState<string>('');
   const query = search.trim().toLowerCase();
   const filtered = models.filter((model) =>

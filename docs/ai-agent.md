@@ -282,6 +282,11 @@ organisation admin cannot raise a timeout that ties up a server worker.
 | *"This … model has no API key"* | The stored config has no key. Edit it and add one. |
 | A 404 or "model not found" from the provider | Reload the live model list and choose a model your account can access. |
 | Model discovery is empty | No compatible models were returned; check account access or install a tool-capable Ollama model. |
+| OpenAI `insufficient_quota` / `credit_balance_exhausted` (429) | Check API billing/credits for the organisation and project owning the key. ChatGPT subscriptions do not fund API calls; retrying alone will not restore credits. |
+| OpenAI `project_spend_limit_exceeded` / `organization_spend_limit_exceeded` (429) | Ask the relevant OpenAI project/organisation owner to review the spend limit, or wait for its reset. |
+| OpenAI `organization_usage_limit_exceeded` (429) | Request a higher approved usage limit from OpenAI, or wait for the limit to reset. |
+| OpenAI temporarily rate-limited the request (429) | Wait before retrying and reduce concurrent requests or tokens per request; check model rate limits in OpenAI Platform. |
+| OpenAI 429 without a recognised code | The response did not identify which kind of limit was hit. Check API billing and limits; do not assume every 429 is a temporary rate limit. |
 | Changing provider or endpoint asks for a new key | Stored credentials cannot be forwarded to a different destination. Supply a new key explicitly. |
 | *"has no tool-calling support"* (Ollama) | The model has no tool template, so it can chat but can never touch the canvas. Pick a tool-capable model — see below. |
 | *"Cannot reach Ollama at …"* | The **server container** can't see that endpoint. A host-local Ollama is `http://host.docker.internal:11434`, not `localhost`. |
@@ -289,6 +294,12 @@ organisation admin cannot raise a timeout that ties up a server worker.
 | *"Exceeded the maximum of N steps"* | The run hit `AGENT_MAX_TURNS`. Usually means the model is looping; try a more specific request. |
 | *"This conversation already has a run in progress"* | A run is still live. Press **Stop**, or wait — an abandoned one is retired after `AGENT_RUN_STALE_MINUTES`. |
 | The agent replies but nothing appears on the canvas | You have read-only access to the project, or the canvas is locked. The agent respects both. |
+
+OpenAI 429 classification uses only allowlisted `error.code` / `error.type`
+values, never the raw error message. Discovery and chat/connection tests use the
+same mapper. Listing models successfully does **not** prove generation quota is
+available. See [OpenAI error codes](https://developers.openai.com/api/docs/guides/error-codes)
+for the distinction between credits, spend limits, usage limits and throttling.
 
 ## Where credentials live
 

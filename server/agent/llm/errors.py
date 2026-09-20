@@ -4,6 +4,21 @@ import httpx
 import requests
 from orqestra.exceptions.api import LLMProviderError
 
+ERROR_MAX_BODY_BYTES = 16 * 1024
+
+
+def read_error_body(response: requests.Response) -> bytes:
+    """An unreadable or oversized error must not mask the original HTTP status."""
+    body = bytearray()
+    try:
+        for chunk in response.iter_content(chunk_size=1024):
+            if len(body) + len(chunk) > ERROR_MAX_BODY_BYTES:
+                return b""
+            body.extend(chunk)
+    except requests.RequestException:
+        return b""
+    return bytes(body)
+
 
 def status_error(status_code: int) -> LLMProviderError:
     if status_code in (401, 403):

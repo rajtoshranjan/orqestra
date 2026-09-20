@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, type UseMutationResult } from '@tanstack/react-query';
 
 import { describeAgentError } from '@/agent/errors';
 import {
@@ -10,6 +10,9 @@ import {
   useUpdateLLMConfig,
   type CreateLLMConfigPayload,
   type LLMConfig,
+  type LLMConnectionResult,
+  type LLMDiscoveryPayload,
+  type LLMDiscoveryResult,
   type LLMModel,
   type LLMProvider,
 } from '@/api/llm-configs';
@@ -24,12 +27,32 @@ import {
 
 const EMPTY_MODELS: LLMModel[] = [];
 
+type LLMSetup = {
+  form: CreateLLMConfigPayload;
+  payload: CreateLLMConfigPayload;
+  source: LLMConfig | undefined;
+  sourceId: string;
+  connections: LLMConfig[];
+  manual: boolean;
+  models: LLMModel[];
+  discovery: UseMutationResult<LLMDiscoveryResult, Error, LLMDiscoveryPayload>;
+  test: UseMutationResult<LLMConnectionResult, Error, CreateLLMConfigPayload>;
+  saving: boolean;
+  problem: string | null;
+  changeForm: (changes: Partial<CreateLLMConfigPayload>) => void;
+  changeSource: (nextId: string) => void;
+  changeManual: () => void;
+  loadModels: () => void;
+  testModel: () => void;
+  save: () => Promise<void>;
+};
+
 export function useLLMSetup(
   provider: LLMProvider,
   configs: LLMConfig[],
   editing: LLMConfig | undefined,
   onSaved: () => void,
-) {
+): LLMSetup {
   const connections = configs.filter((config) => config.provider === provider);
   const initialSource = editing ?? connections[0];
   const [sourceId, setSourceId] = useState<string>(
